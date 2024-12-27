@@ -3025,18 +3025,36 @@ function cmd.scan_unused_level_logic(_,txt,x)
 	return
 end
 
-local stat_type = "outfit"
+function get_stat_value(obj, section, stat_type, type)
+	local gr = utils_ui.stats_table[stat_type][type]
+	local v = tonumber(utils_ui.get_stats_value(obj, section, gr, type) or 0)
+	local m = gr["magnitude"]
+	local result = v * m
+	return result
+end
 
-function get_protection_value(obj, section, protection_type)
-	return (utils_ui.get_stats_value(obj, section, utils_ui.stats_table[stat_type][protection_type], protection_type) or 0) * utils_ui.stats_table[stat_type][protection_type]["magnitude"]
+function get_outfit_stat_value(obj, section, type)
+	return get_stat_value(obj, section, "outfit", type)
+end
+
+function get_artefact_stat_value(obj, section, type)
+	return get_stat_value(obj, section, "artefact", type)
+end
+
+function get_booster_stat_value(obj, section, type)
+	return get_stat_value(obj, section, "booster", type)
 end
 
 function to_percent_string(value)
-	return value .. "%"
+	return (value or 0) .. "%"
+end
+
+function to_percent_floor(value)
+	return to_percent_string(math.floor(value))
 end
 
 function to_percent_round(value)
-	return math.floor(value) .. "%"
+	return to_percent_string(round(value))
 end
 
 function decimal_to_percent(value)
@@ -3161,8 +3179,8 @@ function cmd.export_outfits(_, txt, x)
 
 				outfit.cost = ini_sys:r_float_ex(section, "cost") or 0
 				outfit.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
-				outfit.carry_weight = get_protection_value(obj, section, "additional_inventory_weight")
-				outfit.arty =get_protection_value(obj, section, "artefact_count")
+				outfit.carry_weight = get_outfit_stat_value(obj, section, "additional_inventory_weight")
+				outfit.arty = get_outfit_stat_value(obj, section, "artefact_count") or 0
 				local max_arty = outfit.arty
 
 				local tree = utils_item.get_upgrades_tree(section)
@@ -3175,16 +3193,16 @@ function cmd.export_outfits(_, txt, x)
 				end
 
 				outfit.max_arty = max_arty
-				outfit.burn = to_percent_round(get_protection_value(obj, section, "burn_protection"))
-				outfit.shock = to_percent_round(get_protection_value(obj, section, "shock_protection"))
-				outfit.radiation = to_percent_round(get_protection_value(obj, section, "radiation_protection"))
-				outfit.chemical_burn = to_percent_round(get_protection_value(obj, section, "chemical_burn_protection"))
-				outfit.telepatic = to_percent_round(get_protection_value(obj, section, "telepatic_protection"))
-				outfit.impact = to_percent_string(get_protection_value(obj, section, "strike_protection"))
-				outfit.explosion = to_percent_string(get_protection_value(obj, section, "explosion_protection"))
-				outfit.rupture = to_percent_string(get_protection_value(obj, section, "wound_protection"))
-				outfit.ballistic = to_percent_string(get_protection_value(obj, section, "fire_wound_protection"))
-				outfit.br_class = round(get_protection_value(obj, section, "apres_modifier"))
+				outfit.burn = to_percent_floor(get_outfit_stat_value(obj, section, "burn_protection"))
+				outfit.shock = to_percent_floor(get_outfit_stat_value(obj, section, "shock_protection"))
+				outfit.radiation = to_percent_floor(get_outfit_stat_value(obj, section, "radiation_protection"))
+				outfit.chemical_burn = to_percent_floor(get_outfit_stat_value(obj, section, "chemical_burn_protection"))
+				outfit.telepatic = to_percent_floor(get_outfit_stat_value(obj, section, "telepatic_protection"))
+				outfit.impact = to_percent_string(get_outfit_stat_value(obj, section, "strike_protection"))
+				outfit.explosion = to_percent_string(get_outfit_stat_value(obj, section, "explosion_protection"))
+				outfit.rupture = to_percent_string(get_outfit_stat_value(obj, section, "wound_protection"))
+				outfit.ballistic = to_percent_string(get_outfit_stat_value(obj, section, "fire_wound_protection"))
+				outfit.br_class = round(get_outfit_stat_value(obj, section, "apres_modifier"))
 
 				outfit.powered = item_exo_device.is_exo(obj) and "Y" or "N"
 
@@ -3241,9 +3259,11 @@ function cmd.export_outfits(_, txt, x)
 			end
 
 			--csv header
-			--write_file(debug_file, "~,Faction,Icon,Name,Base Cost,Powered,Ballistic Res.,BR Class,Burn Res.,Electrical Res.,Chemical Res.,Ext. Radiation Res.,Psychic Res.,Rupture Res.,Impact Res.,Explosive Res.,Incl. Belt Slots,Max Belt Slots,Weight Carried kg,Movespeed Mult.,Weight kg")
+			--write_file(debug_file, "~,       Faction,   Name,   Base Cost,Powered,   Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Movespeed Mult., Weight kg")
 			for section,v in spairs(outfits, functor) do
-				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s", section, v.faction, "", v.name, v.cost, v.powered, v.ballistic, v.br_class, v.burn, v.shock, v.chemical_burn, v.radiation, v.telepatic, v.rupture, v.impact, v.explosion, v.arty, v.max_arty, v.carry_weight, v.speed, v.weight)
+				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+		      --~,       Faction,   Name,   Base Cost,Powered,   Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Movespeed Mult., Weight kg"
+				section, v.faction, v.name, v.cost,   v.powered, v.ballistic,   v.br_class, v.burn,    v.shock,         v.chemical_burn, v.radiation,         v.telepatic,  v.rupture,    v.impact,    v.explosion,    v.arty,           v.max_arty,     v.carry_weight,    v.speed,         v.weight)
 				type_cnt = type_cnt + 1
 			end
 			debug_file:close()
@@ -3253,6 +3273,219 @@ function cmd.export_outfits(_, txt, x)
 		x:SendOutput("[END] export outfit - %s total outfits exported - see in Gamma\\Overwrite\\bin", cnt)
 		return true
 	end)
+end
+
+function file_exists(name)
+	local f = io.open(name, "r")
+	if f ~= nil then
+		io.close(f)
+		return true
+	else
+		return false
+	end
+end
+
+function get_local_val(path, script_name, str_to_find)
+	if _G[script_name] then
+
+		if not file_exists(path) then
+			return
+		end
+
+		for line in io.lines(path) do
+			if string.find(line, str_to_find) then
+				_,_, loc_val = string.find(line, "start_blur_4%s*=%s*(%d+)")		-- RavenAscendant carried
+				if type(tonumber(loc_val)) == "number" then
+					return loc_val
+				end
+			end
+		end
+	end
+end
+
+function getEatableSleepiness(section)
+	local eat_sleepiness = ini_sys:r_float_ex(section, "eat_sleepiness")
+	local eat_sleep_ex = eat_sleepiness and eat_sleepiness ~= 0
+
+	if not eat_sleep_ex then
+		return 0
+	end
+
+	local max_sleep = get_local_val([[gamedata\scripts\actor_status_sleep.script]], "actor_status_sleep", "local start_blur_4") or 8750
+	local sleep_mult = get_local_val([[gamedata\scripts\actor_status_sleep.script]], "actor_status_sleep", "local eat_sleepiness_mul") or 1000
+	eat_sleepiness = eat_sleepiness * sleep_mult
+	local sleep_num = eat_sleepiness / max_sleep * 100
+	return sleep_num
+end
+
+function getEatableThirstiness(section)
+	local eat_thirstiness = ini_sys:r_float_ex(section, "eat_thirstiness")
+	local eat_thirst_ex = eat_thirstiness and eat_thirstiness ~= 0
+
+	if not eat_thirst_ex then
+		return 0
+	end
+
+	local max_thirst = get_local_val([[gamedata\scripts\actor_status_thirst.script]], "actor_status_thirst", "local start_blur_4") or 5760
+	local thirst_mult = get_local_val([[gamedata\scripts\actor_status_thirst.script]], "actor_status_thirst", "local eat_thirstiness_mul") or 1000
+	eat_thirstiness = eat_thirstiness * thirst_mult
+	local thirst_num = eat_thirstiness / max_thirst * 100
+	return thirst_num
+end
+
+local rad_max = 3870
+function getEatableRadiation(section)
+	local eat_rad = ini_sys:r_float_ex(section, "eat_radiation")
+	local eat_rad_ex = eat_rad and eat_rad ~= 0
+
+	if not eat_rad_ex then
+		return 0
+	end
+
+	local rad_num = eat_rad * rad_max
+	return rad_num
+end
+
+function getEatableSatiety(section)
+	local eat_sat = ini_sys:r_float_ex(section, "eat_satiety")
+	local eat_sat_ex = eat_sat and eat_sat ~= 0
+
+	if not eat_sat_ex then
+		return 0
+	end
+
+	local conditions = db.actor:cast_Actor():conditions()
+	local red_icon_satiety = conditions:SatietyCritical() * 0.5
+	local max_satiety = 1 - red_icon_satiety
+	local sat_num = eat_sat / max_satiety * 100
+	return sat_num
+end
+
+function getEatablesUsedInCooking()
+	local used_in_cooking = {}
+	local from_cooking = {}
+	local cooking_ini = ini_file("items\\settings\\cook.ltx")
+	n = cooking_ini:line_count("meal_list")
+	for i=0,n-1 do
+		result, id, value = cooking_ini:r_line_ex("meal_list",i,"","")
+		if id and value then
+			id = string.sub(id,3)
+			if ini_sys:section_exist(id) then
+				local t = str_explode(value,",")
+				local food = tostring(t[3])
+				if ini_sys:section_exist(food) then
+					used_in_cooking[food] = true
+				end
+				from_cooking[id] = true
+			end
+		end
+	end
+	return used_in_cooking, from_cooking
+end
+
+function cmd.export_eatable(_, txt, x)
+    x:SendOutput("[START] export outfit")
+
+    local food_kinds = {
+        ["i_mutant_raw"] = true,
+        ["i_mutant_cooked"] = true,
+        ["i_drink"] = true,
+		["i_mutant_cooked"] = true,
+		["i_mutant_raw"] = true,
+		["i_food"] = true,
+		["II_FOOD"] = true,
+		["S_FOOD"] = true,
+		["i_drink"] = true,
+		["II_BOTTL"] = true,
+    }
+
+	local blacklist = {
+		["items_anm_dummy"] = true,
+		["itm_xcvb_1"] = true,
+		["itm_xcvb_2"] = true,
+		["itm_xcvb_3"] = true,
+		["vodka_script"] = true,
+		["mutant_part_general_meat"] = true,
+	}
+
+	local used_in_cooking, from_cooking = getEatablesUsedInCooking()
+
+    local tbl = {}
+    local cnt = 0
+    ini_sys:section_for_each(function(section)
+		if blacklist[section] then
+			return
+		end
+        local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
+
+        if kind and food_kinds[kind] then
+            x:SendOutput("export eatable - %s", section)
+			local eatable = {}
+			eatable.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+			eatable.cost = ini_sys:r_float_ex(section, "cost") or 0
+			eatable.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+			eatable.tier = ini_sys:r_float_ex(section, "tier") or 0
+			eatable.sleepiness = to_percent_string(getEatableSleepiness(section))
+			eatable.thirstiness = to_percent_floor(getEatableThirstiness(section))
+			eatable.health = to_percent_string((ini_sys:r_float_ex(section, "eat_health") or 0) * 100)
+			eatable.rads = math.floor(getEatableRadiation(section))
+			eatable.satiety = to_percent_floor(getEatableSatiety(section))
+			eatable.servings = ini_sys:r_float_ex(section, "max_uses") or 1
+			eatable.used_in_cooking = used_in_cooking[section] and "Y" or "N"
+			eatable.from_cooking = from_cooking[section] and "Y" or "N"
+
+			eatable.duration = get_booster_stat_value(nil, section, "boost_time") or 0
+
+			eatable.health_restore = get_booster_stat_value(nil, section, "boost_health_restore") or 0
+			eatable.total_health_restore = to_percent_floor(eatable.duration * eatable.health_restore)
+			eatable.health_restore = to_percent_string(eatable.health_restore)
+
+			eatable.bleed_restore = get_booster_stat_value(nil, section, "boost_bleeding_restore") or 0
+			eatable.total_bleed_restore = eatable.duration * eatable.bleed_restore
+
+			eatable.rad_restore = math.floor(get_booster_stat_value(nil, section, "boost_radiation_restore") or 0)
+			eatable.total_rad_restore = math.floor(eatable.duration * eatable.rad_restore)
+
+			eatable.stamina_restore = (get_booster_stat_value(nil, section, "boost_power_restore") or 0) / 100
+			eatable.total_stamina_restore = to_percent_floor(eatable.duration * eatable.stamina_restore)
+			eatable.stamina_restore = to_percent_string(eatable.stamina_restore)
+
+			eatable.radiation_prot = math.floor(get_booster_stat_value(nil, section, "boost_radiation_protection") or 0)
+			eatable.chemical_prot = to_percent_floor(get_booster_stat_value(nil, section, "boost_chemburn_protection"))
+			eatable.psychic_prot = math.floor(get_booster_stat_value(nil, section, "boost_telepat_protection") or 0)
+			eatable.weight_carried = ini_sys:r_float_ex(section, "boost_max_weight") or 0
+
+			tbl[section] = eatable
+			cnt = cnt + 1
+        end
+    end)
+
+
+	local function write_file(file, text,...)
+		if not text then return end
+
+		local i = 0
+		local p = {...}
+		local function sr(a)
+			i = i + 1
+			return tostring(p[i])
+		end
+		local output = string.gsub(text,"%%s",sr)
+		file:write(output.."\n")
+	end
+
+	local p_file = "export_eatable.txt"
+	local debug_file = io.open(p_file,"w+")
+	--csv header
+	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Health Change, Rads mSv/s, Satiety Level, Servings,   Used in Cooking?,  From Cooking?,  Duration,  Health Res.,       Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,       Rad Res. msv sec, Total Rad Res.,       Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot. %, Psychic Prot. mt, Weight Carried kg")
+	for section,v in pairs(tbl) do
+		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+	  --~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Health Change, Rads mSv/s, Satiety Level, Servings,   Used in Cooking?,  From Cooking?,  Duration,  Health Res.,       Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,       Rad Res. msv sec, Total Rad Res.,       Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot. %, Psychic Prot. mt, Weight Carried kg
+		section, v.name, v.weight,  v.cost,  v.tier, v.sleepiness, v.thirstiness, v.health,      v.rads,     v.satiety,     v.servings, v.used_in_cooking, v.from_cooking, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore,   v.total_bleed_restore,  v.rad_restore,    v.total_rad_restore,  v.stamina_restore, v.total_stamina_restore, v.radiation_prot,    v.chemical_prot,  v.psychic_prot,   v.weight_carried)
+	end
+	debug_file:close()
+
+	x:SendOutput("[END] export outfit - %s total eatable exported - see in Gamma\\Overwrite\\bin\\export_eatable.txt", cnt)
 end
 
 function cmd.print_outfits_props(_,txt,x)
