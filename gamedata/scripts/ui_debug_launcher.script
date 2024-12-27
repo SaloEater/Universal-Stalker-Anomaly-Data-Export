@@ -54,6 +54,8 @@ function prepare()
 		{ 	name = "Export outfits" 				, cmd = "export_outfits"    				         , hide_ui = 0 								},
 		{ 	name = "Export eatable" 				, cmd = "export_eatable"   				             , hide_ui = 0 								},
 		{ 	name = "Export medicine" 				, cmd = "export_medicine"  				             , hide_ui = 0 								},
+		{ 	name = "Export artefacts" 				, cmd = "export_artefacts" 				             , hide_ui = 0 								},
+		{ 	name = "Export artefact recipes" 		, cmd = "export_artefact_recipes"		             , hide_ui = 0 								},
 		{ 	name = "Go incognito" 					, cmd = "invisible on" 						         , hide_ui = 0 		, key = "DIK_I"			},
 		{ 	name = "Go rich" 						, cmd = "money 1000000" 					         , hide_ui = 0 		, key = "DIK_M"			},
 		{ 	name = "Delete all squads" 				, cmd = "alife_release all" 				         , hide_ui = 2 								},

@@ -3346,6 +3346,15 @@ function getEatableRadiation(section)
 	return rad_num
 end
 
+function getSatietyPercent(flat_satiety)
+	--local conditions = db.actor:cast_Actor():conditions()
+	--local red_icon_satiety = conditions:SatietyCritical() * 0.5
+	local red_icon_satiety = 0
+	local max_satiety = 1 - red_icon_satiety
+	local sat_num = flat_satiety / max_satiety * 100
+	return sat_num
+end
+
 function getEatableSatiety(section)
 	local eat_sat = ini_sys:r_float_ex(section, "eat_satiety")
 	local eat_sat_ex = eat_sat and eat_sat ~= 0
@@ -3354,11 +3363,7 @@ function getEatableSatiety(section)
 		return 0
 	end
 
-	local conditions = db.actor:cast_Actor():conditions()
-	local red_icon_satiety = conditions:SatietyCritical() * 0.5
-	local max_satiety = 1 - red_icon_satiety
-	local sat_num = eat_sat / max_satiety * 100
-	return sat_num
+	return getSatietyPercent(eat_sat)
 end
 
 --See item_cooking.script::UICook:Load_MealRecipes
@@ -3527,38 +3532,49 @@ function build_bhs_summary(t_name, sec)
 end
 
 --See ui_workshop.script::UIWorkshopCraft:LoadRecipes
-function export_medicine_recipes()
+function export_recipes(craft_index)
 	local used_in_crafting = {}
 	local craftable = {}
 
 	local ini = itms_manager.ini_craft
-	local medicine_index = 5
-	local ind_str = tostring(medicine_index)
+	local ind_str = tostring(craft_index)
 	local n = ini:line_count(ind_str) or 0
 	for i=0, n-1 do
 		local result, id, value = ini:r_line(ind_str , i , "", "")
 		id = string.sub(id,3)
 		if ini_sys:section_exist(id) then
+			if not craftable[id] then
+				craftable[id] = {}
+			end
 			local t = str_explode(value,",")
 			if (#t == 6) or (#t == 8) or (#t == 10) then
-				craftable[id] = true
+				local x = #craftable[id] + 1
+				craftable[id][x] = {}
 				if t[3] and t[4] then -- support item 1
 					if ini_sys:section_exist(tostring(t[3])) then
+						local amt = tonumber(t[4])
+						craftable[id][x][1] = {tostring(t[3]), amt}
 						used_in_crafting[tostring(t[3])] = true
 					end
 				end
 				if t[5] and t[6] then -- support item 2
 					if ini_sys:section_exist(tostring(t[5])) then
+						local amt = tonumber(t[6])
+						craftable[id][x][2] = {tostring(t[5]), amt}
 						used_in_crafting[tostring(t[5])] = true
 					end
 				end
 				if t[7] and t[8] then -- support item 3
 					if ini_sys:section_exist(tostring(t[7])) then
+						local amt = tonumber(t[8])
+						craftable[id][x][3] = {tostring(t[7]), amt}
 						used_in_crafting[tostring(t[7])] = true
 					end
 				end
 				if t[9] and t[10] then -- support item 4
 					if ini_sys:section_exist(tostring(t[9])) then
+						local amt = tonumber(t[10])
+						craftable[id][x][4] = {tostring(t[9]), amt}
 						used_in_crafting[tostring(t[9])] = true
 					end
 				end
@@ -3567,6 +3583,14 @@ function export_medicine_recipes()
 	end
 
 	return used_in_crafting, craftable
+end
+
+function export_medicine_recipes()
+	return export_recipes(5)
+end
+
+function export_artefacts_recipes()
+	return export_recipes(7)
 end
 
 function cmd.export_medicine(_, txt, x)
@@ -3643,10 +3667,10 @@ function cmd.export_medicine(_, txt, x)
 			eatable.psychic_immunity = get_booster_stat_value(nil, section, "boost_telepat_immunity") or 0
 			eatable.chemical_burn_immunity = to_percent_string(get_booster_stat_value(nil, section, "boost_chemburn_protection") or 0)
 
-			eatable.strike_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_strike_immunity") or 0) * 100)
-			eatable.wound_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_wound_immunity") or 0) * 100)
+			eatable.impact_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_strike_immunity") or 0) * 100)
+			eatable.rupture_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_wound_immunity") or 0) * 100)
 			eatable.explosion_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_explosion_immunity") or 0) * 100)
-			eatable.fire_wound_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_fire_wound_immunity") or 0) * 100)
+			eatable.ballistic_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_fire_wound_immunity") or 0) * 100)
 
 			eatable.weight_carried = ini_sys:r_float_ex(section, "boost_max_weight") or 0
 
@@ -3678,15 +3702,177 @@ function cmd.export_medicine(_, txt, x)
 	local p_file = "export_medicine.csv"
 	local debug_file = io.open(p_file,"w+")
 	--csv header
-	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, Health Regen,   Perm Head,   Perm Torso,   Perm Arm,   Perm Leg,   Temp Head,   Temp Torso,   Temp Arm,   Temp Leg,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Strike Immunity,   Wound Immunity,   Explosion Immunity,   Fire Wound Immunity,   Satiety Level, Servings,   Duration,   Health Res.,      Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,      Rad Res. msv sec, Total Rad Res.,      Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot.,  Psychic Prot. mt, Weight Carried kg, Used In Crafting,   Craftable")
+	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, Health Regen,   Perm Head,   Perm Torso,   Perm Arm,   Perm Leg,   Temp Head,   Temp Torso,   Temp Arm,   Temp Leg,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Satiety Level, Servings,   Duration,   Health Res.,      Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,      Rad Res. msv sec, Total Rad Res.,      Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot.,  Psychic Prot. mt, Weight Carried kg, Used In Crafting,   Craftable")
 	for section,v in pairs(tbl) do
 		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-	  --~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, HP Active,   Perm Head,   Perm Torso,   Perm Arm,   Perm Leg,   Temp Head,   Temp Torso,   Temp Arm,   Temp Leg,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Strike Immunity,   Wound Immunity,   Explosion Immunity,   Fire Wound Immunity,   Satiety Level, Servings,   Duration,   Health Res.,      Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,      Rad Res. msv sec, Total Rad Res.,      Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot.,  Psychic Prot. mt, Weight Carried kg, Used In Crafting,   Craftable
-		section, v.name, v.weight,  v.cost,  v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health,      v.hp_active, v.perm_head, v.perm_torso, v.perm_arm, v.perm_leg, v.temp_head, v.temp_torso, v.temp_arm, v.temp_leg, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.strike_immunity, v.wound_immunity, v.explosion_immunity, v.fire_wound_immunity, v.satiety,     v.servings, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore,   v.total_bleed_restore, v.rad_restore,    v.total_rad_restore, v.stamina_restore, v.total_stamina_restore, v.radiation_prot,    v.chemical_prot, v.psychic_prot,   v.weight_carried,  v.used_in_crafting, v.craftable)
+	  --~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, HP Active,   Perm Head,   Perm Torso,   Perm Arm,   Perm Leg,   Temp Head,   Temp Torso,   Temp Arm,   Temp Leg,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Satiety Level, Servings,   Duration,   Health Res.,      Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,      Rad Res. msv sec, Total Rad Res.,      Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot.,  Psychic Prot. mt, Weight Carried kg, Used In Crafting,   Craftable
+		section, v.name, v.weight,  v.cost,  v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health,      v.hp_active, v.perm_head, v.perm_torso, v.perm_arm, v.perm_leg, v.temp_head, v.temp_torso, v.temp_arm, v.temp_leg, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.satiety,     v.servings, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore,   v.total_bleed_restore, v.rad_restore,    v.total_rad_restore, v.stamina_restore, v.total_stamina_restore, v.radiation_prot,    v.chemical_prot, v.psychic_prot,   v.weight_carried,  v.used_in_crafting, v.craftable)
 	end
 	debug_file:close()
 
 	x:SendOutput("[END] export medicine - %s total medicine exported - see in Gamma\\Overwrite\\bin\\export_medicine.csv", cnt)
+end
+
+function cmd.export_artefacts(_, txt, x)
+	x:SendOutput("[START] export artefacts")
+
+	local artefacts_kinds = {
+		["i_arty"] = true,
+		["i_arty_junk"] = true,
+		["ARTEFACT"] = true,
+		["SCRPTART"] = true,
+	}
+
+	local blacklist = {
+		["medkit_script"] = true,
+	}
+
+	local used_in_crafting, craftable = export_artefacts_recipes()
+
+	local tbl = {}
+	local cnt = 0
+	ini_sys:section_for_each(function(section)
+		if blacklist[section] then
+			return
+		end
+		local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
+
+		if kind and artefacts_kinds[kind] then
+			x:SendOutput("export artefact - %s", section)
+			local artefact = {}
+			artefact.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+			artefact.cost = ini_sys:r_float_ex(section, "cost") or 0
+			artefact.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+			artefact.tier = ini_sys:r_float_ex(section, "tier") or 0
+			artefact.rank = ini_sys:r_float_ex(section, "af_rank") or 0
+			artefact.is_junk = kind == "i_arty_junk" and "Y" or "N"
+			artefact.has_perk = perk_based_artefacts.artefact_props[section] and "Y" or "N"
+
+			artefact.health_restore = get_artefact_stat_value(nil, section, "health_restore_speed")
+			artefact.rad_restore = math.floor(get_artefact_stat_value(nil, section, "radiation_restore_speed") or 0)
+			artefact.bleed_restore = (get_artefact_stat_value(nil, section, "satiety_restore_speed") or 0)/1000
+			artefact.stamina_restore = to_percent_string(get_artefact_stat_value(nil, section, "power_restore_speed"))
+			artefact.satiety_restore = to_percent_string(getSatietyPercent(get_artefact_stat_value(nil, section, "satiety_restore_speed")))
+
+			artefact.burn_immunity = to_percent_string(get_artefact_stat_value(nil, section, "burn_immunity") or 0)
+			artefact.shock_immunity = to_percent_string(get_artefact_stat_value(nil, section, "shock_immunity") or 0)
+			artefact.radiation_immunity = to_percent_string(get_artefact_stat_value(nil, section, "radiation_immunity") or 0)
+			artefact.psychic_immunity = to_percent_string(get_artefact_stat_value(nil, section, "telepatic_immunity") or 0)
+			artefact.chemical_burn_immunity = to_percent_string(get_artefact_stat_value(nil, section, "chemical_burn_immunity") or 0)
+
+			artefact.rupture_immunity = to_percent_string(get_artefact_stat_value(nil, section, "wound_immunity") or 0)
+			artefact.ballistic_immunity = to_percent_string(get_artefact_stat_value(nil, section, "fire_wound_immunity") or 0)
+			artefact.explosion_immunity = to_percent_string(get_artefact_stat_value(nil, section, "explosion_immunity") or 0)
+			artefact.impact_immunity = to_percent_string(get_artefact_stat_value(nil, section, "strike_immunity") or 0)
+
+			artefact.weight_carried = get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0
+
+			artefact.burn_cap = to_percent_string(get_artefact_stat_value(nil, section, "burn_cap") or 0)
+			artefact.shock_cap = to_percent_string(get_artefact_stat_value(nil, section, "shock_cap") or 0)
+			artefact.telepatic_cap = to_percent_string(get_artefact_stat_value(nil, section, "telepatic_cap") or 0)
+			artefact.chemical_burn_cap = to_percent_string(get_artefact_stat_value(nil, section, "chemical_burn_cap") or 0)
+
+			artefact.rupture_cap = to_percent_string(get_artefact_stat_value(nil, section, "wound_cap") or 0)
+			artefact.ballistic_cap = to_percent_string(get_artefact_stat_value(nil, section, "fire_wound_cap") or 0)
+			artefact.explosion_cap = to_percent_string(get_artefact_stat_value(nil, section, "explosion_cap") or 0)
+			artefact.impact_cap = to_percent_string(get_artefact_stat_value(nil, section, "strike_cap") or 0)
+
+			artefact.used_in_crafting = used_in_crafting[section] and "Y" or "N"
+			artefact.craftable = craftable[section] and "Y" or "N"
+
+
+			tbl[section] = artefact
+			cnt = cnt + 1
+		end
+	end)
+
+
+	local function write_file(file, text,...)
+		if not text then return end
+
+		local i = 0
+		local p = {...}
+		local function sr(a)
+			i = i + 1
+			return tostring(p[i])
+		end
+		local output = string.gsub(text,"%%s",sr)
+		file:write(output.."\n")
+	end
+
+	local p_file = "export_artefacts.csv"
+	local debug_file = io.open(p_file,"w+")
+	--csv header
+	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Is Junk,   Has Perk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg, Used In Crafting,   Craftable")
+	for section,v in pairs(tbl) do
+		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+	  --~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Is Junk,   Has Perk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg, Used In Crafting,   Craftable
+		section, v.name, v.weight,  v.cost,    v.tier, v.rank, v.is_junk, v.has_perk, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.health_restore, v.satiety_restore, v.bleed_restore,   v.rad_restore,    v.stamina_restore, v.burn_cap, v.shock_cap, v.telepatic_cap, v.chemical_burn_cap, v.rupture_cap, v.ballistic_cap, v.explosion_cap, v.impact_cap, v.weight_carried,  v.used_in_crafting, v.craftable
+		)
+	end
+	debug_file:close()
+
+	x:SendOutput("[END] export artefacts - %s total artefacts exported - see in Gamma\\Overwrite\\bin\\export_artefacts.csv", cnt)
+end
+
+function cmd.export_artefact_recipes(_, txt, x)
+	x:SendOutput("[START] export artefact recipes")
+
+	local used_in_crafting, craftable = export_artefacts_recipes()
+
+	local tbl = {}
+	local cnt = 0
+	for section, recipes in pairs(craftable) do
+		for i, raw_recipe in ipairs(recipes) do
+			for k, v in pairs(raw_recipe) do
+				for k2, v2 in pairs(v) do
+					--
+					printf("section: %s, recipe: %s, k: %s, k2: %s, v2: %s", section, i, k, k2, v2)
+
+				end
+			end
+			local recipe = {}
+			recipe.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+			recipe.ingr_1_name = raw_recipe[1] and ini_sys:r_string_ex(raw_recipe[1][1], "inv_name") and game.translate_string(ini_sys:r_string_ex(raw_recipe[1][1], "inv_name")) or ""
+			recipe.ingr_1_amt = raw_recipe[1] and raw_recipe[1][2] and "x" .. raw_recipe[1][2] or ""
+			recipe.ingr_2_name = raw_recipe[2] and ini_sys:r_string_ex(raw_recipe[2][1], "inv_name") and game.translate_string(ini_sys:r_string_ex(raw_recipe[2][1], "inv_name")) or ""
+			recipe.ingr_2_amt = raw_recipe[2] and raw_recipe[2][2] and "x" .. raw_recipe[2][2] or ""
+			recipe.ingr_3_name = raw_recipe[3] and ini_sys:r_string_ex(raw_recipe[3][1], "inv_name") and game.translate_string(ini_sys:r_string_ex(raw_recipe[3][1], "inv_name")) or ""
+			recipe.ingr_3_amt = raw_recipe[3] and raw_recipe[3][2] and "x" .. raw_recipe[3][2] or ""
+			recipe.ingr_4_name = raw_recipe[4] and ini_sys:r_string_ex(raw_recipe[4][1], "inv_name") and game.translate_string(ini_sys:r_string_ex(raw_recipe[4][1], "inv_name")) or ""
+			recipe.ingr_4_amt = raw_recipe[4] and raw_recipe[4][2] and "x" .. raw_recipe[4][2] or ""
+			tbl[section] = recipe
+			cnt = cnt + 1
+		end
+	end
+
+
+	local function write_file(file, text,...)
+		if not text then return end
+
+		local i = 0
+		local p = {...}
+		local function sr(a)
+			i = i + 1
+			return tostring(p[i])
+		end
+		local output = string.gsub(text,"%%s",sr)
+		file:write(output.."\n")
+	end
+
+	local p_file = "export_artefact_recipes.csv"
+	local debug_file = io.open(p_file,"w+")
+	--csv header
+	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Is Junk,   Has Perk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg, Used In Crafting,   Craftable")
+	for section,v in pairs(tbl) do
+		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+	  --~ ,      Name,   Ingr 1 Name,   Ingr 1 Amt,   Ingr 2 Name,   Ingr 2 Amt,   Ingr 3 Name,   Ingr 3 Amt,   Ingr 4 Name,   Ingr 4 Amt
+		section, v.name, v.ingr_1_name, v.ingr_1_amt, v.ingr_2_name, v.ingr_2_amt, v.ingr_3_name, v.ingr_3_amt, v.ingr_4_name, v.ingr_4_amt
+		)
+	end
+	debug_file:close()
+
+	x:SendOutput("[END] export artefact recipes - %s total recipes exported - see in Gamma\\Overwrite\\bin\\export_artefact_recipes.csv", cnt)
 end
 
 function cmd.print_outfits_props(_,txt,x)
