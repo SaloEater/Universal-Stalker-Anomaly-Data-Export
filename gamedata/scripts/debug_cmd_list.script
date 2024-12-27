@@ -3724,7 +3724,15 @@ function cmd.export_artefacts(_, txt, x)
 	}
 
 	local blacklist = {
-		["medkit_script"] = true,
+		["mp_af_electra_flash"] = true,
+		["monolith_shard"] = true,
+		["jup_b1_half_artifact"] = true,
+		["af_rusty_kristall"] = true,
+		["af_rusty_sea"] = true,
+		["af_rusty_thorn"] = true,
+		["marker"] = true,
+		["af_dummy_pellicle"] = true,
+		["af_dummy_spring"] = true,
 	}
 
 	local used_in_crafting, craftable = export_artefacts_recipes()
