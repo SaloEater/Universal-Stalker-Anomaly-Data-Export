@@ -3249,7 +3249,7 @@ function cmd.export_outfits(_, txt, x)
 		local functor = function(t,a,b) return t[a].indx < t[b].indx end
 		for repair_type, outfits in pairs(tbl) do
 			local type_cnt = 0
-			local p_file = "export_outfits_" .. repair_type .. ".txt"
+			local p_file = "export_outfits_" .. repair_type .. ".csv"
 			local debug_file = io.open(p_file,"w+")
 
 			if ( debug_file == nil ) then
@@ -3361,6 +3361,7 @@ function getEatableSatiety(section)
 	return sat_num
 end
 
+--See item_cooking.script::UICook:Load_MealRecipes
 function getEatablesUsedInCooking()
 	local used_in_cooking = {}
 	local from_cooking = {}
@@ -3383,8 +3384,19 @@ function getEatablesUsedInCooking()
 	return used_in_cooking, from_cooking
 end
 
+function getEatableAlcohol(section)
+	local eat_alcohol = ini_sys:r_float_ex(section, "eat_alcohol")
+	local eat_alc_ex = eat_alcohol and eat_alcohol ~= 0
+
+	if not eat_alc_ex then
+		return 0
+	end
+
+	return eat_alcohol * 100
+end
+
 function cmd.export_eatable(_, txt, x)
-    x:SendOutput("[START] export outfit")
+    x:SendOutput("[START] export eatable")
 
     local food_kinds = {
         ["i_mutant_raw"] = true,
@@ -3406,6 +3418,7 @@ function cmd.export_eatable(_, txt, x)
 		["itm_xcvb_3"] = true,
 		["vodka_script"] = true,
 		["mutant_part_general_meat"] = true,
+		["mp_energy_drink"] = true,
 	}
 
 	local used_in_cooking, from_cooking = getEatablesUsedInCooking()
@@ -3427,6 +3440,7 @@ function cmd.export_eatable(_, txt, x)
 			eatable.tier = ini_sys:r_float_ex(section, "tier") or 0
 			eatable.sleepiness = to_percent_string(getEatableSleepiness(section))
 			eatable.thirstiness = to_percent_floor(getEatableThirstiness(section))
+			eatable.alcohol = to_percent_floor(getEatableAlcohol(section))
 			eatable.health = to_percent_string((ini_sys:r_float_ex(section, "eat_health") or 0) * 100)
 			eatable.rads = math.floor(getEatableRadiation(section))
 			eatable.satiety = to_percent_floor(getEatableSatiety(section))
@@ -3440,7 +3454,7 @@ function cmd.export_eatable(_, txt, x)
 			eatable.total_health_restore = to_percent_floor(eatable.duration * eatable.health_restore)
 			eatable.health_restore = to_percent_string(eatable.health_restore)
 
-			eatable.bleed_restore = get_booster_stat_value(nil, section, "boost_bleeding_restore") or 0
+			eatable.bleed_restore = (get_booster_stat_value(nil, section, "boost_bleeding_restore") or 0)/1000
 			eatable.total_bleed_restore = eatable.duration * eatable.bleed_restore
 
 			eatable.rad_restore = math.floor(get_booster_stat_value(nil, section, "boost_radiation_restore") or 0)
@@ -3474,18 +3488,205 @@ function cmd.export_eatable(_, txt, x)
 		file:write(output.."\n")
 	end
 
-	local p_file = "export_eatable.txt"
+	local p_file = "export_eatable.csv"
 	local debug_file = io.open(p_file,"w+")
 	--csv header
-	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Health Change, Rads mSv/s, Satiety Level, Servings,   Used in Cooking?,  From Cooking?,  Duration,  Health Res.,       Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,       Rad Res. msv sec, Total Rad Res.,       Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot. %, Psychic Prot. mt, Weight Carried kg")
+	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, Rads mSv/s, Satiety Level, Servings,   Used in Cooking?,  From Cooking?,  Duration,  Health Res.,       Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,       Rad Res. msv sec, Total Rad Res.,       Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot. %, Psychic Prot. mt, Weight Carried kg")
 	for section,v in pairs(tbl) do
 		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-	  --~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Health Change, Rads mSv/s, Satiety Level, Servings,   Used in Cooking?,  From Cooking?,  Duration,  Health Res.,       Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,       Rad Res. msv sec, Total Rad Res.,       Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot. %, Psychic Prot. mt, Weight Carried kg
-		section, v.name, v.weight,  v.cost,  v.tier, v.sleepiness, v.thirstiness, v.health,      v.rads,     v.satiety,     v.servings, v.used_in_cooking, v.from_cooking, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore,   v.total_bleed_restore,  v.rad_restore,    v.total_rad_restore,  v.stamina_restore, v.total_stamina_restore, v.radiation_prot,    v.chemical_prot,  v.psychic_prot,   v.weight_carried)
+	  --~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, Rads mSv/s, Satiety Level, Servings,   Used in Cooking?,  From Cooking?,  Duration,  Health Res.,       Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,       Rad Res. msv sec, Total Rad Res.,       Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot. %, Psychic Prot. mt, Weight Carried kg
+		section, v.name, v.weight,  v.cost,  v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health,      v.rads,     v.satiety,     v.servings, v.used_in_cooking, v.from_cooking, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore,   v.total_bleed_restore,  v.rad_restore,    v.total_rad_restore,  v.stamina_restore, v.total_stamina_restore, v.radiation_prot,    v.chemical_prot,  v.psychic_prot,   v.weight_carried)
 	end
 	debug_file:close()
 
-	x:SendOutput("[END] export outfit - %s total eatable exported - see in Gamma\\Overwrite\\bin\\export_eatable.txt", cnt)
+	x:SendOutput("[END] export outfit - %s total eatable exported - see in Gamma\\Overwrite\\bin\\export_eatable.csv", cnt)
+end
+
+function build_bhs_summary(t_name, sec)
+	local head = 0
+	local torso = 0
+	local arm = 0
+	local leg = 0
+	local timeregen = 0
+	if sec and t_name[sec] then
+		for limb, val in pairs(t_name[sec]) do
+			if limb == "head" then
+				head = val
+			elseif limb == "torso" then
+				torso = val
+			elseif limb == "rightarm" then
+				arm = val
+			elseif limb == "rightleg" then
+				leg = val
+			elseif limb == "timeregen" then
+				timeregen = val / 1000
+			end
+		end
+	end
+	return head, torso, arm, leg, timeregen
+end
+
+--See ui_workshop.script::UIWorkshopCraft:LoadRecipes
+function export_medicine_recipes()
+	local used_in_crafting = {}
+	local craftable = {}
+
+	local ini = itms_manager.ini_craft
+	local medicine_index = 5
+	local ind_str = tostring(medicine_index)
+	local n = ini:line_count(ind_str) or 0
+	for i=0, n-1 do
+		local result, id, value = ini:r_line(ind_str , i , "", "")
+		id = string.sub(id,3)
+		if ini_sys:section_exist(id) then
+			local t = str_explode(value,",")
+			if (#t == 6) or (#t == 8) or (#t == 10) then
+				craftable[id] = true
+				if t[3] and t[4] then -- support item 1
+					if ini_sys:section_exist(tostring(t[3])) then
+						used_in_crafting[tostring(t[3])] = true
+					end
+				end
+				if t[5] and t[6] then -- support item 2
+					if ini_sys:section_exist(tostring(t[5])) then
+						used_in_crafting[tostring(t[5])] = true
+					end
+				end
+				if t[7] and t[8] then -- support item 3
+					if ini_sys:section_exist(tostring(t[7])) then
+						used_in_crafting[tostring(t[7])] = true
+					end
+				end
+				if t[9] and t[10] then -- support item 4
+					if ini_sys:section_exist(tostring(t[9])) then
+						used_in_crafting[tostring(t[9])] = true
+					end
+				end
+			end
+		end
+	end
+
+	return used_in_crafting, craftable
+end
+
+function cmd.export_medicine(_, txt, x)
+	x:SendOutput("[START] export medicine")
+
+	local food_kinds = {
+		["i_medical"] = true,
+		["II_BANDG"] = true,
+		["II_MEDKI"] = true,
+		["II_ANTIR"] = true,
+	}
+
+	local blacklist = {
+		["medkit_script"] = true,
+		["mp_medkit_scientic"] = true,
+		["mp_medkit_army"] = true,
+		["mp_medkit"] = true,
+		["mp_drug_radioprotector"] = true,
+		["mp_drug_coagulant"] = true,
+		["mp_bandage"] = true,
+		["mp_antirad"] = true,
+		["medkit_ai1"] = true,
+		["medkit_ai2"] = true,
+		["medkit_ai3"] = true,
+	}
+
+	local used_in_crafting, craftable = export_medicine_recipes()
+
+	local tbl = {}
+	local cnt = 0
+	ini_sys:section_for_each(function(section)
+		if blacklist[section] then
+			return
+		end
+		local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
+
+		if kind and food_kinds[kind] then
+			x:SendOutput("export medicine - %s", section)
+			local eatable = {}
+			eatable.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+			eatable.cost = ini_sys:r_float_ex(section, "cost") or 0
+			eatable.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+			eatable.tier = ini_sys:r_float_ex(section, "tier") or 0
+			eatable.sleepiness = to_percent_string(getEatableSleepiness(section))
+			eatable.thirstiness = to_percent_floor(getEatableThirstiness(section))
+			eatable.alcohol = to_percent_floor(getEatableAlcohol(section))
+			eatable.health = to_percent_string((ini_sys:r_float_ex(section, "eat_health") or 0) * 100)
+			eatable.satiety = to_percent_floor(getEatableSatiety(section))
+			eatable.servings = ini_sys:r_float_ex(section, "max_uses") or 1
+
+			eatable.duration = get_booster_stat_value(nil, section, "boost_time") or 0
+
+			eatable.health_restore = get_booster_stat_value(nil, section, "boost_health_restore") or 0
+			eatable.total_health_restore = to_percent_floor(eatable.duration * eatable.health_restore)
+			eatable.health_restore = to_percent_string(eatable.health_restore)
+
+			eatable.bleed_restore = (get_booster_stat_value(nil, section, "boost_bleeding_restore") or 0)/1000
+			eatable.total_bleed_restore = eatable.duration * eatable.bleed_restore
+
+			eatable.rad_restore = math.floor(get_booster_stat_value(nil, section, "boost_radiation_restore") or 0)
+			eatable.total_rad_restore = math.floor(eatable.duration * eatable.rad_restore)
+
+			eatable.stamina_restore = (get_booster_stat_value(nil, section, "boost_power_restore") or 0) / 100
+			eatable.total_stamina_restore = to_percent_floor(eatable.duration * eatable.stamina_restore)
+			eatable.stamina_restore = to_percent_string(eatable.stamina_restore)
+
+			eatable.radiation_prot = to_percent_floor(get_booster_stat_value(nil, section, "boost_radiation_protection") or 0)
+			eatable.chemical_prot = to_percent_floor(get_booster_stat_value(nil, section, "boost_chemburn_protection"))
+			eatable.psychic_prot = to_percent_floor(get_booster_stat_value(nil, section, "boost_telepat_protection") or 0)
+
+			eatable.burn_immunity = get_booster_stat_value(nil, section, "boost_burn_immunity") or 0
+			eatable.shock_immunity = get_booster_stat_value(nil, section, "boost_shock_immunity") or 0
+			eatable.radiation_immunity = get_booster_stat_value(nil, section, "boost_radiation_immunity") or 0
+			eatable.psychic_immunity = get_booster_stat_value(nil, section, "boost_telepat_immunity") or 0
+			eatable.chemical_burn_immunity = to_percent_string(get_booster_stat_value(nil, section, "boost_chemburn_protection") or 0)
+
+			eatable.strike_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_strike_immunity") or 0) * 100)
+			eatable.wound_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_wound_immunity") or 0) * 100)
+			eatable.explosion_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_explosion_immunity") or 0) * 100)
+			eatable.fire_wound_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_fire_wound_immunity") or 0) * 100)
+
+			eatable.weight_carried = ini_sys:r_float_ex(section, "boost_max_weight") or 0
+
+			eatable.perm_head, eatable.perm_torso, eatable.perm_arm, eatable.perm_leg, eatable.perm_timeregen = build_bhs_summary(zzz_player_injuries.healhelp, section)
+			eatable.temp_head, eatable.temp_torso, eatable.temp_arm, eatable.temp_leg, eatable.hp_active = build_bhs_summary(zzz_player_injuries.medkits, section)
+
+			eatable.used_in_crafting = used_in_crafting[section] and "Y" or "N"
+			eatable.craftable = craftable[section] and "Y" or "N"
+
+			tbl[section] = eatable
+			cnt = cnt + 1
+		end
+	end)
+
+
+	local function write_file(file, text,...)
+		if not text then return end
+
+		local i = 0
+		local p = {...}
+		local function sr(a)
+			i = i + 1
+			return tostring(p[i])
+		end
+		local output = string.gsub(text,"%%s",sr)
+		file:write(output.."\n")
+	end
+
+	local p_file = "export_medicine.csv"
+	local debug_file = io.open(p_file,"w+")
+	--csv header
+	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, Health Regen,   Perm Head,   Perm Torso,   Perm Arm,   Perm Leg,   Temp Head,   Temp Torso,   Temp Arm,   Temp Leg,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Strike Immunity,   Wound Immunity,   Explosion Immunity,   Fire Wound Immunity,   Satiety Level, Servings,   Duration,   Health Res.,      Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,      Rad Res. msv sec, Total Rad Res.,      Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot.,  Psychic Prot. mt, Weight Carried kg, Used In Crafting,   Craftable")
+	for section,v in pairs(tbl) do
+		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+	  --~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, HP Active,   Perm Head,   Perm Torso,   Perm Arm,   Perm Leg,   Temp Head,   Temp Torso,   Temp Arm,   Temp Leg,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Strike Immunity,   Wound Immunity,   Explosion Immunity,   Fire Wound Immunity,   Satiety Level, Servings,   Duration,   Health Res.,      Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,      Rad Res. msv sec, Total Rad Res.,      Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot.,  Psychic Prot. mt, Weight Carried kg, Used In Crafting,   Craftable
+		section, v.name, v.weight,  v.cost,  v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health,      v.hp_active, v.perm_head, v.perm_torso, v.perm_arm, v.perm_leg, v.temp_head, v.temp_torso, v.temp_arm, v.temp_leg, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.strike_immunity, v.wound_immunity, v.explosion_immunity, v.fire_wound_immunity, v.satiety,     v.servings, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore,   v.total_bleed_restore, v.rad_restore,    v.total_rad_restore, v.stamina_restore, v.total_stamina_restore, v.radiation_prot,    v.chemical_prot, v.psychic_prot,   v.weight_carried,  v.used_in_crafting, v.craftable)
+	end
+	debug_file:close()
+
+	x:SendOutput("[END] export medicine - %s total medicine exported - see in Gamma\\Overwrite\\bin\\export_medicine.csv", cnt)
 end
 
 function cmd.print_outfits_props(_,txt,x)
