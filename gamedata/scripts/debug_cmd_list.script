@@ -3186,7 +3186,7 @@ function cmd.export_outfits(_, txt, x)
 				outfit.ballistic = to_percent_string(get_protection_value(obj, section, "fire_wound_protection"))
 				outfit.br_class = round(get_protection_value(obj, section, "apres_modifier"))
 
-				outfit.powered = ini_sys:r_float_ex(section, "power_loss") > 0 and "Y" or "N"
+				outfit.powered = item_exo_device.is_exo(obj) and "Y" or "N"
 
 				outfit.speed = decimal_to_percent(outfit_speed_mcm.get_outfit_speed(obj, section, false))
 
