@@ -3972,7 +3972,7 @@ function cmd.export_belt_attachments(_, txt, x)
 	end
 	debug_file:close()
 
-	x:SendOutput("[END] export artefacts - %s total artefacts exported - see in Gamma\\Overwrite\\bin\\export_belt_attachments.csv", cnt)
+	x:SendOutput("[END] export belt attachments - %s total attachments exported - see in Gamma\\Overwrite\\bin\\export_belt_attachments.csv", cnt)
 end
 
 function cmd.print_outfits_props(_,txt,x)
