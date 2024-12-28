@@ -3733,6 +3733,10 @@ function cmd.export_artefacts(_, txt, x)
 		["marker"] = true,
 		["af_dummy_pellicle"] = true,
 		["af_dummy_spring"] = true,
+		["af_ameba_slug"] = true,
+		["af_ameba_mica"] = true,
+		["af_ameba_slime"] = true,
+		["af_drops"] = true,
 	}
 
 	local used_in_crafting, craftable = export_artefacts_recipes()
@@ -3755,11 +3759,12 @@ function cmd.export_artefacts(_, txt, x)
 			artefact.rank = ini_sys:r_float_ex(section, "af_rank") or 0
 			artefact.is_junk = kind == "i_arty_junk" and "Y" or "N"
 			artefact.has_perk = perk_based_artefacts.artefact_props[section] and "Y" or "N"
+			artefact.jump_height = ini_sys:r_float_ex(section, "jump_height") or 0
 
 			artefact.health_restore = get_artefact_stat_value(nil, section, "health_restore_speed")
 			artefact.rad_restore = math.floor(get_artefact_stat_value(nil, section, "radiation_restore_speed") or 0)
-			artefact.bleed_restore = (get_artefact_stat_value(nil, section, "satiety_restore_speed") or 0)/1000
-			artefact.stamina_restore = to_percent_string(get_artefact_stat_value(nil, section, "power_restore_speed"))
+			artefact.bleed_restore = (get_artefact_stat_value(nil, section, "bleeding_restore_speed") or 0)/1000
+			artefact.stamina_restore = to_percent_round((get_artefact_stat_value(nil, section, "power_restore_speed") or 0))
 			artefact.satiety_restore = to_percent_string(getSatietyPercent(get_artefact_stat_value(nil, section, "satiety_restore_speed")))
 
 			artefact.burn_immunity = to_percent_string(get_artefact_stat_value(nil, section, "burn_immunity") or 0)
@@ -3788,7 +3793,6 @@ function cmd.export_artefacts(_, txt, x)
 			artefact.used_in_crafting = used_in_crafting[section] and "Y" or "N"
 			artefact.craftable = craftable[section] and "Y" or "N"
 
-
 			tbl[section] = artefact
 			cnt = cnt + 1
 		end
@@ -3811,11 +3815,11 @@ function cmd.export_artefacts(_, txt, x)
 	local p_file = "export_artefacts.csv"
 	local debug_file = io.open(p_file,"w+")
 	--csv header
-	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Is Junk,   Has Perk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg, Used In Crafting,   Craftable")
+	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Jump Height,   Is Junk,   Has Perk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg, Used In Crafting,   Craftable")
 	for section,v in pairs(tbl) do
-		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-	  --~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Is Junk,   Has Perk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg, Used In Crafting,   Craftable
-		section, v.name, v.weight,  v.cost,    v.tier, v.rank, v.is_junk, v.has_perk, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.health_restore, v.satiety_restore, v.bleed_restore,   v.rad_restore,    v.stamina_restore, v.burn_cap, v.shock_cap, v.telepatic_cap, v.chemical_burn_cap, v.rupture_cap, v.ballistic_cap, v.explosion_cap, v.impact_cap, v.weight_carried,  v.used_in_crafting, v.craftable
+		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+	  --~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Jump Height,   Is Junk,   Has Perk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg, Used In Crafting,   Craftable
+		section, v.name, v.weight,  v.cost,    v.tier, v.rank, v.jump_height, v.is_junk, v.has_perk, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.health_restore, v.satiety_restore, v.bleed_restore,   v.rad_restore,    v.stamina_restore, v.burn_cap, v.shock_cap, v.telepatic_cap, v.chemical_burn_cap, v.rupture_cap, v.ballistic_cap, v.explosion_cap, v.impact_cap, v.weight_carried,  v.used_in_crafting, v.craftable
 		)
 	end
 	debug_file:close()
@@ -3881,6 +3885,94 @@ function cmd.export_artefact_recipes(_, txt, x)
 	debug_file:close()
 
 	x:SendOutput("[END] export artefact recipes - %s total recipes exported - see in Gamma\\Overwrite\\bin\\export_artefact_recipes.csv", cnt)
+end
+
+function cmd.export_belt_attachments(_, txt, x)
+	x:SendOutput("[START] export belt attachments")
+
+	local artefacts_kinds = {
+		["i_mutant_belt"] = true,
+		["i_attach"] = true,
+		["i_backpack"] = true,
+		["EQ_BAKPK"] = true,
+	}
+
+	local blacklist = {
+		["fieldcraft_plate_attch"] = true,
+		["test_container"] = true,
+	}
+
+	local used_in_crafting, craftable = export_artefacts_recipes()
+
+	local tbl = {}
+	local cnt = 0
+	ini_sys:section_for_each(function(section)
+		if blacklist[section] then
+			return
+		end
+		local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
+
+		if kind and artefacts_kinds[kind] then
+			x:SendOutput("export belt attachment - %s", section)
+			local belt_attachment = {}
+			belt_attachment.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+			belt_attachment.cost = ini_sys:r_float_ex(section, "cost") or 0
+			belt_attachment.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+			belt_attachment.tier = ini_sys:r_float_ex(section, "tier") or 0
+			belt_attachment.jump_height = ini_sys:r_float_ex(section, "jump_height") or 0
+			belt_attachment.bonus_mutant_part_chance = to_percent_string(ini_sys:r_float_ex(section, "bonus_mutant_part_chance"))
+
+			belt_attachment.health_restore = get_artefact_stat_value(nil, section, "health_restore_speed")
+			belt_attachment.rad_restore = math.floor(get_artefact_stat_value(nil, section, "radiation_restore_speed") or 0)
+			belt_attachment.bleed_restore = (get_artefact_stat_value(nil, section, "bleeding_restore_speed") or 0)/1000
+			belt_attachment.stamina_restore = to_percent_round(get_artefact_stat_value(nil, section, "power_restore_speed"))
+			belt_attachment.satiety_restore = to_percent_string(getSatietyPercent(get_artefact_stat_value(nil, section, "satiety_restore_speed")))
+
+			belt_attachment.burn_immunity = to_percent_string(get_artefact_stat_value(nil, section, "burn_immunity") or 0)
+			belt_attachment.shock_immunity = to_percent_string(get_artefact_stat_value(nil, section, "shock_immunity") or 0)
+			belt_attachment.radiation_immunity = to_percent_string(get_artefact_stat_value(nil, section, "radiation_immunity") or 0)
+			belt_attachment.psychic_immunity = to_percent_string(get_artefact_stat_value(nil, section, "telepatic_immunity") or 0)
+			belt_attachment.chemical_burn_immunity = to_percent_string(get_artefact_stat_value(nil, section, "chemical_burn_immunity") or 0)
+
+			belt_attachment.rupture_immunity = to_percent_string(get_artefact_stat_value(nil, section, "wound_immunity") or 0)
+			belt_attachment.ballistic_immunity = to_percent_string(get_artefact_stat_value(nil, section, "fire_wound_immunity") or 0)
+			belt_attachment.explosion_immunity = to_percent_string(get_artefact_stat_value(nil, section, "explosion_immunity") or 0)
+			belt_attachment.impact_immunity = to_percent_string(get_artefact_stat_value(nil, section, "strike_immunity") or 0)
+
+			belt_attachment.weight_carried = get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0
+
+			tbl[section] = belt_attachment
+			cnt = cnt + 1
+		end
+	end)
+
+
+	local function write_file(file, text,...)
+		if not text then return end
+
+		local i = 0
+		local p = {...}
+		local function sr(a)
+			i = i + 1
+			return tostring(p[i])
+		end
+		local output = string.gsub(text,"%%s",sr)
+		file:write(output.."\n")
+	end
+
+	local p_file = "export_belt_attachments.csv"
+	local debug_file = io.open(p_file,"w+")
+	--csv header
+	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier,   Jump Height,   Bonus Mutant Part Chance,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Weight Carried kg")
+	for section,v in pairs(tbl) do
+		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+	  --~ ,      Name,   Weight kg, Base Cost, Tier,   Jump Height,   Bonus Mutant Part Chance,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Weight Carried kg
+		section, v.name, v.weight,  v.cost,    v.tier, v.jump_height, v.bonus_mutant_part_chance, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.health_restore, v.satiety_restore, v.bleed_restore,   v.rad_restore,    v.stamina_restore, v.weight_carried
+		)
+	end
+	debug_file:close()
+
+	x:SendOutput("[END] export artefacts - %s total artefacts exported - see in Gamma\\Overwrite\\bin\\export_belt_attachments.csv", cnt)
 end
 
 function cmd.print_outfits_props(_,txt,x)
