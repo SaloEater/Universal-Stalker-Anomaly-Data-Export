@@ -3713,6 +3713,20 @@ function cmd.export_medicine(_, txt, x)
 	x:SendOutput("[END] export medicine - %s total medicine exported - see in Gamma\\Overwrite\\bin\\export_medicine.csv", cnt)
 end
 
+function get_perk_artifacts_list()
+	local perk_artefacts = {}
+
+	for i, v in pairs(perk_based_artefacts) do
+		if type(v) == "table" and string.find(i, "artefact_on_") then
+			for j, k in pairs(v) do
+				perk_artefacts[j] = true
+			end
+		end
+	end
+
+	return perk_artefacts
+end
+
 function cmd.export_artefacts(_, txt, x)
 	x:SendOutput("[START] export artefacts")
 
@@ -3740,6 +3754,7 @@ function cmd.export_artefacts(_, txt, x)
 	}
 
 	local used_in_crafting, craftable = export_artefacts_recipes()
+	local perk_artefacts = get_perk_artifacts_list()
 
 	local tbl = {}
 	local cnt = 0
@@ -3758,7 +3773,7 @@ function cmd.export_artefacts(_, txt, x)
 			artefact.tier = ini_sys:r_float_ex(section, "tier") or 0
 			artefact.rank = ini_sys:r_float_ex(section, "af_rank") or 0
 			artefact.is_junk = kind == "i_arty_junk" and "Y" or "N"
-			artefact.has_perk = perk_based_artefacts.artefact_props[section] and "Y" or "N"
+			artefact.has_perk = perk_artefacts[section] and "Y" or "N"
 			artefact.jump_height = ini_sys:r_float_ex(section, "jump_height") or 0
 
 			artefact.health_restore = get_artefact_stat_value(nil, section, "health_restore_speed")
