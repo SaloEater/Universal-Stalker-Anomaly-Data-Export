@@ -3045,6 +3045,10 @@ function get_booster_stat_value(obj, section, type)
 	return get_stat_value(obj, section, "booster", type)
 end
 
+function get_weapon_stat_value(obj, section, type)
+	return get_stat_value(obj, section, "weapon", type)
+end
+
 function to_percent_string(value)
 	return (value or 0) .. "%"
 end
@@ -3059,6 +3063,19 @@ end
 
 function decimal_to_percent(value)
 	return to_percent_string(tonumber(value) * 100)
+end
+
+function write_file(file, text,...)
+	if not text then return end
+
+	local i = 0
+	local p = {...}
+	local function sr(a)
+		i = i + 1
+		return tostring(p[i])
+	end
+	local output = string.gsub(text,"%%s",sr)
+	file:write(output.."\n")
 end
 
 function cmd.export_outfits(_, txt, x)
@@ -3231,19 +3248,6 @@ function cmd.export_outfits(_, txt, x)
 		if counter > 0 then
 			x:SendOutput("export outfit - %s outfits still to do", counter)
 			return false
-		end
-
-		local function write_file(file, text,...)
-			if not text then return end
-
-			local i = 0
-			local p = {...}
-			local function sr(a)
-				i = i + 1
-				return tostring(p[i])
-			end
-			local output = string.gsub(text,"%%s",sr)
-			file:write(output.."\n")
 		end
 
 		local functor = function(t,a,b) return t[a].indx < t[b].indx end
@@ -3479,20 +3483,6 @@ function cmd.export_eatable(_, txt, x)
         end
     end)
 
-
-	local function write_file(file, text,...)
-		if not text then return end
-
-		local i = 0
-		local p = {...}
-		local function sr(a)
-			i = i + 1
-			return tostring(p[i])
-		end
-		local output = string.gsub(text,"%%s",sr)
-		file:write(output.."\n")
-	end
-
 	local p_file = "export_eatable.csv"
 	local debug_file = io.open(p_file,"w+")
 	--csv header
@@ -3685,20 +3675,6 @@ function cmd.export_medicine(_, txt, x)
 		end
 	end)
 
-
-	local function write_file(file, text,...)
-		if not text then return end
-
-		local i = 0
-		local p = {...}
-		local function sr(a)
-			i = i + 1
-			return tostring(p[i])
-		end
-		local output = string.gsub(text,"%%s",sr)
-		file:write(output.."\n")
-	end
-
 	local p_file = "export_medicine.csv"
 	local debug_file = io.open(p_file,"w+")
 	--csv header
@@ -3851,13 +3827,6 @@ function cmd.export_artefact_recipes(_, txt, x)
 	local cnt = 0
 	for section, recipes in pairs(craftable) do
 		for i, raw_recipe in ipairs(recipes) do
-			for k, v in pairs(raw_recipe) do
-				for k2, v2 in pairs(v) do
-					--
-					printf("section: %s, recipe: %s, k: %s, k2: %s, v2: %s", section, i, k, k2, v2)
-
-				end
-			end
 			local recipe = {}
 			recipe.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
 			recipe.ingr_1_name = raw_recipe[1] and ini_sys:r_string_ex(raw_recipe[1][1], "inv_name") and game.translate_string(ini_sys:r_string_ex(raw_recipe[1][1], "inv_name")) or ""
@@ -3871,20 +3840,6 @@ function cmd.export_artefact_recipes(_, txt, x)
 			tbl[section] = recipe
 			cnt = cnt + 1
 		end
-	end
-
-
-	local function write_file(file, text,...)
-		if not text then return end
-
-		local i = 0
-		local p = {...}
-		local function sr(a)
-			i = i + 1
-			return tostring(p[i])
-		end
-		local output = string.gsub(text,"%%s",sr)
-		file:write(output.."\n")
 	end
 
 	local p_file = "export_artefact_recipes.csv"
@@ -3901,6 +3856,7 @@ function cmd.export_artefact_recipes(_, txt, x)
 
 	x:SendOutput("[END] export artefact recipes - %s total recipes exported - see in Gamma\\Overwrite\\bin\\export_artefact_recipes.csv", cnt)
 end
+
 
 function cmd.export_belt_attachments(_, txt, x)
 	x:SendOutput("[START] export belt attachments")
@@ -3981,13 +3937,297 @@ function cmd.export_belt_attachments(_, txt, x)
 	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier,   Jump Height,   Bonus Mutant Part Chance,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Weight Carried kg")
 	for section,v in pairs(tbl) do
 		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-	  --~ ,      Name,   Weight kg, Base Cost, Tier,   Jump Height,   Bonus Mutant Part Chance,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Weight Carried kg
-		section, v.name, v.weight,  v.cost,    v.tier, v.jump_height, v.bonus_mutant_part_chance, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.health_restore, v.satiety_restore, v.bleed_restore,   v.rad_restore,    v.stamina_restore, v.weight_carried
+		--~ ,      Name,   Weight kg, Base Cost, Tier,   Jump Height,   Bonus Mutant Part Chance,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Weight Carried kg
+				section, v.name, v.weight,  v.cost,    v.tier, v.jump_height, v.bonus_mutant_part_chance, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.health_restore, v.satiety_restore, v.bleed_restore,   v.rad_restore,    v.stamina_restore, v.weight_carried
 		)
 	end
 	debug_file:close()
 
 	x:SendOutput("[END] export belt attachments - %s total attachments exported - see in Gamma\\Overwrite\\bin\\export_belt_attachments.csv", cnt)
+end
+
+local ammo_special_types = {
+	["gauss"] = "Gauss",
+	["pkm_100"] = "100",
+	["magnum_300"] = "300",
+	["m209"] = "209",
+	["357_hp"] = "357",
+	["vog-25"] = "Vog 25",
+	["og-7b"] = "OG 7b",
+	["23_eco"] = "23 Eco",
+	["338"] = "338",
+}
+
+function getWeaponCaliber(ammo_class)
+	local ammo_tbl = str_explode(ammo_class,",")
+	if #ammo_tbl == 0 then
+		return ""
+	end
+	local ammo_types = {}
+
+	for i, ammo in ipairs(ammo_tbl) do
+		local regular_start, regular_end = string.find(ammo, "[0-9.]*x[0-9]*")
+		if regular_start then
+			ammo_types[string.sub(ammo, regular_start, regular_end)] = true
+		else
+			for ammo_type, label in pairs(ammo_special_types) do
+				local special_start, special_end = string.find(ammo, ammo_type)
+				if special_start then
+					ammo_types[label] = true
+				end
+			end
+		end
+	end
+
+	local ammo_list = ""
+
+	for ammo_type, _ in pairs(ammo_types) do
+		if ammo_list == "" then
+			ammo_list = ammo_type
+		else
+			ammo_list = ammo_list .. "; " .. ammo_type
+		end
+	end
+
+	return ammo_list
+end
+
+function armor_to_class(val)
+	if (val < 11) then val = 0
+	elseif ( (val >= 11) and (val < 19) ) then val = 1
+	elseif ( (val >= 19) and (val < 30) ) then val = 2
+	elseif ( (val >= 30) and (val < 39) ) then val = 3
+	elseif ( (val >= 39) and (val < 46) ) then val = 4
+	elseif ( (val >= 46) and (val < 55) ) then val = 5
+	else val = 6
+	end
+
+	return val
+end
+
+function getWeaponBRStats(ammo_class)
+	local brs = {
+		"", "", "", "", "", "", ""
+	}
+	printf("ammo_class %s", ammo_class)
+	local ammo_tbl = str_explode(ammo_class,",")
+	for i, ammo in ipairs(ammo_tbl) do
+		printf("ammo %s", ammo)
+		local ap = ini_sys:r_float_ex(ammo, "k_ap") or 0
+		ap = ap * 10 * 100 * 1.0 --see cxv_ammo_stats_tbl.difficulty_multiplier for other values
+		local br = armor_to_class(ap)
+		printf("ammo %s, ap %s, br %s", ammo, ap, br)
+		if br > 0 and (not brs[br] or brs[br] == "" or brs[br] < ap) then
+			brs[br] = ap
+		end
+	end
+	return brs[1], brs[2], brs[3], brs[4], brs[5], brs[6]
+end
+
+function cmd.export_weapons(_, txt, x)
+	x:SendOutput("[START] export weapons")
+
+	local weapon_kinds = {
+		--["w_melee"]     = "melee",
+		--["WP_KNIFE"]    = "melee",
+
+		["w_pistol"]    = "pistol",
+		["WP_HPSA"]     = "pistol",
+		["WP_PM"]       = "pistol",
+		["WP_USP45"]    = "pistol",
+
+		["w_shotgun"]   = "shotgun",
+		["WP_ASHTG"]    = "shotgun",
+		["WP_BM16"]     = "shotgun",
+
+		["w_smg"]       = "smg",
+
+		["w_rifle"]     = "rifle",
+		["WP_AK74"]     = "rifle",
+		["WP_GROZA"]    = "rifle",
+		["WP_LR300"]    = "rifle",
+		["WP_VAL"]      = "rifle",
+
+		["w_sniper"]    = "sniper",
+		["WP_SVD"]      = "sniper",
+		["WP_SVU"]      = "sniper",
+
+		--["w_explosive"] = "explosive",
+		--["WP_RG6"]      = "explosive",
+		--["WP_RPG7"]     = "explosive",
+		--["G_F1_S"]      = "explosive",
+		--["G_RGD5_S"]    = "explosive",
+		--["G_F1"] 	    = "explosive",
+		--["G_RGD5"] 	    = "explosive",
+	}
+
+	local blacklist = {
+		["fieldcraft_plate_attch"] = true,
+	}
+
+	local tbl = {}
+	local cnt = 0
+	local counter = 0
+	ini_sys:section_for_each(function(section)
+		if blacklist[section] or section ~= "wpn_remington700_lapua700" then
+			return
+		end
+
+		local is_mp = string.find(section, "mp")
+		if is_mp then
+			return
+		end
+
+		local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
+
+		if kind and weapon_kinds[kind] then
+			local parent_section = ini_sys:r_string_ex(section, "parent_section")
+			if section ~= parent_section then
+				return
+			end
+
+			printf("export weapon - %s", section)
+			kind = weapon_kinds[kind]
+			if not tbl[kind] then
+				tbl[kind] = {}
+			end
+
+			local pos = db.actor:position()
+			local lvid = db.actor:level_vertex_id()
+			local gvid = db.actor:game_vertex_id()
+			local id = AC_ID
+
+			local se_obj
+			se_obj = alife_create_item(section, {pos, lvid, gvid, id} )
+
+			if not se_obj then
+				printf( "No server object made for [%s]", section)
+				--x:SendOutput( "No server object made for [%s]", section)
+				return
+			end
+			cnt = cnt + 1
+			counter = counter + 1
+			local id = se_obj.id
+
+			x:SendOutput("export weapon - %s, start", section)
+			local function createInterval(section, id, callback, idx)
+				CreateTimeEvent("export_weapon_"..section.."_"..idx, "delay_func", 2, function(section, id)
+					local success = callback(section, id)
+					if not success then
+						createInterval(section, id, callback, idx + 1)
+					end
+					return true
+				end, section, id)
+			end
+
+			createInterval(section, id, function(section, id)
+				local obj = level.object_by_id(id)
+				if not obj then
+					--x:SendOutput("export weapon - %s, still online", section)
+					return false
+				end
+
+				--x:SendOutput("export weapon - %s, back offline", section)
+				local weapon = {}
+				weapon.type = kind
+				weapon.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+				weapon.cost = ini_sys:r_float_ex(section, "cost") or 0
+				weapon.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+
+				weapon.accuracy = to_percent_floor(get_weapon_stat_value(obj, section, "accuracy"))
+				weapon.handling = to_percent_floor(get_weapon_stat_value(obj, section, "handling"))
+				weapon.damage = get_weapon_stat_value(obj, section, "damage")
+				weapon.fire_rate = get_weapon_stat_value(obj, section, "fire_rate")
+				weapon.ammo_mag_size = get_weapon_stat_value(obj, section, "ammo_mag_size")
+				weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
+				weapon.speed = math.floor(get_weapon_stat_value(obj, section, "speed"))
+				weapon.reliability = to_percent_floor(get_weapon_stat_value(obj, section, "reliability"))
+				weapon.recoil = math.floor(get_weapon_stat_value(obj, section, "recoil"))
+
+				local ammo_class = ini_sys:r_string_ex(section,"ammo_class") or ""
+				weapon.caliber = getWeaponCaliber(ammo_class)
+
+				local alt_calibers_cnt = 1
+				local alt_calibers = {}
+				local tree = utils_item.get_upgrades_tree(section)
+				for row, v in pairs(tree) do
+					for col, w in pairs(v) do
+						local sec = w.section
+						local upgrade_sec = ini_sys:r_string_ex(sec, "section")
+						if upgrade_sec then
+							local ammo_class = ini_sys:r_string_ex(upgrade_sec, "ammo_class")
+							if ammo_class then
+								alt_calibers[alt_calibers_cnt] = getWeaponCaliber(ammo_class)
+								alt_calibers_cnt = alt_calibers_cnt + 1
+							end
+						end
+					end
+				end
+
+				local alt_calibers_str = ""
+				for i, v in ipairs(alt_calibers) do
+					if alt_calibers_str == "" then
+						alt_calibers_str = v
+					else
+						alt_calibers_str = alt_calibers_str .. "; " .. v
+					end
+				end
+
+				weapon.alt_caliber = alt_calibers_str
+
+				weapon.br1, weapon.br2, weapon.br3, weapon.br4, weapon.br5, weapon.br6 = getWeaponBRStats(ammo_class)
+
+				tbl[kind][section] = weapon
+				alife_release(se_obj)
+				x:SendOutput("export weapon - %s, done", section)
+				counter = counter - 1
+				return true
+			end, 0)
+		end
+	end)
+
+	local function createTotalInterval(callback, idx)
+		CreateTimeEvent("export_weapons_total_" .. idx, "delay_func", 5, function()
+			local success = callback()
+			if not success then
+				createTotalInterval(callback, idx + 1)
+			end
+			return true
+		end)
+	end
+
+	createTotalInterval(function()
+		if counter > 0 then
+			x:SendOutput("export weapons - %s weapons still to do", counter)
+			return false
+		end
+
+		for weapon_type, weapons in pairs(tbl) do
+			local type_cnt = 0
+			local p_file = "export_weapons_" .. weapon_type .. ".csv"
+			local debug_file = io.open(p_file,"w+")
+
+			if ( debug_file == nil ) then
+				x:SendOutput("Failed to create/open file %s", p_file)
+				debug_file:close()
+				return true
+			end
+
+			--csv header
+			--write_file(debug_file, "~,       Type,   Name,   Tier,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6")
+			for section, w in pairs(weapons) do
+				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+			  --~,       Type,   Name,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6"
+				section, w.type, w.name, w.cost,    w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.weight,  w.caliber, w.alt_caliber, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6)
+				type_cnt = type_cnt + 1
+			end
+			debug_file:close()
+			x:SendOutput("[END] export weapons - %s weapons exported - see %s", type_cnt, p_file)
+		end
+
+		x:SendOutput("[END] export weapons - %s total weapons exported - see in Gamma\\Overwrite\\bin", cnt)
+		return true
+	end, 0)
 end
 
 function cmd.print_outfits_props(_,txt,x)
