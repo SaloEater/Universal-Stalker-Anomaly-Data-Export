@@ -3078,6 +3078,21 @@ function write_file(file, text,...)
 	file:write(output.."\n")
 end
 
+function get_outfit_repair_label(repair_type)
+	if repair_type == "outfit_novice" then
+		return "F"
+	elseif repair_type == "outfit_light" or repair_type == "helmet_light" then
+		return "L"
+	elseif repair_type == "outfit_medium" or repair_type == "helmet_medium" then
+		return "M"
+	elseif repair_type == "outfit_heavy" or repair_type == "helmet_heavy" then
+		return "H"
+	elseif repair_type == "outfit_exo" or repair_type == "helmet_exo"then
+		return "E"
+	end
+	return "N/A"
+end
+
 function cmd.export_outfits(_, txt, x)
 	x:SendOutput("[START] export outfit")
 
@@ -3193,8 +3208,11 @@ function cmd.export_outfits(_, txt, x)
 				local outfit = {}
 				outfit.typ = repair_type
 				outfit.indx = outfit_type[repair_type] or 0
-				outfit.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
 				outfit.faction = game.translate_string(ini_sys:r_string_ex(section, "community")) or "Unknown"
+				outfit.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+				local rt = ini_sys:r_string_ex(section, "repair_type")
+				--printf("export outfit - %s, repair type %s", section, rt)
+				outfit.repair_label = get_outfit_repair_label(rt)
 
 				outfit.cost = ini_sys:r_float_ex(section, "cost") or 0
 				outfit.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
@@ -3274,8 +3292,8 @@ function cmd.export_outfits(_, txt, x)
 			--write_file(debug_file, "~,       Faction,   Name,   Base Cost,Powered,   Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Movespeed Mult., Weight kg")
 			for section,v in spairs(outfits, functor) do
 				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-		      --~,       Faction,   Name,   Base Cost,Powered,   Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Movespeed Mult., Weight kg"
-				section, v.faction, v.name, v.cost,   v.powered, v.ballistic,   v.br_class, v.burn,    v.shock,         v.chemical_burn, v.radiation,         v.telepatic,  v.rupture,    v.impact,    v.explosion,    v.arty,           v.max_arty,     v.carry_weight,    v.speed,         v.weight)
+		      --~,       Faction,   Name,   Repair Label,   Base Cost,Powered,   Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Movespeed Mult., Weight kg"
+				section, v.faction, v.name, v.repair_label, v.cost,   v.powered, v.ballistic,   v.br_class, v.burn,    v.shock,         v.chemical_burn, v.radiation,         v.telepatic,  v.rupture,    v.impact,    v.explosion,    v.arty,           v.max_arty,     v.carry_weight,    v.speed,         v.weight)
 				type_cnt = type_cnt + 1
 			end
 			debug_file:close()
@@ -3974,14 +3992,14 @@ function get_weapon_caliber(ammo_class)
 	local ammo_types = {}
 
 	for i, ammo in ipairs(ammo_tbl) do
-		printf("ammo: %s", ammo)
+		--printf("ammo: %s", ammo)
 		local regular_start, regular_end = string.find(ammo, "[0-9.]*x[0-9]*")
 		if regular_start then
 			ammo_types[string.sub(ammo, regular_start, regular_end)] = true
 		else
 			for ammo_type, label in pairs(ammo_special_types) do
 				local special_start, special_end = string.find(ammo, ammo_type)
-				printf("try: %s - %s", ammo_type, special_start)
+				--printf("try: %s - %s", ammo_type, special_start)
 				if special_start then
 					ammo_types[label] = true
 				end
@@ -4029,6 +4047,19 @@ function get_weapon_br_stats(ammo_class)
 		end
 	end
 	return brs[1], brs[2], brs[3], brs[4], brs[5], brs[6], brs[7]
+end
+
+function get_weapon_repair_label(repair_type)
+	if repair_type == "pistol" then
+		return "A"
+	elseif repair_type == "shotgun" then
+		return "B"
+	elseif repair_type == "rifle_5" then
+		return "C"
+	elseif repair_type == "rifle_7" then
+		return "D"
+	end
+	return "N/A"
 end
 
 function cmd.export_weapons(_, txt, x)
@@ -4121,6 +4152,8 @@ function cmd.export_weapons(_, txt, x)
 				weapon.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
 				weapon.cost = ini_sys:r_float_ex(section, "cost") or 0
 				weapon.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+				local repair_type = ini_sys:r_string_ex(section, "repair_type") or ""
+				weapon.repair_label = get_weapon_repair_label(repair_type)
 
 				weapon.accuracy = to_percent_floor(get_weapon_stat_value(obj, section, "accuracy"))
 				weapon.handling = to_percent_floor(get_weapon_stat_value(obj, section, "handling"))
@@ -4205,8 +4238,8 @@ function cmd.export_weapons(_, txt, x)
 			--write_file(debug_file, "~,       Type,   Name,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6")
 			for section, w in pairs(weapons) do
 				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-			  --~,       Type,   Name,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6
-				section, w.type, w.name, w.cost,    w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.weight,  w.caliber, w.alt_caliber, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
+			  --~,       Type,   Name,   Repair Label,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6
+				section, w.type, w.name, w.repair_label, w.cost,    w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.weight,  w.caliber, w.alt_caliber, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
 				type_cnt = type_cnt + 1
 			end
 			debug_file:close()
@@ -4222,15 +4255,40 @@ function get_heavy_attack_damage(obj, sec)
 	local id = obj and obj:id()
 	local hit_power = ini_sys:r_float_ex(sec, "hit_power_2") or 0
 	local ammo_list = utils_item.get_ammo(sec, id)
-	printf("get_heavy_attack_damage - %s, hit_power %s, ammo_list %s", sec, hit_power, ammo_list[1])
+	--printf("get_heavy_attack_damage - %s, hit_power %s, ammo_list %s", sec, hit_power, ammo_list[1])
 	if ammo_list[1] then
 		local k_hit = ini_sys:r_float_ex(ammo_list[1], "k_hit") or 1
 		hit_power = (hit_power ~= 0) and (k_hit*hit_power) or k_hit
 	end
 
-	printf("get_heavy_attack_damage - %s, hit_power %s", sec, hit_power)
+	--printf("get_heavy_attack_damage - %s, hit_power %s", sec, hit_power)
 
 	return normalize(hit_power, 0, 1.5)
+end
+
+function prop_damage(obj, sec, name)
+	local hp_table = {}
+	local values = {}
+	local powers = {}
+	local hit_power = 0
+
+	if (not name) then
+		return 0
+	end
+
+	hp_table = SYS_GetParam(0, obj and obj:section() or sec, name) or nil
+	if hp_table ~= nil then
+		values = str_explode(hp_table, ",")
+		for i = 1, #values do
+			powers[#powers + 1] = tonumber(values[i])
+		end
+
+		if powers ~= nil then
+			hit_power = powers[game_difficulties.get_game_factor("actor_immunities") or 3] or 0
+		end
+	end
+
+	return round_idp(hit_power * 100, 1)
 end
 
 function cmd.export_melee(_, txt, x)
@@ -4312,8 +4370,8 @@ function cmd.export_melee(_, txt, x)
 				weapon.pelts_quality_min = zz_item_artefact.knifesm[section] and to_percent_string(zz_item_artefact.knifesm[section].min) or ""
 				weapon.pelts_quality_max = zz_item_artefact.knifesm[section] and to_percent_string(zz_item_artefact.knifesm[section].max) or ""
 				weapon.cuts_thick_skin = (section:match('wpn_knife$') or section:match('wpn_knife2$')) and "N" or "Y"
-				weapon.light_attack_power = get_weapon_stat_value(obj, section, "damage")
-				--weapon.heavy_attack_power = get_heavy_attack_damage(obj, section)
+				weapon.light_attack_power = prop_damage(obj, section, "hit_power")
+				weapon.heavy_attack_power = prop_damage(obj, section, "hit_power_2")
 
 				tbl[kind][section] = weapon
 				alife_release(se_obj)
@@ -4357,7 +4415,7 @@ function cmd.export_melee(_, txt, x)
 			for section, w in pairs(weapons) do
 				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
 			  --~,       Name,   Base Cost, Weight kg, Light Attack Power,   BR,   Max Range,   Cuts Thick Skin,   Pelts Quality Min,   Pelts Quality Max
-				section, w.name, w.cost,    w.weight,  w.light_attack_power, w.br, w.max_range, w.cuts_thick_skin, w.pelts_quality_min, w.pelts_quality_max)
+				section, w.name, w.cost,    w.weight,  w.light_attack_power, w.heavy_attack_power, w.br, w.max_range, w.cuts_thick_skin, w.pelts_quality_min, w.pelts_quality_max)
 				type_cnt = type_cnt + 1
 			end
 			debug_file:close()
@@ -4495,6 +4553,19 @@ function normalize_mutant_ammo_mod(mod)
 	return mod / 0.85
 end
 
+function sanitize_ammo_name(name)
+	if not name or name == "" then
+		return ""
+	end
+
+	local words_to_remove = {"mm", "rounds", "grenade", "round", "shells", "Grenade", "shells", "warhead"}
+	for _, word in ipairs(words_to_remove) do
+		name = string.gsub(name, "%f[%a]" .. word .. "%f[%A]", "")
+	end
+	return name
+
+end
+
 function cmd.export_ammo(_, txt, x)
 	x:SendOutput("[START] export ammo")
 
@@ -4528,7 +4599,7 @@ function cmd.export_ammo(_, txt, x)
 		if kind == "w_ammo" then
 			x:SendOutput("export ammo - %s", section)
 			local ammo = {}
-			ammo.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name"))
+			ammo.name = sanitize_ammo_name(game.translate_string(ini_sys:r_string_ex(section, "inv_name")))
 			ammo.cost = ini_sys:r_float_ex(section, "cost") or 0
 			ammo.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
 			ammo.projectiles = ini_sys:r_float_ex(section, "buck_shot") or 1
