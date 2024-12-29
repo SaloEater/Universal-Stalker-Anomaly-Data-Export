@@ -3972,19 +3972,20 @@ function cmd.export_belt_attachments(_, txt, x)
 end
 
 local ammo_special_types = {
-	["gauss"] = "Gauss",
-	["pkm_100"] = "100",
-	["magnum_300"] = "300",
-	["m209"] = "209",
-	["357_hp"] = "357",
-	["25"] = "Vog-25", --for some reason vog-25 doesn't work
-	["30"] = "Vog-30", --for some reason vog-30 doesn't work
-	["7b"] = "OG-7b", --for some reason og-7b doesn't work
-	["23_eco"] = "23 Eco",
-	["338"] = "338",
+	["gauss"] = "Gauss Batteries",
+	["pkm_100"] = "7.62x54  PP",
+	["magnum_300"] = ".338 Lapua Magnum",
+	["m209"] = "M203",
+	["357_hp"] = ".357 HP",
+	["25"] = "VOG-25", --for some reason vog-25 doesn't work
+	["30"] = "VOG-30", --for some reason vog-30 doesn't work
+	["7b"] = "OG-7V", --for some reason og-7b doesn't work
+	["23_eco"] = "Ecolog-23",
+	["338"] = ".338 Federal",
 }
 
 function get_weapon_caliber(ammo_class)
+	--printf("ammo_class: %s", ammo_class)
 	local ammo_tbl = str_explode(ammo_class,",")
 	if #ammo_tbl == 0 then
 		return ""
@@ -4038,14 +4039,18 @@ function get_weapon_br_stats(ammo_class)
 		"", "", "", "", "", "", ""
 	}
 	local ammo_tbl = str_explode(ammo_class,",")
+	--printf("ammo_class: %s", ammo_class)
 	for i, ammo in ipairs(ammo_tbl) do
 		local ap = ini_sys:r_float_ex(ammo, "k_ap") or 0
+		--printf("%s %s", ammo, ap)
 		ap = ap * 10 * 100 * get_game_difficulty_multiplier()
 		local br = armor_to_class(ap)
+		--printf("%s, %s", br, brs[br + 1])
 		if br > 0 and (not brs[br + 1] or brs[br + 1] == "" or brs[br + 1] < ap) then
 			brs[br + 1] = ap
 		end
 	end
+	--printf(brs[7])
 	return brs[1], brs[2], brs[3], brs[4], brs[5], brs[6], brs[7]
 end
 
@@ -4235,9 +4240,9 @@ function cmd.export_weapons(_, txt, x)
 			end
 
 			--csv header
-			--write_file(debug_file, "~,       Type,   Name,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6")
+			--write_file(debug_file, "~,       Type,   Name,   Repair Label,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6")
 			for section, w in pairs(weapons) do
-				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
 			  --~,       Type,   Name,   Repair Label,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6
 				section, w.type, w.name, w.repair_label, w.cost,    w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.weight,  w.caliber, w.alt_caliber, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
 				type_cnt = type_cnt + 1
