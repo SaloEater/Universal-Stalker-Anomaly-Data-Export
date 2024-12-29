@@ -62,6 +62,7 @@ function prepare()
 		{ 	name = "Export weapons" 		        , cmd = "export_weapons" 				             , hide_ui = 0 								},
 		{ 	name = "Export explosives" 		        , cmd = "export_explosives" 				         , hide_ui = 0 								},
 		{ 	name = "Export melee" 		            , cmd = "export_melee" 				             	 , hide_ui = 0 								},
+		{ 	name = "Export ammo" 		            , cmd = "export_ammo" 				             	 , hide_ui = 0 								},
 		--{ 	name = "Export weapons upgrades" 				, cmd = "export_weapons_upgrades"    				         , hide_ui = 0 								},
 		{ 	name = "Go incognito" 					, cmd = "invisible on" 						         , hide_ui = 0 		, key = "DIK_I"			},
 		{ 	name = "Go rich" 						, cmd = "money 1000000" 					         , hide_ui = 0 		, key = "DIK_M"			},

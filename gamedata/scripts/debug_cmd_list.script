@@ -3062,7 +3062,7 @@ function to_percent_round(value)
 end
 
 function decimal_to_percent(value)
-	return to_percent_string(tonumber(value) * 100)
+	return to_percent_floor(tonumber(value) * 100)
 end
 
 function write_file(file, text,...)
@@ -4022,13 +4022,13 @@ function get_weapon_br_stats(ammo_class)
 	local ammo_tbl = str_explode(ammo_class,",")
 	for i, ammo in ipairs(ammo_tbl) do
 		local ap = ini_sys:r_float_ex(ammo, "k_ap") or 0
-		ap = ap * 10 * 100 * 1.0 --see cxv_ammo_stats_tbl.difficulty_multiplier for other values
+		ap = ap * 10 * 100 * get_game_difficulty_multiplier()
 		local br = armor_to_class(ap)
-		if br > 0 and (not brs[br] or brs[br] == "" or brs[br] < ap) then
-			brs[br] = ap
+		if br > 0 and (not brs[br + 1] or brs[br + 1] == "" or brs[br + 1] < ap) then
+			brs[br + 1] = ap
 		end
 	end
-	return brs[1], brs[2], brs[3], brs[4], brs[5], brs[6]
+	return brs[1], brs[2], brs[3], brs[4], brs[5], brs[6], brs[7]
 end
 
 function cmd.export_weapons(_, txt, x)
@@ -4057,7 +4057,7 @@ function cmd.export_weapons(_, txt, x)
 			return
 		end
 
-		local is_mp = string.find(section, "mp")
+		local is_mp = string.find(section, "^mp_")
 		if is_mp then
 			return
 		end
@@ -4163,7 +4163,7 @@ function cmd.export_weapons(_, txt, x)
 
 				weapon.alt_caliber = alt_calibers_str
 
-				weapon.br1, weapon.br2, weapon.br3, weapon.br4, weapon.br5, weapon.br6 = get_weapon_br_stats(ammo_class)
+				weapon.br1, weapon.br2, weapon.br3, weapon.br4, weapon.br5, weapon.br6 , weapon.br7 = get_weapon_br_stats(ammo_class)  --br1 is br0
 
 				tbl[kind][section] = weapon
 				alife_release(se_obj)
@@ -4202,11 +4202,11 @@ function cmd.export_weapons(_, txt, x)
 			end
 
 			--csv header
-			--write_file(debug_file, "~,       Type,   Name,   Tier,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6")
+			--write_file(debug_file, "~,       Type,   Name,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6")
 			for section, w in pairs(weapons) do
-				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-			  --~,       Type,   Name,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6"
-				section, w.type, w.name, w.cost,    w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.weight,  w.caliber, w.alt_caliber, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6)
+				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+			  --~,       Type,   Name,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6
+				section, w.type, w.name, w.cost,    w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.weight,  w.caliber, w.alt_caliber, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
 				type_cnt = type_cnt + 1
 			end
 			debug_file:close()
@@ -4253,7 +4253,7 @@ function cmd.export_melee(_, txt, x)
 			return
 		end
 
-		local is_mp = string.find(section, "mp")
+		local is_mp = string.find(section, "^mp_")
 		if is_mp then
 			return
 		end
@@ -4308,7 +4308,7 @@ function cmd.export_melee(_, txt, x)
 				weapon.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
 				weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
 				local ammo = ini_sys:r_string_ex(section, "ammo_class")
-				weapon.br = (ammo and ini_sys:r_float_ex(ammo, "k_ap") or 0) * 10 * 100
+				weapon.br = (ammo and ini_sys:r_float_ex(ammo, "k_ap") or 0) * 10 * 100 * get_game_difficulty_multiplier()
 				weapon.pelts_quality_min = zz_item_artefact.knifesm[section] and to_percent_string(zz_item_artefact.knifesm[section].min) or ""
 				weapon.pelts_quality_max = zz_item_artefact.knifesm[section] and to_percent_string(zz_item_artefact.knifesm[section].max) or ""
 				weapon.cuts_thick_skin = (section:match('wpn_knife$') or section:match('wpn_knife2$')) and "N" or "Y"
@@ -4384,7 +4384,7 @@ function cmd.export_explosives(_, txt, x)
 	local tbl = {}
 	local cnt = 0
 	ini_sys:section_for_each(function(section)
-		if blacklist[section] or string.find(section, "mp") then
+		if blacklist[section] or string.find(section, "^mp_") then
 			return
 		end
 
@@ -4435,20 +4435,6 @@ function cmd.export_explosives(_, txt, x)
 		end
 	end)
 
-
-	local function write_file(file, text,...)
-		if not text then return end
-
-		local i = 0
-		local p = {...}
-		local function sr(a)
-			i = i + 1
-			return tostring(p[i])
-		end
-		local output = string.gsub(text,"%%s",sr)
-		file:write(output.."\n")
-	end
-
 	local p_file = "export_explosives.csv"
 	local debug_file = io.open(p_file,"w+")
 	--csv header
@@ -4462,6 +4448,116 @@ function cmd.export_explosives(_, txt, x)
 	debug_file:close()
 
 	x:SendOutput("[END] export explosives - %s total explosives exported - see in Gamma\\Overwrite\\bin\\export_explosives.csv", cnt)
+end
+
+--local difficulty_scaling = ballistics_mcm and ballistics_mcm.get_config("difficulty_scaling") or false
+local difficulty_scaling = false  --see cxv_ammo_stats_tbl.difficulty_multiplier for other values
+local difficulty_multiplier = {
+	[1]  = (difficulty_scaling and 1.3) or 1.0,
+	[2]  = (difficulty_scaling and 1.05) or 1.0,
+	[3]  = (difficulty_scaling and 0.90) or 1.0,
+	[4]  = (difficulty_scaling and 0.80) or 1.0,
+}
+function get_game_difficulty_multiplier()
+	local game_num = 1
+
+	if difficulty_scaling then
+		local gameplay = alife_storage_manager.get_state().diff_game
+		if not (type(gameplay) == "table") then -- for old saves
+			alife_storage_manager.get_state().diff_game = {}
+			alife_storage_manager.get_state().diff_game["type"] = game_num
+			gameplay = alife_storage_manager.get_state().diff_game
+		end
+
+		game_num = gameplay["type"] or game_num
+		if game_num > 4 then game_num = 4 end 				-- in case someone is using a custom difficulty
+	end
+
+	return difficulty_multiplier[game_num]
+end
+
+function get_ammo_br_stat(ammo_section)
+	local brs = {
+		"", "", "", "", "", "", ""
+	}
+	local ap = ini_sys:r_float_ex(ammo_section, "k_ap") or 0
+	ap = ap * 10 * 100 * get_game_difficulty_multiplier() --see cxv_ammo_stats_tbl.difficulty_multiplier for other values
+	local br = armor_to_class(ap)
+	brs[br + 1] = ap
+	return brs[1], brs[2], brs[3], brs[4], brs[5], brs[6], brs[7]
+end
+
+function normalize_mutant_ammo_mod(mod)
+	if not mod then
+		return 0.01
+	end
+
+	return mod / 0.85
+end
+
+function cmd.export_ammo(_, txt, x)
+	x:SendOutput("[START] export ammo")
+
+	local blacklist = {
+		["_knife"] = true,
+		["_binoc"] = true,
+		["_base$"] = true,
+		["_dyno$"] = true,
+		["_batteries"] = true,
+		["^mp_"] = true,
+		["_bad$"] = true,
+		["_verybad$"] = true,
+		["_heli$"] = true,
+		["_parts$"] = true,
+		["^casing_"] = true,
+		["^powder_"] = true,
+		["^bullet_"] = true,
+	}
+
+	local tbl = {}
+	local cnt = 0
+	ini_sys:section_for_each(function(section)
+		for black, _ in pairs(blacklist) do
+			if string.find(section, black) then
+				return
+			end
+		end
+
+		local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
+
+		if kind == "w_ammo" then
+			x:SendOutput("export ammo - %s", section)
+			local ammo = {}
+			ammo.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name"))
+			ammo.cost = ini_sys:r_float_ex(section, "cost") or 0
+			ammo.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+			ammo.projectiles = ini_sys:r_float_ex(section, "buck_shot") or 1
+			ammo.damage = ini_sys:r_float_ex(section, "k_hit") or 0
+			ammo.br1, ammo.br2, ammo.br3, ammo.br4, ammo.br5, ammo.br6, ammo.br7 = get_ammo_br_stat(section) --br1 is br0
+			ammo.range = decimal_to_percent(ini_sys:r_float_ex(section, "k_dist"))
+			ammo.velocity = decimal_to_percent(ini_sys:r_float_ex(section, "k_bullet_speed"))
+			ammo.impulse = decimal_to_percent(ini_sys:r_float_ex(section, "k_impulse"))
+			ammo.accuracy = decimal_to_percent(ini_sys:r_float_ex(section, "k_disp"))
+			ammo.degr = decimal_to_percent(ini_sys:r_float_ex(section, "impair"))
+			ammo.falloff = decimal_to_percent(ini_sys:r_float_ex(section, "k_air_resistance"))
+			tbl[section] = ammo
+			cnt = cnt + 1
+		end
+	end)
+
+	local p_file = "export_ammo.csv"
+	local debug_file = io.open(p_file,"w+")
+	--csv header
+	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Projectiles,   Damage,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6,   Range,   Velocity,   Impulse,   Accuracy,   Degradation, Falloff")
+	for section, v in pairs(tbl) do
+		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+		  --~ ,      Name,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6,   Projectiles,   Damage,   Accuracy,   Range,   Falloff,   Velocity,   Impulse,   Degradation, Weight kg, Base Cost,
+			section, v.name, v.br1, v.br2, v.br3, v.br4, v.br5, v.br6, v.br7, v.projectiles, v.damage, v.accuracy, v.range, v.falloff, v.velocity, v.impulse, v.degr,      v.weight,  v.cost
+		)
+	end
+	debug_file:close()
+
+	x:SendOutput("[END] export ammo - %s total ammo exported - see in Gamma\\Overwrite\\bin\\export_ammo.csv", cnt)
 end
 
 function cmd.print_outfits_props(_,txt,x)
