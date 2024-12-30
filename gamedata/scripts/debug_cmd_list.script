@@ -4159,6 +4159,8 @@ function cmd.export_weapons(_, txt, x)
 				weapon.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
 				local repair_type = ini_sys:r_string_ex(section, "repair_type") or ""
 				weapon.repair_label = get_weapon_repair_label(repair_type)
+				weapon.single_handed = ini_sys:r_float_ex(section, "single_handed")
+				weapon.single_handed = weapon.single_handed == 1 and "Y" or "N"
 
 				weapon.accuracy = to_percent_floor(get_weapon_stat_value(obj, section, "accuracy"))
 				weapon.handling = to_percent_floor(get_weapon_stat_value(obj, section, "handling"))
@@ -4240,11 +4242,11 @@ function cmd.export_weapons(_, txt, x)
 			end
 
 			--csv header
-			--write_file(debug_file, "~,       Type,   Name,   Repair Label,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6")
+			--write_file(debug_file, "~,       Type,   Name,   Repair Label,   Single Handed,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6")
 			for section, w in pairs(weapons) do
 				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-			  --~,       Type,   Name,   Repair Label,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6
-				section, w.type, w.name, w.repair_label, w.cost,    w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.weight,  w.caliber, w.alt_caliber, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
+			  --~,       Type,   Name,   Repair Label,   Single Handed,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6
+				section, w.type, w.name, w.repair_label, w.single_handed, w.cost,    w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.weight,  w.caliber, w.alt_caliber, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
 				type_cnt = type_cnt + 1
 			end
 			debug_file:close()
