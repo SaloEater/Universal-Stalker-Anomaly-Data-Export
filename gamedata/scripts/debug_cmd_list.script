@@ -4376,7 +4376,7 @@ function cmd.export_melee(_, txt, x)
 				weapon.br = (ammo and ini_sys:r_float_ex(ammo, "k_ap") or 0) * 10 * 100 * get_game_difficulty_multiplier()
 				weapon.pelts_quality_min = zz_item_artefact.knifesm[section] and to_percent_string(zz_item_artefact.knifesm[section].min) or ""
 				weapon.pelts_quality_max = zz_item_artefact.knifesm[section] and to_percent_string(zz_item_artefact.knifesm[section].max) or ""
-				weapon.cuts_thick_skin = (section:match('wpn_knife$') or section:match('wpn_knife2$') or not string.find("knife")) and "N" or "Y"
+				weapon.cuts_thick_skin = (section:match('wpn_knife$') or section:match('wpn_knife2$') or not string.find(section, "knife")) and "N" or "Y"
 				weapon.light_attack_power = prop_damage(obj, section, "hit_power")
 				weapon.heavy_attack_power = prop_damage(obj, section, "hit_power_2")
 
