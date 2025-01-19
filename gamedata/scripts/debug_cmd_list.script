@@ -4410,8 +4410,8 @@ function cmd.export_melee(_, txt, x)
 			--write_file(debug_file, "~,       Name,   Base Cost, Weight kg, Light Attack Power,   Heavy Attack Power,   BR,   Max Range,   Splash Hits,   Cuts Thick Skin,   Pelts Quality Min,   Pelts Quality Max")
 
 			for section, w in pairs(weapons) do
-				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-			  --~,       Name,   Base Cost, Weight kg, Light Attack Power,   BR,   Max Range,   Cuts Thick Skin,   Pelts Quality Min,   Pelts Quality Max
+				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+			  --~,       Name,   Base Cost, Weight kg, Light Attack Power,   Heavy Attack Power,   BR,   Max Range,   Cuts Thick Skin,   Pelts Quality Min,   Pelts Quality Max
 				section, w.name, w.cost,    w.weight,  w.light_attack_power, w.heavy_attack_power, w.br, w.max_range, w.cuts_thick_skin, w.pelts_quality_min, w.pelts_quality_max)
 				type_cnt = type_cnt + 1
 			end
