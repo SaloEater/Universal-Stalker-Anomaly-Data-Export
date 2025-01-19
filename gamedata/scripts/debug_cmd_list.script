@@ -3146,7 +3146,7 @@ function cmd.export_outfits(_, txt, x)
 	local counter = 0
 	local leftovers = {}
 	ini_sys:section_for_each(function(section)
-		if blacklist[section] then
+		if blacklist[section] or is_multiplayer_item(section) then
 			return
 		end
 		local class = ini_sys:r_string_ex(section, "class")
@@ -3235,10 +3235,10 @@ function cmd.export_outfits(_, txt, x)
 				outfit.radiation = to_percent_floor(get_outfit_stat_value(obj, section, "radiation_protection"))
 				outfit.chemical_burn = to_percent_floor(get_outfit_stat_value(obj, section, "chemical_burn_protection"))
 				outfit.telepatic = to_percent_floor(get_outfit_stat_value(obj, section, "telepatic_protection"))
-				outfit.impact = to_percent_string(get_outfit_stat_value(obj, section, "strike_protection"))
-				outfit.explosion = to_percent_string(get_outfit_stat_value(obj, section, "explosion_protection"))
-				outfit.rupture = to_percent_string(get_outfit_stat_value(obj, section, "wound_protection"))
-				outfit.ballistic = to_percent_string(get_outfit_stat_value(obj, section, "fire_wound_protection"))
+				outfit.impact = to_percent_floor(get_outfit_stat_value(obj, section, "strike_protection"))
+				outfit.explosion = to_percent_floor(get_outfit_stat_value(obj, section, "explosion_protection"))
+				outfit.rupture = to_percent_floor(get_outfit_stat_value(obj, section, "wound_protection"))
+				outfit.ballistic = to_percent_floor(get_outfit_stat_value(obj, section, "fire_wound_protection"))
 				outfit.br_class = round(get_outfit_stat_value(obj, section, "apres_modifier"))
 
 				outfit.powered = item_exo_device.is_exo(obj) and "Y" or "N"
@@ -3638,7 +3638,7 @@ function cmd.export_medicine(_, txt, x)
 	local tbl = {}
 	local cnt = 0
 	ini_sys:section_for_each(function(section)
-		if blacklist[section] then
+		if blacklist[section] or is_multiplayer_item(section) then
 			return
 		end
 		local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
@@ -3650,7 +3650,7 @@ function cmd.export_medicine(_, txt, x)
 			eatable.cost = ini_sys:r_float_ex(section, "cost") or 0
 			eatable.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
 			eatable.tier = ini_sys:r_float_ex(section, "tier") or 0
-			eatable.sleepiness = to_percent_string(getEatableSleepiness(section))
+			eatable.sleepiness = to_percent_round(getEatableSleepiness(section))
 			eatable.thirstiness = to_percent_floor(getEatableThirstiness(section))
 			eatable.alcohol = to_percent_floor(getEatableAlcohol(section))
 			eatable.health = to_percent_string((ini_sys:r_float_ex(section, "eat_health") or 0) * 100)
@@ -3677,11 +3677,11 @@ function cmd.export_medicine(_, txt, x)
 			eatable.chemical_prot = to_percent_floor(get_booster_stat_value(nil, section, "boost_chemburn_protection"))
 			eatable.psychic_prot = to_percent_floor(get_booster_stat_value(nil, section, "boost_telepat_protection") or 0)
 
-			eatable.burn_immunity = get_booster_stat_value(nil, section, "boost_burn_immunity") or 0
-			eatable.shock_immunity = get_booster_stat_value(nil, section, "boost_shock_immunity") or 0
-			eatable.radiation_immunity = get_booster_stat_value(nil, section, "boost_radiation_immunity") or 0
-			eatable.psychic_immunity = get_booster_stat_value(nil, section, "boost_telepat_immunity") or 0
-			eatable.chemical_burn_immunity = to_percent_string(get_booster_stat_value(nil, section, "boost_chemburn_protection") or 0)
+			eatable.burn_immunity = to_percent_string(get_booster_stat_value(nil, section, "boost_burn_immunity") or 0)
+			eatable.shock_immunity = to_percent_string(get_booster_stat_value(nil, section, "boost_shock_immunity") or 0)
+			eatable.radiation_immunity = to_percent_string(get_booster_stat_value(nil, section, "boost_radiation_immunity") or 0)
+			eatable.psychic_immunity = to_percent_string(get_booster_stat_value(nil, section, "boost_telepat_immunity") or 0)
+			eatable.chemical_burn_immunity = to_percent_string(get_booster_stat_value(nil, section, "boost_chemburn_immunity") or 0)
 
 			eatable.impact_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_strike_immunity") or 0) * 100)
 			eatable.rupture_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_wound_immunity") or 0) * 100)
@@ -3761,7 +3761,7 @@ function cmd.export_artefacts(_, txt, x)
 	local tbl = {}
 	local cnt = 0
 	ini_sys:section_for_each(function(section)
-		if blacklist[section] then
+		if blacklist[section] or is_multiplayer_item(section) then
 			return
 		end
 		local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
@@ -3903,7 +3903,7 @@ function cmd.export_belt_attachments(_, txt, x)
 	local tbl = {}
 	local cnt = 0
 	ini_sys:section_for_each(function(section)
-		if blacklist[section] then
+		if blacklist[section] or is_multiplayer_item(section) then
 			return
 		end
 		local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
@@ -4089,12 +4089,7 @@ function cmd.export_weapons(_, txt, x)
 	local cnt = 0
 	local counter = 0
 	ini_sys:section_for_each(function(section)
-		if blacklist[section] then
-			return
-		end
-
-		local is_mp = string.find(section, "^mp_")
-		if is_mp then
+		if blacklist[section] or is_multiplayer_item(section) then
 			return
 		end
 
@@ -4314,12 +4309,7 @@ function cmd.export_melee(_, txt, x)
 	local cnt = 0
 	local counter = 0
 	ini_sys:section_for_each(function(section)
-		if blacklist[section] or string.find(section, "animation") then
-			return
-		end
-
-		local is_mp = string.find(section, "^mp_")
-		if is_mp then
+		if blacklist[section] or is_multiplayer_item(section) or string.find(section, "animation") then
 			return
 		end
 
@@ -4433,6 +4423,10 @@ function cmd.export_melee(_, txt, x)
 	end, 0)
 end
 
+function is_multiplayer_item(section)
+	return not not string.find(section, "^mp_")
+end
+
 function cmd.export_explosives(_, txt, x)
 	x:SendOutput("[START] export explosives")
 
@@ -4449,7 +4443,7 @@ function cmd.export_explosives(_, txt, x)
 	local tbl = {}
 	local cnt = 0
 	ini_sys:section_for_each(function(section)
-		if blacklist[section] or string.find(section, "^mp_") then
+		if blacklist[section] or is_multiplayer_item(section) then
 			return
 		end
 
