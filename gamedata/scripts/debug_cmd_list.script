@@ -4433,7 +4433,7 @@ function cmd.export_explosives(_, txt, x)
 	local mines = {}
 	for mine, id in pairs(txr_mines.FX_BY_SECTION) do
 		mines[id] = txr_mines.EXPLOSIVE_SECTION_LOOKUP[mine]
-		printf("mine %s, id %s", mine, id)
+		--printf("mine %s, id %s", mine, id)
 	end
 
 	local blacklist = {
@@ -4455,7 +4455,7 @@ function cmd.export_explosives(_, txt, x)
 		if rocket_class or fake_grenade_name or (kind and kind == "w_explosive" and blast) or mines[section] then
 			local weapon_class = ini_sys:r_string_ex(section, "weapon_class")
 			if weapon_class then
-				printf("export explosive - %s, weapon_class %s", section, weapon_class)
+				--printf("export explosive - %s, weapon_class %s", section, weapon_class)
 				return
 			end
 			local explosive = {}
@@ -4631,6 +4631,110 @@ function cmd.export_ammo(_, txt, x)
 
 	x:SendOutput("[END] export ammo - %s total ammo exported - see in Gamma\\Overwrite\\bin\\export_ammo.csv", cnt)
 end
+
+
+
+function cmd.export_disassemble_table(_, txt, x)
+	x:SendOutput("[START] export disassemble table")
+
+	local blacklist = {
+		["ammo"] = true,
+		["st_memory_stick_name"] = true,
+	}
+
+	local ini_parts = itms_manager.ini_parts
+	local tbl_disassemble = {}
+	local tbl_materials = {}
+	local disassemble_count = 0
+	local materials_count = 0
+	ini_sys:section_for_each(function(section)
+		for black, _ in pairs(blacklist) do
+			if string.find(section, black) then
+				return
+			end
+		end
+
+		local partsRaw = ini_parts:r_string_ex("nor_parts_list",section)
+		if partsRaw == nil then
+			return
+		end
+		local parts_tbl = str_explode(partsRaw,",")
+		x:SendOutput("export disassemble item - %s", section)
+
+		local disassemble = {}
+		local item_name = game.translate_string(ini_sys:r_string_ex(section, "inv_name"))
+		table.insert(disassemble, item_name)
+		local parts = {}
+		for i, part in ipairs(parts_tbl) do
+			local repeat_number = tonumber(part)
+			if repeat_number == nil then
+				repeat_number = 1
+			end
+			for k = 1, repeat_number do
+				if not parts[part] then
+					parts[part] = {}
+					parts[part].count = 0
+				end
+				parts[part].count = parts[part].count + 1
+			end
+		end
+
+		local sortByCount = function(t,a,b) return t[a].count > t[b].count end
+
+		for part_section, part in spairs(parts, sortByCount) do
+			local part_name = game.translate_string(ini_sys:r_string_ex(part_section, "inv_name"))
+			local parts_count = part.count
+			table.insert(disassemble, part_name)
+			table.insert(disassemble, "x" .. parts_count)
+
+			if not tbl_materials[part_section] then
+				tbl_materials[part_section] = {}
+				tbl_materials[part_section].name = part_name
+				tbl_materials[part_section].results = {}
+				materials_count = materials_count + 1
+			end
+
+			tbl_materials[part_section].results[section] = {}
+			tbl_materials[part_section].results[section].name = item_name
+			tbl_materials[part_section].results[section].count = parts_count
+		end
+
+		tbl_disassemble[section] = disassemble
+		disassemble_count = disassemble_count + 1
+	end)
+
+	local disassembles_file_name = "export_disassemble_table.csv"
+	local disassembles_file = io.open(disassembles_file_name,"w+")
+	local sortResultsByName = function(t, a, b) return t[a][1] < t[b][1] end
+	for section, item in spairs(tbl_disassemble, sortResultsByName) do
+		local value = "" .. section
+		for i, materialOrCount in ipairs(item) do
+			value = value .. "," .. "\"" .. materialOrCount .. "\""
+		end
+
+		write_file(disassembles_file, "%s", value)
+	end
+	disassembles_file:close()
+
+	x:SendOutput("[PROGRESS-1] export disassemble - %s total disassembles exported - see in Gamma\\Overwrite\\bin\\export_disassemble_table.csv", disassemble_count)
+
+	local materials_file_name = "export_disassembles_materials.csv"
+	local materials_file = io.open(materials_file_name,"w+")
+	local sortMaterialsByCount = function(t,a,b) return t[a].count > t[b].count end
+	local sortMaterialsByName = function(t,a,b) return t[a].name < t[b].name end
+	for section, part in spairs(tbl_materials, sortMaterialsByName) do
+		local value = "" .. section .. "," .. "\"" .. (part.name or "None") .. "\""
+		for i, result in spairs(part.results, sortMaterialsByCount) do
+			value = value .. "," .. result.count .. " from," .. "\"" .. result.name .. "\""
+		end
+
+		write_file(materials_file, "%s", value)
+	end
+
+	x:SendOutput("[END] export materials - %s total materials exported - see in Gamma\\Overwrite\\bin\\export_disassembles_materials.csv", materials_count)
+end
+
+
 
 function cmd.print_outfits_props(_,txt,x)
 	x:SendOutput("[START] print outfit props")
