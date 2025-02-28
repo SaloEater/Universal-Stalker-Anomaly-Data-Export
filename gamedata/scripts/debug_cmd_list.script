@@ -3215,7 +3215,7 @@ function cmd.export_outfits(_, txt, x)
 				outfit.repair_label = get_outfit_repair_label(rt)
 
 				outfit.cost = ini_sys:r_float_ex(section, "cost") or 0
-				outfit.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+				outfit.weight = math.floor(ini_sys:r_float_ex(section, "inv_weight") or 0)
 				outfit.carry_weight = get_outfit_stat_value(obj, section, "additional_inventory_weight")
 				outfit.arty = get_outfit_stat_value(obj, section, "artefact_count") or 0
 				local max_arty = outfit.arty
@@ -3288,13 +3288,24 @@ function cmd.export_outfits(_, txt, x)
 				return true
 			end
 
-			--csv header
-			--write_file(debug_file, "~,       Faction,   Name,   Base Cost,Powered,   Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Movespeed Mult., Weight kg")
-			for section,v in spairs(outfits, functor) do
-				write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-		      --~,       Faction,   Name,   Repair Label,   Base Cost,Powered,   Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Movespeed Mult., Weight kg"
-				section, v.faction, v.name, v.repair_label, v.cost,   v.powered, v.ballistic,   v.br_class, v.burn,    v.shock,         v.chemical_burn, v.radiation,         v.telepatic,  v.rupture,    v.impact,    v.explosion,    v.arty,           v.max_arty,     v.carry_weight,    v.speed,         v.weight)
-				type_cnt = type_cnt + 1
+			if repair_type == "outfit_helmet" then
+				--csv header
+				--write_file(debug_file, ~,     Name,   Repair Label,   Base Cost, Ballistic Res., BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Weight kg")
+				for section,v in spairs(outfits, functor) do
+					write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+					--~,     Name,   Repair Label,   Base Cost, Ballistic Res., BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Weight kg"
+					section, v.name, v.repair_label, v.cost,    v.ballistic,    v.br_class, v.burn,    v.shock,         v.chemical_burn, v.radiation,         v.telepatic,  v.rupture,    v.impact,    v.explosion,    v.weight)
+					type_cnt = type_cnt + 1
+				end
+			else
+				--csv header
+				--write_file(debug_file, "~,       Faction,   Name,   Base Cost,Powered,   Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Movespeed Mult., Weight kg")
+				for section,v in spairs(outfits, functor) do
+					write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+					--~,       Faction,   Name,   Repair Label,   Base Cost,Powered,   Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Movespeed Mult., Weight kg"
+							section, v.faction, v.name, v.repair_label, v.cost,   v.powered, v.ballistic,   v.br_class, v.burn,    v.shock,         v.chemical_burn, v.radiation,         v.telepatic,  v.rupture,    v.impact,    v.explosion,    v.arty,           v.max_arty,     v.carry_weight,    v.speed,         v.weight)
+					type_cnt = type_cnt + 1
+				end
 			end
 			debug_file:close()
 			x:SendOutput("[END] export outfit - %s outfits exported - see %s", type_cnt, p_file)
@@ -4640,6 +4651,8 @@ function cmd.export_disassemble_table(_, txt, x)
 	local blacklist = {
 		["ammo"] = true,
 		["st_memory_stick_name"] = true,
+		["itm_guide_usb_1"] = true,
+		["itm_guide_usb_2"] = true,
 	}
 
 	local ini_parts = itms_manager.ini_parts
