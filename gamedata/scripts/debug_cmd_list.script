@@ -4643,8 +4643,6 @@ function cmd.export_ammo(_, txt, x)
 	x:SendOutput("[END] export ammo - %s total ammo exported - see in Gamma\\Overwrite\\bin\\export_ammo.csv", cnt)
 end
 
-
-
 function cmd.export_disassemble_table(_, txt, x)
 	x:SendOutput("[START] export disassemble table")
 
@@ -4747,6 +4745,88 @@ function cmd.export_disassemble_table(_, txt, x)
 	x:SendOutput("[END] export materials - %s total materials exported - see in Gamma\\Overwrite\\bin\\export_disassembles_materials.csv", materials_count)
 end
 
+function cmd.export_outfit_exchange(_, txt, x)
+	x:SendOutput("[START] export outfit exchange")
+
+	local outfit_map = {}
+	for variable, value in pairs(grok_armor_convert) do
+		if not string.find(variable, "all_") then
+			local reward
+			local source_outfits = {}
+			for prop, propValue in pairs(value) do
+				if prop == "reward" then
+					reward = propValue
+				elseif prop ~= "cost" then
+					source_outfits[prop] = true
+				end
+			end
+
+			if reward and source_outfits then
+				for outfit, _ in pairs(source_outfits) do
+					if not outfit_map[outfit] then
+						outfit_map[outfit] = {}
+					end
+					if not outfit_map[outfit]["rewards"] then
+						outfit_map[outfit]["rewards"] = {}
+						outfit_map[outfit]["community"] = ini_sys:r_string_ex(outfit, "community") or ""
+						outfit_map[outfit]["name"] = game.translate_string(ini_sys:r_string_ex(outfit, "inv_name")) or ""
+					end
+
+					table.insert(outfit_map[outfit]["rewards"], {
+						["community"] = ini_sys:r_string_ex(reward, "community") or "",
+						["reward"] = reward,
+						["name"] = game.translate_string(ini_sys:r_string_ex(reward, "inv_name")) or ""
+					})
+				end
+			end
+		end
+	end
+
+	local communities = game_relations.factions_table
+	table.sort(communities)
+
+	local cnt = 0
+
+	local file_name = "export_outfit_exchange.csv"
+	local file = io.open(file_name,"w+")
+
+	--write_file(debug_file, "Faction, Name")
+	local community_map = {}
+	for i, community in ipairs(communities) do
+		community_map[community] = ""
+	end
+
+	local sortByFactionAndName = function(t, a, b)
+		local faction_a = t[a]["community"]
+		local faction_b = t[b]["community"]
+		if faction_a == faction_b then
+			return t[a]["name"] < t[b]["name"]
+		else
+			return faction_a < faction_b
+		end
+	end
+	for outfit, data in spairs(outfit_map, sortByFactionAndName) do
+		local value = (game.translate_string(data["community"]) or "Unknown") .. "," .. data["name"] .. ","
+		for i, reward in spairs(data["rewards"], sortByFactionAndName) do
+			community_map[reward.community] = reward.name
+			cnt = cnt + 1
+		end
+		for i, community in ipairs(communities) do
+			if community_map[community] then
+				value = value .. "," .. community_map[community]
+			else
+				value = value .. "," .. "N/A"
+			end
+		end
+		write_file(file, value)
+		for i, community in ipairs(communities) do
+			community_map[community] = ""
+		end
+	end
+	file:close()
+
+	x:SendOutput("[END] outfit exchange - %s total exchanges exported - see in Gamma\\Overwrite\\bin\\export_outfit_exchange.csv", cnt)
+end
 
 
 function cmd.print_outfits_props(_,txt,x)
