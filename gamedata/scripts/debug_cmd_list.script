@@ -3764,6 +3764,7 @@ function cmd.export_artefacts(_, txt, x)
 		["af_ameba_mica"] = true,
 		["af_ameba_slime"] = true,
 		["af_drops"] = true,
+		["af_quest_b14_twisted"] = true,
 	}
 
 	local used_in_crafting, craftable = export_artefacts_recipes()
@@ -3883,7 +3884,8 @@ function cmd.export_artefact_recipes(_, txt, x)
 	local debug_file = io.open(p_file,"w+")
 	--csv header
 	--write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Is Junk,   Has Perk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg, Used In Crafting,   Craftable")
-	for section,v in pairs(tbl) do
+	local sortByName = function(t,a,b) return t[a].name < t[b].name end
+	for section,v in spairs(tbl, sortByName) do
 		write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
 	  --~ ,      Name,   Ingr 1 Name,   Ingr 1 Amt,   Ingr 2 Name,   Ingr 2 Amt,   Ingr 3 Name,   Ingr 3 Amt,   Ingr 4 Name,   Ingr 4 Amt
 		section, v.name, v.ingr_1_name, v.ingr_1_amt, v.ingr_2_name, v.ingr_2_amt, v.ingr_3_name, v.ingr_3_amt, v.ingr_4_name, v.ingr_4_amt
