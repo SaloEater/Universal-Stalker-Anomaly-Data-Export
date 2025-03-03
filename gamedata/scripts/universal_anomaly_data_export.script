@@ -89,7 +89,7 @@ function get_outfit_repair_label(repair_type)
     return "N/A"
 end
 
-function cmd.export_outfits(_, txt, x)
+function debug_cmd_list.cmd.export_outfits(_, txt, x)
     x:SendOutput("[START] export outfit")
 
     local outfit_cls = {
@@ -437,7 +437,7 @@ function getEatableAlcohol(section)
     return eat_alcohol * 100
 end
 
-function cmd.export_eatable(_, txt, x)
+function debug_cmd_list.cmd.export_eatable(_, txt, x)
     x:SendOutput("[START] export eatable")
 
     local food_kinds = {
@@ -616,7 +616,7 @@ function export_artefacts_recipes()
     return export_recipes(7)
 end
 
-function cmd.export_medicine(_, txt, x)
+function debug_cmd_list.cmd.export_medicine(_, txt, x)
     x:SendOutput("[START] export medicine")
 
     local food_kinds = {
@@ -736,7 +736,7 @@ function get_perk_artifacts_list()
     return perk_artefacts
 end
 
-function cmd.export_artefacts(_, txt, x)
+function debug_cmd_list.cmd.export_artefacts(_, txt, x)
     x:SendOutput("[START] export artefacts")
 
     local artefacts_kinds = {
@@ -852,7 +852,7 @@ function cmd.export_artefacts(_, txt, x)
     x:SendOutput("[END] export artefacts - %s total artefacts exported - see in Gamma\\Overwrite\\bin\\export_artefacts.csv", cnt)
 end
 
-function cmd.export_artefact_recipes(_, txt, x)
+function debug_cmd_list.cmd.export_artefact_recipes(_, txt, x)
     x:SendOutput("[START] export artefact recipes")
 
     local used_in_crafting, craftable = export_artefacts_recipes()
@@ -892,7 +892,7 @@ function cmd.export_artefact_recipes(_, txt, x)
     x:SendOutput("[END] export artefact recipes - %s total recipes exported - see in Gamma\\Overwrite\\bin\\export_artefact_recipes.csv", cnt)
 end
 
-function cmd.export_belt_attachments(_, txt, x)
+function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
     x:SendOutput("[START] export belt attachments")
 
     local artefacts_kinds = {
@@ -1076,7 +1076,7 @@ function get_weapon_repair_label(repair_type)
     return "N/A"
 end
 
-function cmd.export_weapons(_, txt, x)
+function debug_cmd_list.cmd.export_weapons(_, txt, x)
     x:SendOutput("[START] export weapons")
 
     local weapon_kinds = {
@@ -1302,7 +1302,7 @@ function prop_damage(obj, sec, name)
     return round_idp(hit_power * 100, 1)
 end
 
-function cmd.export_melee(_, txt, x)
+function debug_cmd_list.cmd.export_melee(_, txt, x)
     x:SendOutput("[START] export melee")
 
     local weapon_kinds = {
@@ -1436,7 +1436,7 @@ function is_multiplayer_item(section)
     return not not string.find(section, "^mp_")
 end
 
-function cmd.export_explosives(_, txt, x)
+function debug_cmd_list.cmd.export_explosives(_, txt, x)
     x:SendOutput("[START] export explosives")
 
     local mines = {}
@@ -1576,7 +1576,7 @@ function sanitize_ammo_name(name)
 
 end
 
-function cmd.export_ammo(_, txt, x)
+function debug_cmd_list.cmd.export_ammo(_, txt, x)
     x:SendOutput("[START] export ammo")
 
     local blacklist = {
@@ -1641,7 +1641,7 @@ function cmd.export_ammo(_, txt, x)
     x:SendOutput("[END] export ammo - %s total ammo exported - see in Gamma\\Overwrite\\bin\\export_ammo.csv", cnt)
 end
 
-function cmd.export_disassemble_table(_, txt, x)
+function debug_cmd_list.cmd.export_disassemble_table(_, txt, x)
     x:SendOutput("[START] export disassemble table")
 
     local blacklist = {
@@ -1743,7 +1743,7 @@ function cmd.export_disassemble_table(_, txt, x)
     x:SendOutput("[END] export materials - %s total materials exported - see in Gamma\\Overwrite\\bin\\export_disassembles_materials.csv", materials_count)
 end
 
-function cmd.export_outfit_exchange(_, txt, x)
+function debug_cmd_list.cmd.export_outfit_exchange(_, txt, x)
     x:SendOutput("[START] export outfit exchange")
 
     local outfit_map = {}
@@ -1826,7 +1826,7 @@ function cmd.export_outfit_exchange(_, txt, x)
     x:SendOutput("[END] outfit exchange - %s total exchanges exported - see in Gamma\\Overwrite\\bin\\export_outfit_exchange.csv", cnt)
 end
 
-function cmd.export_mutant_parts_prices(_, txt, x)
+function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
     x:SendOutput("[START] export mutant parts prices")
 
     local fake_butcher
