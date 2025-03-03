@@ -4830,10 +4830,176 @@ function cmd.export_outfit_exchange(_, txt, x)
 	x:SendOutput("[END] outfit exchange - %s total exchanges exported - see in Gamma\\Overwrite\\bin\\export_outfit_exchange.csv", cnt)
 end
 
+function cmd.export_mutant_parts_prices(_, txt, x)
+	x:SendOutput("[START] export mutant parts prices")
+
+	local fake_butcher
+	local fake_sakharov
+
+	local sim = alife()
+	for i=1,65534 do
+		local se_obj = sim:object(i)
+		if (se_obj and se_obj.group_id ~= 65535) then
+			if IsStalker(nil, se_obj:clsid()) then
+				local npc = level.object_by_id(i)
+				if npc then
+					if not fake_butcher then
+						fake_butcher = npc
+					elseif not fake_sakharov then
+						fake_sakharov = npc
+					end
+				end
+			end
+		end
+	end
+
+	if not fake_butcher then
+		x:SendOutput("Unable to find any NPCs on level for faking Butcher")
+		return
+	end
+
+	if not fake_sakharov then
+		x:SendOutput("Unable to find any NPCs on level for faking Sakharov")
+		return
+	end
+
+	trade_manager.trade_init(fake_butcher, "items\\trade\\trade_stalker_butcher.ltx")
+	trade_manager.update(fake_butcher)
+	trade_manager.trade_init(fake_sakharov, "items\\trade\\trade_ecolog_sakharov.ltx")
+	trade_manager.update(fake_sakharov)
+
+	local GUI = ui_inventory.GUI
+
+	GUI:TMode_InitProfile(fake_butcher)
+	local butcher_profile = GUI.CC["actor_trade"].trade_profile
+	printf("%s, %s, %s, %s, %s", butcher_profile.cfg, butcher_profile.list, butcher_profile.cond_factor, butcher_profile.cond_exponent, butcher_profile.discount)
+	GUI:TMode_InitProfile(fake_sakharov)
+	local sakharov_profile = GUI.CC["actor_trade"].trade_profile
+	printf("%s, %s, %s, %s, %s", sakharov_profile.cfg, sakharov_profile.list, sakharov_profile.cond_factor, sakharov_profile.cond_exponent, sakharov_profile.discount)
+
+	local cnt = 0
+	local parts = {}
+	local processing_counter = 0
+
+	local pos = db.actor:position()
+	local lvid = db.actor:level_vertex_id()
+	local gvid = db.actor:game_vertex_id()
+	local actor_id = AC_ID
+
+	ini_sys:section_for_each(function(section)
+		local type
+		if string.find(section, "mutant_part") then
+			type = 1
+		end
+		if string.find(section, "^hide") and not string.find(section, "absorbation") then
+			type = 2
+		end
+		local has_cost = ini_sys:line_exist(section, "cost")
+		if not type or not has_cost or section == "mutant_part_general_meat" then
+			--printf("%s is not mutant part", section)
+			return
+		end
+
+		local se_obj
+		se_obj = alife_create_item(section, {pos, lvid, gvid, actor_id} )
+
+		if not se_obj then
+			printf( "No server object made for [%s]", section)
+			x:SendOutput("No server object made for [%s]", section)
+			return
+		end
+		cnt = cnt + 1
+		processing_counter = processing_counter + 1
+		local id = se_obj.id
+
+		x:SendOutput("export mutant part price - %s, start", section)
+		local function createInterval(section, id, callback, idx)
+			CreateTimeEvent("export_mutant_part_price_"..section.."_"..idx, "delay_func", 2, function(section, id)
+				local success = callback(section, id)
+				if not success then
+					createInterval(section, id, callback, idx + 1)
+				end
+				return true
+			end, section, id)
+		end
+
+		createInterval(section, id, function(section, id)
+			local obj = level.object_by_id(id)
+			if not obj then
+				x:SendOutput("export part - %s, still online", section)
+				return false
+			end
+			if not obj.section then
+				x:SendOutput("export mutant part price - %s, failed", section)
+				processing_counter = processing_counter - 1
+				--x:SendOutput("export weapon - %s, still online", section)
+				alife_release(se_obj)
+				return true
+			end
+
+
+			local part = {}
+			part = {}
+			part.type = type
+			part.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name"))
+			part.sakharov_price = math.floor(utils_item.get_item_cost(obj, sakharov_profile))
+			part.butcher_price = math.floor(utils_item.get_item_cost(obj, butcher_profile))
+
+ 			parts[section] = part
+			alife_release(se_obj)
+			x:SendOutput("export mutant part price - %s, done", section)
+			processing_counter = processing_counter - 1
+			return true
+		end, 0)
+	end)
+
+	local function createTotalInterval(callback, idx)
+		CreateTimeEvent("export_mutant_part_price__total_" .. idx, "delay_func", 5, function()
+			local success = callback()
+			if not success then
+				createTotalInterval(callback, idx + 1)
+			end
+			return true
+		end)
+	end
+
+	createTotalInterval(function()
+		if processing_counter > 0 then
+			x:SendOutput("export mutant parts prices - %s parts still to do", processing_counter)
+			return false
+		end
+
+		local p_file = "export_mutant_parts_prices.csv"
+		local debug_file = io.open(p_file,"w+")
+
+		if ( debug_file == nil ) then
+			x:SendOutput("Failed to create/open file %s", p_file)
+			return true
+		end
+
+		--csv header
+		--write_file(debug_file, "~,       Name,      Sakharov Price,         Butcher Price")
+		local sortByType = function(t,a,b)
+			if t[a].type == t[b].type then
+				return t[a].name < t[b].name
+			end
+
+			return t[a].type < t[b].type
+		end
+		for section, part in spairs(parts, sortByType) do
+			write_file(debug_file, "%s,%s,%s,%s",
+		  --~,       Name,      Sakharov Price,         Butcher Price
+			section, part.name, part.sakharov_price,    part.butcher_price)
+		end
+		debug_file:close()
+		x:SendOutput("[END] mutant parts prices - %s total parts exported - see in Gamma\\Overwrite\\bin\\export_mutant_parts_prices.csv", cnt)
+		return true
+	end, 0)
+end
 
 function cmd.print_outfits_props(_,txt,x)
 	x:SendOutput("[START] print outfit props")
-	
+
 	local outfit_cls = {
 		["o_helmet"]    = true,
 		["E_HLMET"]     = true,
@@ -4848,7 +5014,7 @@ function cmd.print_outfits_props(_,txt,x)
 
 		["o_heavy"]     = true,
 	}
-	
+
 	local outfit_type = {
 		["helmet"]              =  1 ,
 		["helmet_light"]        =  2 ,
@@ -4892,7 +5058,7 @@ function cmd.print_outfits_props(_,txt,x)
 		debug_file:close()
 		exec_console_cmd("load ~#I#:"..output)
 	end
-	
+
 	local tbl = {}
 	local cnt = 0
 	ini_sys:section_for_each( function(section)
@@ -4906,13 +5072,13 @@ function cmd.print_outfits_props(_,txt,x)
 			tbl[section] = {}
 			tbl[section].typ = ini_sys:r_string_ex(section,"repair_type") or "na"
 			tbl[section].indx = tbl[section].typ and outfit_type[tbl[section].typ] or 0
-			
+
 			tbl[section].cost = ini_sys:r_float_ex(section,"cost") or "na"
 			tbl[section].w = ini_sys:r_float_ex(section,"inv_weight") or "na"
 			tbl[section].cw = ini_sys:r_float_ex(section,"additional_inventory_weight") or "na"
 			tbl[section].arty = ini_sys:r_float_ex(section,"artefact_count") or "na"
 			tbl[section].intria = ini_sys:r_float_ex(section,"control_inertion_factor") or "na"
-			
+
 			tbl[section].p_b = ini_sys:r_float_ex(section,"burn_protection") or "na"
 			tbl[section].p_sh = ini_sys:r_float_ex(section,"shock_protection") or "na"
 			tbl[section].p_r = ini_sys:r_float_ex(section,"radiation_protection") or "na"
@@ -4922,11 +5088,11 @@ function cmd.print_outfits_props(_,txt,x)
 			tbl[section].p_e = ini_sys:r_float_ex(section,"explosion_protection") or "na"
 			tbl[section].p_w = ini_sys:r_float_ex(section,"wound_protection") or "na"
 			tbl[section].p_fw = ini_sys:r_float_ex(section,"fire_wound_protection") or "na"
-			
+
 			tbl[section].hit_f = ini_sys:r_float_ex(section,"hit_fraction_actor") or "na"
 		end
 	end)
-	
+
 	write_file("","")
 	write_file("--------------------------------------")
 	write_file("SYMBOLS:")
@@ -4953,7 +5119,7 @@ function cmd.print_outfits_props(_,txt,x)
 	for section,v in spairs(tbl,functor) do
 		write_file("%s 		= type:%s | cost:%s | w:%s | cw:%s | arty:%s | intria:%s | p_b:%s | p_sh:%s | p_r:%s | p_cb:%s | p_t:%s | p_st:%s | p_e:%s | p_w:%s | p_fw:%s | hit_f:%s ", section, v.typ, v.cost, v.w, v.cw, v.arty, v.intria, v.p_b, v.p_sh, v.p_r, v.p_cb, v.p_t, v.p_st, v.p_e, v.p_w, v.p_fw, v.hit_f)
 	end
-	
+
 	x:SendOutput("[END] print outfit props - %s outfits printed - see outfits_props.txt", cnt)
 end
 
@@ -4973,25 +5139,25 @@ function cmd.release_id(_,txt,x)
 		x:SendOutput("!Missing ID to release. Ex: release_id 34132")
 		return
 	end
-	
+
 	local se_obj = alife_object(id)
 	if (not se_obj) then
 		x:SendOutput("!No server object by ID (%s) is found", id)
 		return
 	end
-	
+
 	x:SendOutput("-Released server object by ID (%s): %s", id, se_obj:name())
 	alife_release(se_obj)
 end
 
 function cmd.calc_containers_weight(_,txt,x)
 	local _cont = {}
-	
+
 	ini_sys:section_for_each(function(section)
 		local con, arty
 		if (string.find(section, "(lead.-_box)",3)) then
 			con = "lead_box"
-			arty = section:gsub("_lead_box", "")		
+			arty = section:gsub("_lead_box", "")
 		elseif (string.find(section, "(af.-_iam)",3)) then
 			con = "af_iam"
 			arty = section:gsub("_af_iam", "")
@@ -5002,23 +5168,23 @@ function cmd.calc_containers_weight(_,txt,x)
 			con = "af_aam"
 			arty = section:gsub("_af_aam", "")
 		end
-		
+
 		if con and arty and ini_sys:section_exist(con) and ini_sys:section_exist(arty) then
 			local arty_w = ini_sys:r_float_ex(arty,"inv_weight")
 			local con_w = ini_sys:r_float_ex(con,"inv_weight")
 			local new_weight = arty_w + con_w
-			
+
 			if (new_weight ~= ini_sys:r_float_ex(section,"inv_weight")) then
 				_cont[section] = new_weight
 				printf("~ calc_containers_weight | calculated new weight for [%s]: %s", section, new_weight)
 			end
 		end
 	end)
-	
+
 	local function file_exists(path)
 		return io.open(path) ~= nil
 	end
-	
+
 	local cnt = 0
 	local function on_execute(path,filename,quit)
 		local fullpath = path.."\\"..filename
@@ -5027,23 +5193,23 @@ function cmd.calc_containers_weight(_,txt,x)
 			local data = ltx:read("*all")
 			ltx:close()
 			if (data) then
-				
+
 				local need_save
 				for sec,wt in pairs(_cont) do
 					if (string.find(data,"["..sec.."]",nil,true)) then
-						
+
 						ltx = utils_data.cfg_file(fullpath)
 						if (ltx) then
-							
+
 							ltx:SetValue(sec, "inv_weight", wt)
 							need_save = true
 							cnt = cnt + 1
 							printf("% calc_containers_weight | saved inv_weight [%s]->[%s]", sec, wt)
-							
+
 						end
 					end
 				end
-				
+
 				if need_save then
 					ltx:SaveExt()
 					printf("- ui_item_editor | saved changes for {%s}", fullpath)
@@ -5052,37 +5218,37 @@ function cmd.calc_containers_weight(_,txt,x)
 			end
 		end
 	end
-	
+
 	local sp = getFS():update_path('$game_config$', "items\\items\\")
 	sp = string.sub(sp,0,string.len(sp)-1)
 	lua_ext.recurse_subdirectories_and_execute(sp,{"ltx"},on_execute)
-	
+
 	x:SendOutput("-(%s) Weight calculations for artefact containers is done", cnt)
 end
 
 function cmd.validate_wpn_upgrades(_,txt,x)
 	exec_console_cmd("clear_log")
 	x:SendOutput("-Started weapon upgrades scan")
-	
+
 	local ignore_param = {
 		["cost"] = true,
 		["value"] = true,
 	}
-	
+
 	local prop_minus = {
 		["prop_recoil"] = true,
 		["prop_weight"] = true,
 	}
-	
+
 	local scan_list = {}
 	local n, result, par, value = 0,"","",""
 	local s_find = string.find
 	local parameters = ui_debug_item.parameters["weapon"]
-	
+
 	ini_sys:section_for_each(function(section)
 		local valid_wpn = ini_sys:r_string_ex(section,"upgrades") and ini_sys:r_float_ex(section,"rpm") and (not s_find(section,"tch_")) and (not s_find(section,"mp_")) and (not s_find(section,"_base"))
 		if valid_wpn then
-			local sec = ini_sys:r_string_ex(section,"parent_section") or section	
+			local sec = ini_sys:r_string_ex(section,"parent_section") or section
 			
 			-- Gather upgrades
 			local upgrades = utils_item.get_upgrades_tree(section)
