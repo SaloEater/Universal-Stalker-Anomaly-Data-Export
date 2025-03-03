@@ -4,7 +4,6 @@ local cmd_list = {
     { 	name = "Export eatable" 				, cmd = "export_eatable"   				             , hide_ui = 0 								},
     { 	name = "Export medicine" 				, cmd = "export_medicine"  				             , hide_ui = 0 								},
     { 	name = "Export artefacts" 				, cmd = "export_artefacts" 				             , hide_ui = 0 								},
-    { 	name = "Export artefact recipes" 		, cmd = "export_artefact_recipes"		             , hide_ui = 0 								},
     --{ 	name = "Export anomalies spawns" 		, cmd = "export_anomalies spawn"		             , hide_ui = 0 								},
     { 	name = "Export belt attachments" 		, cmd = "export_belt_attachments"		             , hide_ui = 0 								},
     { 	name = "Export weapons" 		        , cmd = "export_weapons" 				             , hide_ui = 0 								},
@@ -12,7 +11,6 @@ local cmd_list = {
     { 	name = "Export melee" 		            , cmd = "export_melee" 				             	 , hide_ui = 0 								},
     { 	name = "Export ammo" 		            , cmd = "export_ammo" 				             	 , hide_ui = 0 								},
     { 	name = "Export disassemble table" 		, cmd = "export_disassemble_table"			         , hide_ui = 0 								},
-    { 	name = "Export outfit exchange table" 	, cmd = "export_outfit_exchange"			         , hide_ui = 0 								},
     { 	name = "Export mutant parts prices" 	, cmd = "export_mutant_parts_prices"		         , hide_ui = 0 								},
     --{ 	name = "Export weapons upgrades" 				, cmd = "export_weapons_upgrades"    				         , hide_ui = 0 								},
 }
@@ -22,7 +20,12 @@ for i, cmd in ipairs(cmd_list) do
 end
 
 function get_stat_value(obj, section, stat_type, type)
+    utils_ui.prepare_stats_table()
     local gr = utils_ui.stats_table[stat_type][type]
+    if not gr then
+        printf("get_stat_value - no group for %s, %s, %s", section, stat_type, type)
+        return 0
+    end
     local v = tonumber(utils_ui.get_stats_value(obj, section, gr, type) or 0)
     local m = gr["magnitude"]
     local result = v * m
@@ -235,11 +238,6 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
                 outfit.explosion = to_percent_floor(get_outfit_stat_value(obj, section, "explosion_protection"))
                 outfit.rupture = to_percent_floor(get_outfit_stat_value(obj, section, "wound_protection"))
                 outfit.ballistic = to_percent_floor(get_outfit_stat_value(obj, section, "fire_wound_protection"))
-                outfit.br_class = round(get_outfit_stat_value(obj, section, "apres_modifier"))
-
-                outfit.powered = item_exo_device.is_exo(obj) and "Y" or "N"
-
-                outfit.speed = decimal_to_percent(outfit_speed_mcm.get_outfit_speed(obj, section, false))
 
                 tbl[repair_type][section] = outfit
                 alife_release(se_obj)
@@ -286,20 +284,20 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
 
             if repair_type == "outfit_helmet" then
                 --csv header
-                --write_file(debug_file, ~,     Name,   Repair Label,   Base Cost, Ballistic Res., BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Weight kg")
+                --write_file(debug_file, "~,       Name,   Repair Label,   Base Cost, Ballistic Res., Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Weight kg")
                 for section,v in spairs(outfits, functor) do
-                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                    --~,     Name,   Repair Label,   Base Cost, Ballistic Res., BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Weight kg"
-                            section, v.name, v.repair_label, v.cost,    v.ballistic,    v.br_class, v.burn,    v.shock,         v.chemical_burn, v.radiation,         v.telepatic,  v.rupture,    v.impact,    v.explosion,    v.weight)
+                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                  --~,       Name,   Repair Label,   Base Cost, Ballistic Res., Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Weight kg
+                    section, v.name, v.repair_label, v.cost,    v.ballistic,    v.burn,    v.shock,         v.chemical_burn, v.radiation,         v.telepatic,  v.rupture,    v.impact,    v.explosion,    v.weight)
                     type_cnt = type_cnt + 1
                 end
             else
                 --csv header
-                --write_file(debug_file, "~,       Faction,   Name,   Base Cost,Powered,   Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Movespeed Mult., Weight kg")
+                --write_file(debug_file, "~,       Faction,   Name,   Repair Label,   Base Cost, Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Weight kg")
                 for section,v in spairs(outfits, functor) do
-                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                    --~,       Faction,   Name,   Repair Label,   Base Cost,Powered,   Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Movespeed Mult., Weight kg"
-                            section, v.faction, v.name, v.repair_label, v.cost,   v.powered, v.ballistic,   v.br_class, v.burn,    v.shock,         v.chemical_burn, v.radiation,         v.telepatic,  v.rupture,    v.impact,    v.explosion,    v.arty,           v.max_arty,     v.carry_weight,    v.speed,         v.weight)
+                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                  --~,       Faction,   Name,   Repair Label,   Base Cost, Ballistic Res.,BR Class,   Burn Res., Electrical Res., Chemical Res.,   Ext. Radiation Res., Psychic Res., Rupture Res., Impact Res., Explosive Res., Incl. Belt Slots, Max Belt Slots, Weight Carried kg, Weight kg"
+                    section, v.faction, v.name, v.repair_label, v.cost,    v.ballistic,   v.br_class, v.burn,    v.shock,         v.chemical_burn, v.radiation,         v.telepatic,  v.rupture,    v.impact,    v.explosion,    v.arty,           v.max_arty,     v.carry_weight,    v.weight)
                     type_cnt = type_cnt + 1
                 end
             end
@@ -530,30 +528,6 @@ function debug_cmd_list.cmd.export_eatable(_, txt, x)
     x:SendOutput("[END] export outfit - %s total eatable exported - see in Gamma\\Overwrite\\bin\\export_eatable.csv", cnt)
 end
 
-function build_bhs_summary(t_name, sec)
-    local head = 0
-    local torso = 0
-    local arm = 0
-    local leg = 0
-    local timeregen = 0
-    if sec and t_name[sec] then
-        for limb, val in pairs(t_name[sec]) do
-            if limb == "head" then
-                head = val
-            elseif limb == "torso" then
-                torso = val
-            elseif limb == "rightarm" then
-                arm = val
-            elseif limb == "rightleg" then
-                leg = val
-            elseif limb == "timeregen" then
-                timeregen = val / 1000
-            end
-        end
-    end
-    return head, torso, arm, leg, timeregen
-end
-
 --See ui_workshop.script::UIWorkshopCraft:LoadRecipes
 function export_recipes(craft_index)
     local used_in_crafting = {}
@@ -610,10 +584,6 @@ end
 
 function export_medicine_recipes()
     return export_recipes(5)
-end
-
-function export_artefacts_recipes()
-    return export_recipes(7)
 end
 
 function debug_cmd_list.cmd.export_medicine(_, txt, x)
@@ -697,9 +667,6 @@ function debug_cmd_list.cmd.export_medicine(_, txt, x)
 
             eatable.weight_carried = ini_sys:r_float_ex(section, "boost_max_weight") or 0
 
-            eatable.perm_head, eatable.perm_torso, eatable.perm_arm, eatable.perm_leg, eatable.perm_timeregen = build_bhs_summary(zzz_player_injuries.healhelp, section)
-            eatable.temp_head, eatable.temp_torso, eatable.temp_arm, eatable.temp_leg, eatable.hp_active = build_bhs_summary(zzz_player_injuries.medkits, section)
-
             eatable.used_in_crafting = used_in_crafting[section] and "Y" or "N"
             eatable.craftable = craftable[section] and "Y" or "N"
 
@@ -711,29 +678,15 @@ function debug_cmd_list.cmd.export_medicine(_, txt, x)
     local p_file = "export_medicine.csv"
     local debug_file = io.open(p_file,"w+")
     --csv header
-    --write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, Health Regen,   Perm Head,   Perm Torso,   Perm Arm,   Perm Leg,   Temp Head,   Temp Torso,   Temp Arm,   Temp Leg,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Satiety Level, Servings,   Duration,   Health Res.,      Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,      Rad Res. msv sec, Total Rad Res.,      Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot.,  Psychic Prot. mt, Weight Carried kg, Used In Crafting,   Craftable")
+    --write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Satiety Level, Servings,   Duration,   Health Res.,      Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,      Rad Res. msv sec, Total Rad Res.,      Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot.,  Psychic Prot. mt, Weight Carried kg, Used In Crafting,   Craftable")
     for section,v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        --~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, HP Active,   Perm Head,   Perm Torso,   Perm Arm,   Perm Leg,   Temp Head,   Temp Torso,   Temp Arm,   Temp Leg,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Satiety Level, Servings,   Duration,   Health Res.,      Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,      Rad Res. msv sec, Total Rad Res.,      Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot.,  Psychic Prot. mt, Weight Carried kg, Used In Crafting,   Craftable
-                section, v.name, v.weight,  v.cost,  v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health,      v.hp_active, v.perm_head, v.perm_torso, v.perm_arm, v.perm_leg, v.temp_head, v.temp_torso, v.temp_arm, v.temp_leg, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.satiety,     v.servings, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore,   v.total_bleed_restore, v.rad_restore,    v.total_rad_restore, v.stamina_restore, v.total_stamina_restore, v.radiation_prot,    v.chemical_prot, v.psychic_prot,   v.weight_carried,  v.used_in_crafting, v.craftable)
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+      --~ ,      Name,   Weight kg, Base Cost, Tier, Sleepiness,   Thirstiness,   Alcohol,   Health Change, Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Satiety Level, Servings,   Duration,   Health Res.,      Total Health Res.,      Bleed Res. ml min, Total Bleed Res.,      Rad Res. msv sec, Total Rad Res.,      Stamina Res. mg,   Total Stamina Res.,      Radiation Prot. msv, Chemical Prot.,  Psychic Prot. mt, Weight Carried kg, Used In Crafting,   Craftable
+        section, v.name, v.weight,  v.cost,  v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health,     v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.satiety,     v.servings, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore,   v.total_bleed_restore, v.rad_restore,    v.total_rad_restore, v.stamina_restore, v.total_stamina_restore, v.radiation_prot,    v.chemical_prot, v.psychic_prot,   v.weight_carried,  v.used_in_crafting, v.craftable)
     end
     debug_file:close()
 
     x:SendOutput("[END] export medicine - %s total medicine exported - see in Gamma\\Overwrite\\bin\\export_medicine.csv", cnt)
-end
-
-function get_perk_artifacts_list()
-    local perk_artefacts = {}
-
-    for i, v in pairs(perk_based_artefacts) do
-        if type(v) == "table" and string.find(i, "artefact_on_") then
-            for j, k in pairs(v) do
-                perk_artefacts[j] = true
-            end
-        end
-    end
-
-    return perk_artefacts
 end
 
 function debug_cmd_list.cmd.export_artefacts(_, txt, x)
@@ -763,9 +716,6 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
         ["af_quest_b14_twisted"] = true,
     }
 
-    local used_in_crafting, craftable = export_artefacts_recipes()
-    local perk_artefacts = get_perk_artifacts_list()
-
     local tbl = {}
     local cnt = 0
     ini_sys:section_for_each(function(section)
@@ -783,7 +733,6 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
             artefact.tier = ini_sys:r_float_ex(section, "tier") or 0
             artefact.rank = ini_sys:r_float_ex(section, "af_rank") or 0
             artefact.is_junk = kind == "i_arty_junk" and "Y" or "N"
-            artefact.has_perk = perk_artefacts[section] and "Y" or "N"
             artefact.jump_height = ini_sys:r_float_ex(section, "jump_height") or 0
 
             artefact.health_restore = get_artefact_stat_value(nil, section, "health_restore_speed")
@@ -815,9 +764,6 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
             artefact.explosion_cap = to_percent_string(get_artefact_stat_value(nil, section, "explosion_cap") or 0)
             artefact.impact_cap = to_percent_string(get_artefact_stat_value(nil, section, "strike_cap") or 0)
 
-            artefact.used_in_crafting = used_in_crafting[section] and "Y" or "N"
-            artefact.craftable = craftable[section] and "Y" or "N"
-
             tbl[section] = artefact
             cnt = cnt + 1
         end
@@ -840,56 +786,16 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
     local p_file = "export_artefacts.csv"
     local debug_file = io.open(p_file,"w+")
     --csv header
-    --write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Jump Height,   Is Junk,   Has Perk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg, Used In Crafting,   Craftable")
+    --write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Jump Height,   Is Junk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg")
     for section,v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        --~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Jump Height,   Is Junk,   Has Perk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg, Used In Crafting,   Craftable
-                section, v.name, v.weight,  v.cost,    v.tier, v.rank, v.jump_height, v.is_junk, v.has_perk, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.health_restore, v.satiety_restore, v.bleed_restore,   v.rad_restore,    v.stamina_restore, v.burn_cap, v.shock_cap, v.telepatic_cap, v.chemical_burn_cap, v.rupture_cap, v.ballistic_cap, v.explosion_cap, v.impact_cap, v.weight_carried,  v.used_in_crafting, v.craftable
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+      --~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Jump Height,   Is Junk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg
+        section, v.name, v.weight,  v.cost,    v.tier, v.rank, v.jump_height, v.is_junk, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.health_restore, v.satiety_restore, v.bleed_restore,   v.rad_restore,    v.stamina_restore, v.burn_cap, v.shock_cap, v.telepatic_cap, v.chemical_burn_cap, v.rupture_cap, v.ballistic_cap, v.explosion_cap, v.impact_cap, v.weight_carried
         )
     end
     debug_file:close()
 
     x:SendOutput("[END] export artefacts - %s total artefacts exported - see in Gamma\\Overwrite\\bin\\export_artefacts.csv", cnt)
-end
-
-function debug_cmd_list.cmd.export_artefact_recipes(_, txt, x)
-    x:SendOutput("[START] export artefact recipes")
-
-    local used_in_crafting, craftable = export_artefacts_recipes()
-
-    local tbl = {}
-    local cnt = 0
-    for section, recipes in pairs(craftable) do
-        for i, raw_recipe in ipairs(recipes) do
-            local recipe = {}
-            recipe.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
-            recipe.ingr_1_name = raw_recipe[1] and ini_sys:r_string_ex(raw_recipe[1][1], "inv_name") and game.translate_string(ini_sys:r_string_ex(raw_recipe[1][1], "inv_name")) or ""
-            recipe.ingr_1_amt = raw_recipe[1] and raw_recipe[1][2] and "x" .. raw_recipe[1][2] or ""
-            recipe.ingr_2_name = raw_recipe[2] and ini_sys:r_string_ex(raw_recipe[2][1], "inv_name") and game.translate_string(ini_sys:r_string_ex(raw_recipe[2][1], "inv_name")) or ""
-            recipe.ingr_2_amt = raw_recipe[2] and raw_recipe[2][2] and "x" .. raw_recipe[2][2] or ""
-            recipe.ingr_3_name = raw_recipe[3] and ini_sys:r_string_ex(raw_recipe[3][1], "inv_name") and game.translate_string(ini_sys:r_string_ex(raw_recipe[3][1], "inv_name")) or ""
-            recipe.ingr_3_amt = raw_recipe[3] and raw_recipe[3][2] and "x" .. raw_recipe[3][2] or ""
-            recipe.ingr_4_name = raw_recipe[4] and ini_sys:r_string_ex(raw_recipe[4][1], "inv_name") and game.translate_string(ini_sys:r_string_ex(raw_recipe[4][1], "inv_name")) or ""
-            recipe.ingr_4_amt = raw_recipe[4] and raw_recipe[4][2] and "x" .. raw_recipe[4][2] or ""
-            tbl[section] = recipe
-            cnt = cnt + 1
-        end
-    end
-
-    local p_file = "export_artefact_recipes.csv"
-    local debug_file = io.open(p_file,"w+")
-    --csv header
-    --write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier,   Rank,   Is Junk,   Has Perk,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Burn Cap,   Shock Cap,   Telepatic Cap,   Chemical Burn Cap,   Rupture Cap,   Ballistic Cap,   Explosion Cap,   Impact Cap,   Weight Carried kg, Used In Crafting,   Craftable")
-    local sortByName = function(t,a,b) return t[a].name < t[b].name end
-    for section,v in spairs(tbl, sortByName) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        --~ ,      Name,   Ingr 1 Name,   Ingr 1 Amt,   Ingr 2 Name,   Ingr 2 Amt,   Ingr 3 Name,   Ingr 3 Amt,   Ingr 4 Name,   Ingr 4 Amt
-                section, v.name, v.ingr_1_name, v.ingr_1_amt, v.ingr_2_name, v.ingr_2_amt, v.ingr_3_name, v.ingr_3_amt, v.ingr_4_name, v.ingr_4_amt
-        )
-    end
-    debug_file:close()
-
-    x:SendOutput("[END] export artefact recipes - %s total recipes exported - see in Gamma\\Overwrite\\bin\\export_artefact_recipes.csv", cnt)
 end
 
 function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
@@ -906,8 +812,6 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
         ["fieldcraft_plate_attch"] = true,
         ["test_container"] = true,
     }
-
-    local used_in_crafting, craftable = export_artefacts_recipes()
 
     local tbl = {}
     local cnt = 0
@@ -971,8 +875,8 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
     --write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Tier,   Jump Height,   Bonus Mutant Part Chance,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Weight Carried kg")
     for section,v in pairs(tbl) do
         write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        --~ ,      Name,   Weight kg, Base Cost, Tier,   Jump Height,   Bonus Mutant Part Chance,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Weight Carried kg
-                section, v.name, v.weight,  v.cost,    v.tier, v.jump_height, v.bonus_mutant_part_chance, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.health_restore, v.satiety_restore, v.bleed_restore,   v.rad_restore,    v.stamina_restore, v.weight_carried
+      --~ ,      Name,   Weight kg, Base Cost, Tier,   Jump Height,   Bonus Mutant Part Chance,   Burn Immunity,   Shock Immunity,   Radiation Immunity,   Psychic Immunity,   Chemical Burn Immunity,   Impact Immunity,   Rupture Immunity,   Explosion Immunity,   Ballistic Immunity,   Health Res.,      Satiety Res.,      Bleed Res. ml min, Rad Res. msv sec, Stamina Res. mg,   Weight Carried kg
+        section, v.name, v.weight,  v.cost,    v.tier, v.jump_height, v.bonus_mutant_part_chance, v.burn_immunity, v.shock_immunity, v.radiation_immunity, v.psychic_immunity, v.chemical_burn_immunity, v.impact_immunity, v.rupture_immunity, v.explosion_immunity, v.ballistic_immunity, v.health_restore, v.satiety_restore, v.bleed_restore,   v.rad_restore,    v.stamina_restore, v.weight_carried
         )
     end
     debug_file:close()
@@ -1041,26 +945,6 @@ function armor_to_class(val)
     end
 
     return val
-end
-
-function get_weapon_br_stats(ammo_class)
-    local brs = {
-        "", "", "", "", "", "", ""
-    }
-    local ammo_tbl = str_explode(ammo_class,",")
-    --printf("ammo_class: %s", ammo_class)
-    for i, ammo in ipairs(ammo_tbl) do
-        local ap = ini_sys:r_float_ex(ammo, "k_ap") or 0
-        --printf("%s %s", ammo, ap)
-        ap = ap * 10 * 100 * get_game_difficulty_multiplier()
-        local br = armor_to_class(ap)
-        --printf("%s, %s", br, brs[br + 1])
-        if br > 0 and (not brs[br + 1] or brs[br + 1] == "" or brs[br + 1] < ap) then
-            brs[br + 1] = ap
-        end
-    end
-    --printf(brs[7])
-    return brs[1], brs[2], brs[3], brs[4], brs[5], brs[6], brs[7]
 end
 
 function get_weapon_repair_label(repair_type)
@@ -1207,8 +1091,6 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
 
                 weapon.alt_caliber = alt_calibers_str
 
-                weapon.br1, weapon.br2, weapon.br3, weapon.br4, weapon.br5, weapon.br6 , weapon.br7 = get_weapon_br_stats(ammo_class)  --br1 is br0
-
                 tbl[kind][section] = weapon
                 alife_release(se_obj)
                 x:SendOutput("export weapon - %s, done", section)
@@ -1246,11 +1128,11 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             end
 
             --csv header
-            --write_file(debug_file, "~,       Type,   Name,   Repair Label,   Single Handed,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6")
+            --write_file(debug_file, "~,       Type,   Name,   Repair Label,   Single Handed,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber")
             for section, w in pairs(weapons) do
                 write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                --~,       Type,   Name,   Repair Label,   Single Handed,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6
-                        section, w.type, w.name, w.repair_label, w.single_handed, w.cost,    w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.weight,  w.caliber, w.alt_caliber, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
+              --~,       Type,   Name,   Repair Label,   Single Handed,   Base Cost, Accuracy,   Handling,   Damage,   Fire Rate,   Ammo Mag Size,   Max Range,   Speed,   Reliability,   Recoil,   Weight kg, Caliber,   Alt Caliber
+                section, w.type, w.name, w.repair_label, w.single_handed, w.cost,    w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.weight,  w.caliber, w.alt_caliber)
                 type_cnt = type_cnt + 1
             end
             debug_file:close()
@@ -1373,9 +1255,6 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
                 weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
                 local ammo = ini_sys:r_string_ex(section, "ammo_class")
                 weapon.br = (ammo and ini_sys:r_float_ex(ammo, "k_ap") or 0) * 10 * 100 * get_game_difficulty_multiplier()
-                weapon.pelts_quality_min = zz_item_artefact.knifesm[section] and to_percent_string(zz_item_artefact.knifesm[section].min) or ""
-                weapon.pelts_quality_max = zz_item_artefact.knifesm[section] and to_percent_string(zz_item_artefact.knifesm[section].max) or ""
-                weapon.cuts_thick_skin = (section:match('wpn_knife$') or section:match('wpn_knife2$') or not string.find(section, "knife")) and "N" or "Y"
                 weapon.light_attack_power = prop_damage(obj, section, "hit_power")
                 weapon.heavy_attack_power = prop_damage(obj, section, "hit_power_2")
 
@@ -1416,12 +1295,11 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
             end
 
             --csv header
-            --write_file(debug_file, "~,       Name,   Base Cost, Weight kg, Light Attack Power,   Heavy Attack Power,   BR,   Max Range,   Splash Hits,   Cuts Thick Skin,   Pelts Quality Min,   Pelts Quality Max")
-
+            --write_file(debug_file, "~,       Name,   Base Cost, Weight kg, Light Attack Power,   Heavy Attack Power,   BR,   Max Range,   Splash Hits")
             for section, w in pairs(weapons) do
                 write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                --~,       Name,   Base Cost, Weight kg, Light Attack Power,   Heavy Attack Power,   BR,   Max Range,   Cuts Thick Skin,   Pelts Quality Min,   Pelts Quality Max
-                        section, w.name, w.cost,    w.weight,  w.light_attack_power, w.heavy_attack_power, w.br, w.max_range, w.cuts_thick_skin, w.pelts_quality_min, w.pelts_quality_max)
+              --~,       Name,   Base Cost, Weight kg, Light Attack Power,   Heavy Attack Power,   BR,   Max Range
+                section, w.name, w.cost,    w.weight,  w.light_attack_power, w.heavy_attack_power, w.br, w.max_range)
                 type_cnt = type_cnt + 1
             end
             debug_file:close()
@@ -1509,8 +1387,8 @@ function debug_cmd_list.cmd.export_explosives(_, txt, x)
     --write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Blast Power, Blast Radius, Frag Hit, Frags, Fragment Speed, Delay")
     for section, v in pairs(tbl) do
         write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        --~ ,      Name,   Weight kg, Base Cost, Blast Power,   Blast Radius,   Frags,   Frag Hit,   Delay
-                section, v.name, v.weight,  v.cost,    v.blast_power, v.blast_radius, v.frags, v.frag_hit, v.delay
+      --~ ,      Name,   Weight kg, Base Cost, Blast Power,   Blast Radius,   Frags,   Frag Hit,   Delay
+        section, v.name, v.weight,  v.cost,    v.blast_power, v.blast_radius, v.frags, v.frag_hit, v.delay
         )
     end
     debug_file:close()
@@ -1542,17 +1420,6 @@ function get_game_difficulty_multiplier()
     end
 
     return difficulty_multiplier[game_num]
-end
-
-function get_ammo_br_stat(ammo_section)
-    local brs = {
-        "", "", "", "", "", "", ""
-    }
-    local ap = ini_sys:r_float_ex(ammo_section, "k_ap") or 0
-    ap = ap * 10 * 100 * get_game_difficulty_multiplier() --see cxv_ammo_stats_tbl.difficulty_multiplier for other values
-    local br = armor_to_class(ap)
-    brs[br + 1] = ap
-    return brs[1], brs[2], brs[3], brs[4], brs[5], brs[6], brs[7]
 end
 
 function normalize_mutant_ammo_mod(mod)
@@ -1614,7 +1481,6 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
             ammo.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
             ammo.projectiles = ini_sys:r_float_ex(section, "buck_shot") or 1
             ammo.damage = ini_sys:r_float_ex(section, "k_hit") or 0
-            ammo.br1, ammo.br2, ammo.br3, ammo.br4, ammo.br5, ammo.br6, ammo.br7 = get_ammo_br_stat(section) --br1 is br0
             ammo.range = decimal_to_percent(ini_sys:r_float_ex(section, "k_dist"))
             ammo.velocity = decimal_to_percent(ini_sys:r_float_ex(section, "k_bullet_speed"))
             ammo.impulse = decimal_to_percent(ini_sys:r_float_ex(section, "k_impulse"))
@@ -1629,11 +1495,11 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
     local p_file = "export_ammo.csv"
     local debug_file = io.open(p_file,"w+")
     --csv header
-    --write_file(debug_file, "~ ,      Name,   Weight kg, Base Cost, Projectiles,   Damage,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6,   Range,   Velocity,   Impulse,   Accuracy,   Degradation, Falloff")
+    --write_file(debug_file, "~ ,      Name,   Projectiles,   Damage,   Accuracy,   Range,   Falloff,   Velocity,   Impulse,   Degradation, Weight kg, Base Cost")
     for section, v in pairs(tbl) do
         write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        --~ ,      Name,   BR0,   BR1,   BR2,   BR3,   BR4,   BR5,   BR6,   Projectiles,   Damage,   Accuracy,   Range,   Falloff,   Velocity,   Impulse,   Degradation, Weight kg, Base Cost,
-                section, v.name, v.br1, v.br2, v.br3, v.br4, v.br5, v.br6, v.br7, v.projectiles, v.damage, v.accuracy, v.range, v.falloff, v.velocity, v.impulse, v.degr,      v.weight,  v.cost
+      --~ ,      Name,   Projectiles,   Damage,   Accuracy,   Range,   Falloff,   Velocity,   Impulse,   Degradation, Weight kg, Base Cost
+        section, v.name, v.projectiles, v.damage, v.accuracy, v.range, v.falloff, v.velocity, v.impulse, v.degr,      v.weight,  v.cost
         )
     end
     debug_file:close()
@@ -1743,91 +1609,8 @@ function debug_cmd_list.cmd.export_disassemble_table(_, txt, x)
     x:SendOutput("[END] export materials - %s total materials exported - see in Gamma\\Overwrite\\bin\\export_disassembles_materials.csv", materials_count)
 end
 
-function debug_cmd_list.cmd.export_outfit_exchange(_, txt, x)
-    x:SendOutput("[START] export outfit exchange")
-
-    local outfit_map = {}
-    for variable, value in pairs(grok_armor_convert) do
-        if not string.find(variable, "all_") then
-            local reward
-            local source_outfits = {}
-            for prop, propValue in pairs(value) do
-                if prop == "reward" then
-                    reward = propValue
-                elseif prop ~= "cost" then
-                    source_outfits[prop] = true
-                end
-            end
-
-            if reward and source_outfits then
-                for outfit, _ in pairs(source_outfits) do
-                    if not outfit_map[outfit] then
-                        outfit_map[outfit] = {}
-                    end
-                    if not outfit_map[outfit]["rewards"] then
-                        outfit_map[outfit]["rewards"] = {}
-                        outfit_map[outfit]["community"] = ini_sys:r_string_ex(outfit, "community") or ""
-                        outfit_map[outfit]["name"] = game.translate_string(ini_sys:r_string_ex(outfit, "inv_name")) or ""
-                    end
-
-                    table.insert(outfit_map[outfit]["rewards"], {
-                        ["community"] = ini_sys:r_string_ex(reward, "community") or "",
-                        ["reward"] = reward,
-                        ["name"] = game.translate_string(ini_sys:r_string_ex(reward, "inv_name")) or ""
-                    })
-                end
-            end
-        end
-    end
-
-    local communities = game_relations.factions_table
-    table.sort(communities)
-
-    local cnt = 0
-
-    local file_name = "export_outfit_exchange.csv"
-    local file = io.open(file_name,"w+")
-
-    --write_file(debug_file, "Faction, Name")
-    local community_map = {}
-    for i, community in ipairs(communities) do
-        community_map[community] = ""
-    end
-
-    local sortByFactionAndName = function(t, a, b)
-        local faction_a = t[a]["community"]
-        local faction_b = t[b]["community"]
-        if faction_a == faction_b then
-            return t[a]["name"] < t[b]["name"]
-        else
-            return faction_a < faction_b
-        end
-    end
-    for outfit, data in spairs(outfit_map, sortByFactionAndName) do
-        local value = (game.translate_string(data["community"]) or "Unknown") .. "," .. data["name"] .. ","
-        for i, reward in spairs(data["rewards"], sortByFactionAndName) do
-            community_map[reward.community] = reward.name
-            cnt = cnt + 1
-        end
-        for i, community in ipairs(communities) do
-            if community_map[community] then
-                value = value .. "," .. community_map[community]
-            else
-                value = value .. "," .. "N/A"
-            end
-        end
-        write_file(file, value)
-        for i, community in ipairs(communities) do
-            community_map[community] = ""
-        end
-    end
-    file:close()
-
-    x:SendOutput("[END] outfit exchange - %s total exchanges exported - see in Gamma\\Overwrite\\bin\\export_outfit_exchange.csv", cnt)
-end
-
 function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
-    x:SendOutput("[START] export mutant parts prices")
+    x:SendOutput("[START] export mutant parts prices disabled")
 
     local fake_butcher
     local fake_sakharov
@@ -1864,7 +1647,7 @@ function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
     trade_manager.trade_init(fake_sakharov, "items\\trade\\trade_ecolog_sakharov.ltx")
     trade_manager.update(fake_sakharov)
 
-    local GUI = ui_inventory.GUI
+    local GUI = ui_inventory.UIInventory()
 
     GUI:TMode_InitProfile(fake_butcher)
     local butcher_profile = GUI.CC["actor_trade"].trade_profile
@@ -1938,8 +1721,8 @@ function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
             part = {}
             part.type = type
             part.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name"))
-            part.sakharov_price = math.floor(utils_item.get_item_cost(obj, sakharov_profile))
-            part.butcher_price = math.floor(utils_item.get_item_cost(obj, butcher_profile))
+            part.sakharov_price = math.floor(utils_item.get_item_cost(obj, sakharov_profile) or 0)
+            part.butcher_price = math.floor(utils_item.get_item_cost(obj, butcher_profile) or 0)
 
             parts[section] = part
             alife_release(se_obj)
