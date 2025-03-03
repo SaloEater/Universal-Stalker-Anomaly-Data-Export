@@ -1297,7 +1297,7 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
             --csv header
             --write_file(debug_file, "~,       Name,   Base Cost, Weight kg, Light Attack Power,   Heavy Attack Power,   BR,   Max Range,   Splash Hits")
             for section, w in pairs(weapons) do
-                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s",
               --~,       Name,   Base Cost, Weight kg, Light Attack Power,   Heavy Attack Power,   BR,   Max Range
                 section, w.name, w.cost,    w.weight,  w.light_attack_power, w.heavy_attack_power, w.br, w.max_range)
                 type_cnt = type_cnt + 1
@@ -1497,7 +1497,7 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
     --csv header
     --write_file(debug_file, "~ ,      Name,   Projectiles,   Damage,   Accuracy,   Range,   Falloff,   Velocity,   Impulse,   Degradation, Weight kg, Base Cost")
     for section, v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
       --~ ,      Name,   Projectiles,   Damage,   Accuracy,   Range,   Falloff,   Velocity,   Impulse,   Degradation, Weight kg, Base Cost
         section, v.name, v.projectiles, v.damage, v.accuracy, v.range, v.falloff, v.velocity, v.impulse, v.degr,      v.weight,  v.cost
         )
@@ -1767,8 +1767,8 @@ function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
         end
         for section, part in spairs(parts, sortByType) do
             write_file(debug_file, "%s,%s,%s,%s",
-            --~,       Name,      Sakharov Price,         Butcher Price
-                    section, part.name, part.sakharov_price,    part.butcher_price)
+          --~,       Name,      Sakharov Price,         Butcher Price
+            section, part.name, part.sakharov_price,    part.butcher_price)
         end
         debug_file:close()
         x:SendOutput("[END] mutant parts prices - %s total parts exported - see in Gamma\\Overwrite\\bin\\export_mutant_parts_prices.csv", cnt)
