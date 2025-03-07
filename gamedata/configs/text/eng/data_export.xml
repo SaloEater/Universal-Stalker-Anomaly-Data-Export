@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<string_table>
+    <string id="st_data_export_outfit_artefact_count_max">
+        <text>Maximum belt slots</text>
+    </string>
+    <string id="st_data_export_eat_alcohol">
+        <text>Alcohol</text>
+    </string>
+    <string id="st_data_export_eat_health_change">
+        <text>Health change</text>
+    </string>
+    <string id="st_data_export_used_in_cooking">
+        <text>Used in cooking</text>
+    </string>
+    <string id="st_data_export_can_be_cooked">
+        <text>Can be cooked</text>
+    </string>
+    <string id="st_data_export_restore_health_max">
+        <text>Total health restoration</text>
+    </string>
+    <string id="st_data_export_restore_bleeding_max">
+        <text>Total wound healing</text>
+    </string>
+    <string id="st_data_export_restore_radiation">
+        <text>Radiation restoration</text>
+    </string>
+    <string id="st_data_export_restore_radiation_max">
+        <text>Total radiation restoration</text>
+    </string>
+    <string id="st_data_export_power_restore_max">
+        <text>Total stamina recovery</text>
+    </string>
+    <string id="st_data_export_limb_duration">
+        <text>Limb duration</text>
+    </string>
+    <string id="st_data_export_first_aid_head">
+        <text>First-Aid head</text>
+    </string>
+    <string id="st_data_export_first_aid_torso">
+        <text>First-Aid torso</text>
+    </string>
+    <string id="st_data_export_first_aid_arm">
+        <text>First-Aid arm</text>
+    </string>
+    <string id="st_data_export_first_aid_leg">
+        <text>First-Aid leg</text>
+    </string>
+    <string id="st_data_export_post_heal_head">
+        <text>Post-Heal Head</text>
+    </string>
+    <string id="st_data_export_post_heal_torso">
+        <text>Post-Heal Torso</text>
+    </string>
+    <string id="st_data_export_post_heal_arm">
+        <text>Post-Heal Arm</text>
+    </string>
+    <string id="st_data_export_post_heal_leg">
+        <text>Post-Heal Leg</text>
+    </string>
+    <string id="st_data_export_used_in_crafting">
+        <text>Used in crafting</text>
+    </string>
+    <string id="st_data_export_can_be_crafted">
+        <text>Can be crafted</text>
+    </string>
+    <string id="st_data_export_jump_height">
+        <text>Jump height</text>
+    </string>
+    <string id="st_data_export_is_junk">
+        <text>Is junk</text>
+    </string>
+    <string id="st_data_export_has_perk">
+        <text>Has perk</text>
+    </string>
+    <string id="st_data_export_bonus_mutant_part_chance">
+        <text>Bonus mutant part chance</text>
+    </string>
+    <string id="st_data_export_single_handed">
+        <text>Single-handed</text>
+    </string>
+    <string id="st_data_export_ammo_types_alt">
+        <text>Alt. ammo</text>
+    </string>
+    <string id="st_data_export_light_attack_power">
+        <text>Light Attack Power</text>
+    </string>
+    <string id="st_data_export_heavy_attack_power">
+        <text>Heavy Attack Power</text>
+    </string>
+    <string id="st_data_export_cuts_thick_skin">
+        <text>Cuts thick skin</text>
+    </string>
+    <string id="st_data_export_pelts_quality_min">
+        <text>Minimum pelts quality</text>
+    </string>
+    <string id="st_data_export_pelts_quality_max">
+        <text>Maximum pelts quality</text>
+    </string>
+    <string id="st_data_export_fragments">
+        <text>Fragments</text>
+    </string>
+    <string id="st_data_fragment_damage">
+        <text>Fragment damage</text>
+    </string>
+    <string id="st_data_export_projectiles">
+        <text>Projectiles</text>
+    </string>
+    <string id="st_data_export_impulse">
+        <text>Impulse</text>
+    </string>
+    <string id="st_data_export_weapon_degradation">
+        <text>W. Degradation</text>
+    </string>
+    <string id="st_data_export_disassemble_result">
+        <text>Result</text>
+    </string>
+    <string id="st_data_export_disassemble_amount">
+        <text>Amount</text>
+    </string>
+    <string id="st_data_export_disassemble_item">
+        <text>Item</text>
+    </string>
+    <string id="st_data_export_from">
+        <text>from</text>
+    </string>
+    <string id="st_data_export_exchange_reward">
+        <text>What you get in exchange ></text>
+    </string>
+    <string id="st_data_export_unknown">
+        <text>Unknown</text>
+    </string>
+</string_table>
