@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<string_table>
+    <string id="st_data_export_outfit_artefact_count_max">
+        <text>Максимальное кол-во слотов</text>
+    </string>
+    <string id="st_data_export_eat_alcohol">
+        <text>Алкоголь</text>
+    </string>
+    <string id="st_data_export_eat_health_change">
+        <text>Изменение здоровья</text>
+    </string>
+    <string id="st_data_export_used_in_cooking">
+        <text>Используется в кулинарии</text>
+    </string>
+    <string id="st_data_export_can_be_cooked">
+        <text>Можно приготовить</text>
+    </string>
+    <string id="st_data_export_restore_health_max">
+        <text>Полное восстановление здоровья</text>
+    </string>
+    <string id="st_data_export_restore_bleeding_max">
+        <text>Полное заживление ран</text>
+    </string>
+    <string id="st_data_export_restore_radiation">
+        <text>Восстановление от радиации</text>
+    </string>
+    <string id="st_data_export_restore_radiation_max">
+        <text>Полное восстановление от радиации</text>
+    </string>
+    <string id="st_data_export_power_restore_max">
+        <text>Полное восстановление выносливости</text>
+    </string>
+    <string id="st_data_export_limb_duration">
+        <text>Длительность конечности</text>
+    </string>
+    <string id="st_data_export_first_aid_head">
+        <text>Временно голову</text>
+    </string>
+    <string id="st_data_export_first_aid_torso">
+        <text>Временно торс</text>
+    </string>
+    <string id="st_data_export_first_aid_arm">
+        <text>Временно руки</text>
+    </string>
+    <string id="st_data_export_first_aid_leg">
+        <text>Временно ноги</text>
+    </string>
+    <string id="st_data_export_post_heal_head">
+        <text>Полностью голову</text>
+    </string>
+    <string id="st_data_export_post_heal_torso">
+        <text>Полностью торс</text>
+    </string>
+    <string id="st_data_export_post_heal_arm">
+        <text>Полностью руки</text>
+    </string>
+    <string id="st_data_export_post_heal_leg">
+        <text>Полностью ноги</text>
+    </string>
+    <string id="st_data_export_used_in_crafting">
+        <text>Используется в крафте</text>
+    </string>
+    <string id="st_data_export_can_be_crafted">
+        <text>Можно скрафтить</text>
+    </string>
+    <string id="st_data_export_jump_height">
+        <text>Высота прыжка</text>
+    </string>
+    <string id="st_data_export_is_junk">
+        <text>Мусорный</text>
+    </string>
+    <string id="st_data_export_has_perk">
+        <text>Имеет перк</text>
+    </string>
+    <string id="st_data_export_bonus_mutant_part_chance">
+        <text>Шанс бонусной части мутанта</text>
+    </string>
+    <string id="st_data_export_single_handed">
+        <text>В одной руке</text>
+    </string>
+    <string id="st_data_export_ammo_types_alt">
+        <text>Альт. боеприпасы</text>
+    </string>
+    <string id="st_data_export_light_attack_power">
+        <text>Сила легкой атаки</text>
+    </string>
+    <string id="st_data_export_heavy_attack_power">
+        <text>Сила тяжелой атаки</text>
+    </string>
+    <string id="st_data_export_cuts_thick_skin">
+        <text>Режет толстую кожу</text>
+    </string>
+    <string id="st_data_export_pelts_quality_min">
+        <text>Минимальное качество шкуры</text>
+    </string>
+    <string id="st_data_export_pelts_quality_max">
+        <text>Максимальное качество шкуры</text>
+    </string>
+    <string id="st_data_export_fragments">
+        <text>Фрагменты</text>
+    </string>
+    <string id="st_data_fragment_damage">
+        <text>Урон от фрагментов</text>
+    </string>
+    <string id="st_data_export_projectiles">
+        <text>Снаряды</text>
+    </string>
+    <string id="st_data_export_impulse">
+        <text>Импульс</text>
+    </string>
+    <string id="st_data_export_weapon_degradation">
+        <text>Доп. износ оружия</text>
+    </string>
+    <string id="st_data_export_disassemble_result">
+        <text>Результат</text>
+    </string>
+    <string id="st_data_export_disassemble_amount">
+        <text>Количество</text>
+    </string>
+    <string id="st_data_export_disassemble_item">
+        <text>Предмет</text>
+    </string>
+    <string id="st_data_export_from">
+        <text>из</text>
+    </string>
+    <string id="st_data_export_exchange_reward">
+        <text>Что вы получите в обмен ></text>
+    </string>
+    <string id="st_data_export_unknown">
+        <text>Неизвестно</text>
+    </string>
+</string_table>
