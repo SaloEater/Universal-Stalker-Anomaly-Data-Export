@@ -126,4 +126,7 @@
     <string id="st_data_export_exchange_reward">
         <text>What you get in exchange ></text>
     </string>
+    <string id="st_data_export_unknown">
+        <text>Unknown</text>
+    </string>
 </string_table>
