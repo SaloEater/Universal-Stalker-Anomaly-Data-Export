@@ -326,7 +326,7 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
                     "~",     "ui_st_community", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_outfit_artefact_count", "st_data_export_outfit_artefact_count_max", "ui_inv_outfit_additional_weight"})
                 write_file(debug_file, "%s", header)
                 for section,v in spairs(outfits, functor) do
-                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
                     section, v.faction,          v.name,                   v.weight,        v.cost,        v.ballistic,                           v.rupture,                        v.burn,                          v.shock,                          v.chemical_burn,                         v.radiation,                           v.telepatic,                          v.impact,                          v.explosion,                          v.arty,                         v.max_arty,                         v.carry_weight)
                     type_cnt = type_cnt + 1
                 end
@@ -550,7 +550,7 @@ function debug_cmd_list.cmd.export_eatable(_, txt, x)
         "~",     "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_itm_desc_eat_sleepiness", "st_itm_desc_eat_thirst", "st_data_export_eat_alcohol", "st_data_export_eat_health_change", "ui_inv_radiation", "ui_inv_satiety", "st_ui_number_of_uses", "st_data_export_used_in_cooking", "st_data_export_can_be_cooked", "ui_inv_effect_time", "st_prop_restore_health", "st_data_export_restore_health_max", "st_prop_restore_bleeding", "st_data_export_restore_bleeding_max", "st_data_export_restore_radiation", "st_data_export_restore_radiation_max", "ui_inv_outfit_power_restore", "st_data_export_power_restore_max", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_additional_weight"})
     write_file(debug_file, "%s", header)
     for section,v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
         section, v.name,                  v.weight,         v.cost,          v.tier,                 v.sleepiness,                 v.thirstiness,            v.alcohol,                    v.health,                           v.rads,             v.satiety,        v.servings,             v.used_in_cooking,                 v.can_be_cooked,               v.duration,           v.health_restore,          v.total_health_restore,              v.bleed_restore,            v.total_bleed_restore,                 v.rad_restore,                       v.total_rad_restore,                   v.stamina_restore,            v.total_stamina_restore,             v.radiation_prot,                     v.chemical_prot,                          v.psychic_prot,                       v.weight_carried)
     end
     debug_file:close()
@@ -711,7 +711,7 @@ function debug_cmd_list.cmd.export_medicine(_, txt, x)
         "~",     "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_itm_desc_eat_sleepiness", "st_itm_desc_eat_thirst", "st_data_export_eat_alcohol", "st_data_export_eat_health_change", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_satiety", "st_ui_number_of_uses", "ui_inv_effect_time", "st_prop_restore_health", "st_data_export_restore_health_max", "st_prop_restore_bleeding", "st_data_export_restore_bleeding_max", "st_data_export_restore_radiation", "st_data_export_restore_radiation_max", "ui_inv_outfit_power_restore", "st_data_export_power_restore_max", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_additional_weight", "st_data_export_used_in_crafting", "st_data_export_can_be_crafted"})
     write_file(debug_file, "%s", header)
     for section,v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
         section, v.name,                   v.weight,        v.cost,         v.tier,                  v.sleepiness,                  v.thirstiness,            v.alcohol,                    v.health,                          v.ballistic_immunity,                   v.rupture_immunity,              v.burn_immunity,                   v.shock_immunity,                 v.chemical_burn_immunity,                v.radiation_immunity,                 v.psychic_immunity,                   v.impact_immunity,                 v.explosion_immunity,                 v.satiety,         v.servings,           v.duration,            v.health_restore,        v.total_health_restore,               v.bleed_restore,            v.total_bleed_restore,                 v.rad_restore,                      v.total_rad_restore,                    v.stamina_restore,             v.total_stamina_restore,            v.radiation_prot,                      v.chemical_prot,                         v.psychic_prot,                       v.weight_carried,                  v.used_in_crafting,               v.craftable)
     end
     debug_file:close()
@@ -820,7 +820,7 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
         "~",     "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "ui_st_rank", "st_data_export_jump_height", "st_data_export_is_junk", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "ui_inv_outfit_additional_weight", "st_data_export_used_in_crafting", "st_data_export_can_be_crafted"})
     write_file(debug_file, "%s", header)
     for section,v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
         section, v.name,                  v.weight,          v.cost,         v.tier,                 v.rank,       v.jump_height,                 v.is_junk,                v.ballistic_immunity,                 v.rupture_immunity,                v.burn_immunity,                 v.shock_immunity,                 v.chemical_burn_immunity,                 v.radiation_immunity,                 v.psychic_immunity,                   v.impact_immunity,                 v.explosion_immunity,                v.health_restore,         v.satiety_restore, v.bleed_restore,            v.rad_restore,                      v.stamina_restore,             v.weight_carried,                  v.used_in_crafting,                v.craftable
         )
     end
@@ -1161,7 +1161,7 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
                 "~",    "pda_encyclopedia_name", "ui_mm_repair", "st_data_export_single_handed", "st_prop_weight", "st_upgr_cost", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_damage", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt"})
             write_file(debug_file, "%s", header)
             for section, w in pairs(weapons) do
-                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
                 section, w.name,                  w.repair_label, w.single_handed,               w.weight,          w.cost,        w.accuracy,        w.handling,         w.damage,        w.fire_rate,           w.ammo_mag_size, w.max_range,    w.speed,          w.reliability, w.recoil,        w.caliber,       w.alt_caliber)
                 type_cnt = type_cnt + 1
             end
@@ -1328,7 +1328,7 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
                 "~",    "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "st_data_export_light_attack_power", "st_data_export_heavy_attack_power", "BR", "ui_inv_wrange"})
             write_file(debug_file, "%s", header)
             for section, w in pairs(weapons) do
-                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s",
                 section, w.name,                 w.weight,         w.cost,         w.light_attack_power,                 w.heavy_attack_power,               w.br, w.max_range)
                 type_cnt = type_cnt + 1
             end
@@ -1528,7 +1528,7 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
         "~",    "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "st_data_export_projectiles", "ui_inv_damage",   "ui_inv_accuracy", "ui_inv_wrange", "st_data_export_falloff", "ui_inv_bspeed", "st_data_export_impulse", "st_data_export_weapon_degradation"})
     write_file(debug_file, "%s", header)
     for section, v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
         section, v.name,                 v.weight,  v.cost,                v.projectiles,                 v.damage,          v.accuracy,       v.range,         v.falloff,                v.velocity,       v.impulse,                v.degr
         )
     end
