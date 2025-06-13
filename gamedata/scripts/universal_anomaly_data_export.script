@@ -1017,7 +1017,7 @@ local ammo_special_types = {
     ["357_hp"] = ".357 HP",
     ["25"] = "VOG-25", --for some reason vog-25 doesn't work
     ["30"] = "VOG-30", --for some reason vog-30 doesn't work
-    ["7b"] = "OG-7V", --for some reason og-7b doesn't work
+    ["7b"] = "OG-7B", --for some reason og-7b doesn't work
     ["23_eco"] = "Ecolog-23",
     ["338"] = ".338 Federal",
 }
@@ -1274,11 +1274,11 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             end
 
             local header = translate_headers({
-                "~",    "pda_encyclopedia_name", "ui_mm_repair", "st_data_export_single_handed", "st_prop_weight", "st_upgr_cost", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_damage", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt", "BR1", "BR2", "BR3", "BR4", "BR5", "BR6", "BR7"})
+                "~",    "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_damage", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt", "BR1", "BR2", "BR3", "BR4", "BR5", "BR6", "BR7"})
             write_file(debug_file, "%s", header)
             for section, w in pairs(weapons) do
                 write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                section, w.name,                  w.repair_label, w.single_handed,               w.weight,          w.cost,        w.accuracy,        w.handling,         w.damage,        w.fire_rate,           w.ammo_mag_size, w.max_range,    w.speed,          w.reliability, w.recoil,        w.caliber,       w.alt_caliber,                   w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
+                section, w.name,                  w.weight,          w.cost,        w.repair_label, w.single_handed,               w.accuracy,        w.handling,         w.damage,        w.fire_rate,           w.ammo_mag_size, w.max_range,    w.speed,          w.reliability, w.recoil,        w.caliber,       w.alt_caliber,                   w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
                 type_cnt = type_cnt + 1
             end
             debug_file:close()
