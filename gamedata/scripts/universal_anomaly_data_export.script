@@ -4,7 +4,6 @@ local cmd_list = {
     { 	name = "Export eatable" 				, cmd = "export_eatable"   				             , hide_ui = 0 								},
     { 	name = "Export medicine" 				, cmd = "export_medicine"  				             , hide_ui = 0 								},
     { 	name = "Export artefacts" 				, cmd = "export_artefacts" 				             , hide_ui = 0 								},
-    { 	name = "Export artefact recipes" 		, cmd = "export_artefact_recipes"		             , hide_ui = 0 								},
     --{ 	name = "Export anomalies spawns" 		, cmd = "export_anomalies spawn"		             , hide_ui = 0 								},
     { 	name = "Export belt attachments" 		, cmd = "export_belt_attachments"		             , hide_ui = 0 								},
     { 	name = "Export weapons" 		        , cmd = "export_weapons" 				             , hide_ui = 0 								},
