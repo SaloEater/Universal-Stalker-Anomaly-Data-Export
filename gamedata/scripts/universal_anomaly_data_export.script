@@ -1157,11 +1157,11 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             end
 
             local header = translate_headers({
-                "~",    "pda_encyclopedia_name", "ui_mm_repair", "st_data_export_single_handed", "st_prop_weight", "st_upgr_cost", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_damage", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt"})
+                "~",    "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_damage", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt"})
             write_file(debug_file, "%s", header)
             for section, w in pairs(weapons) do
                 write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                section, w.name,                  w.repair_label, w.single_handed,               w.weight,          w.cost,        w.accuracy,        w.handling,         w.damage,        w.fire_rate,           w.ammo_mag_size, w.max_range,    w.speed,          w.reliability, w.recoil,        w.caliber,       w.alt_caliber)
+                section, w.name,                 w.weight,          w.cost,        w.repair_label, w.single_handed,               w.accuracy,        w.handling,         w.damage,        w.fire_rate,           w.ammo_mag_size, w.max_range,    w.speed,          w.reliability, w.recoil,        w.caliber,       w.alt_caliber)
                 type_cnt = type_cnt + 1
             end
             debug_file:close()
