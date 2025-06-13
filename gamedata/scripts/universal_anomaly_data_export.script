@@ -88,6 +88,8 @@ function get_outfit_repair_label(repair_type)
         return "H"
     elseif repair_type == "outfit_exo" or repair_type == "helmet_exo"then
         return "E"
+    elseif repair_type == "helmet" then
+        return "He"
     end
     return "N/A"
 end
@@ -312,20 +314,20 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
 
             if repair_type == "outfit_helmet" then
                 local header = translate_headers({
-                    "~",     "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection"})
+                    "~",     "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection"})
                 write_file(debug_file, "%s", header)
                 for section,v in spairs(outfits, functor) do
-                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                    section,  v.name,                  v.weight,         v.cost,         v.ballistic,                            v.rupture,                        v.burn,                          v.shock,                           v.chemical_burn,                          v.radiation,                          v.telepatic,                          v.impact,                          v.explosion)
+                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                    section,  v.name,                  v.weight,         v.cost,         v.repair_label, v.ballistic,                            v.rupture,                        v.burn,                          v.shock,                           v.chemical_burn,                          v.radiation,                          v.telepatic,                          v.impact,                          v.explosion)
                     type_cnt = type_cnt + 1
                 end
             else
                 local header = translate_headers({
-                    "~",     "ui_st_community", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_outfit_artefact_count", "st_data_export_outfit_artefact_count_max", "ui_inv_outfit_additional_weight"})
+                    "~",     "ui_st_community", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_outfit_artefact_count", "st_data_export_outfit_artefact_count_max", "ui_inv_outfit_additional_weight"})
                 write_file(debug_file, "%s", header)
                 for section,v in spairs(outfits, functor) do
-                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                    section, v.faction,          v.name,                   v.weight,        v.cost,        v.ballistic,                           v.rupture,                        v.burn,                          v.shock,                          v.chemical_burn,                         v.radiation,                           v.telepatic,                          v.impact,                          v.explosion,                          v.arty,                         v.max_arty,                         v.carry_weight)
+                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                    section, v.faction,          v.name,                   v.weight,        v.cost,         v.repair_label, v.ballistic,                           v.rupture,                        v.burn,                          v.shock,                          v.chemical_burn,                         v.radiation,                           v.telepatic,                          v.impact,                          v.explosion,                          v.arty,                         v.max_arty,                         v.carry_weight)
                     type_cnt = type_cnt + 1
                 end
             end
@@ -333,7 +335,7 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
             x:SendOutput("[END] export outfit - %s outfits exported - see %s", type_cnt, p_file)
         end
 
-        x:SendOutput("[END] export outfit - %s total outfits exported - see in Gamma\\Overwrite\\bin", cnt)
+        x:SendOutput("[END] export outfit - %s total outfits exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin", cnt)
         return true
     end)
 end
@@ -553,7 +555,7 @@ function debug_cmd_list.cmd.export_eatable(_, txt, x)
     end
     debug_file:close()
 
-    x:SendOutput("[END] export outfit - %s total eatable exported - see in Gamma\\Overwrite\\bin\\export_eatable.csv", cnt)
+    x:SendOutput("[END] export outfit - %s total eatable exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin\\export_eatable.csv", cnt)
 end
 
 --See ui_workshop.script::UIWorkshopCraft:LoadRecipes
@@ -714,7 +716,7 @@ function debug_cmd_list.cmd.export_medicine(_, txt, x)
     end
     debug_file:close()
 
-    x:SendOutput("[END] export medicine - %s total medicine exported - see in Gamma\\Overwrite\\bin\\export_medicine.csv", cnt)
+    x:SendOutput("[END] export medicine - %s total medicine exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin\\export_medicine.csv", cnt)
 end
 
 function debug_cmd_list.cmd.export_artefacts(_, txt, x)
@@ -815,16 +817,16 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
     local debug_file = io.open(p_file,"w+")
 
     local header = translate_headers({
-        "~",     "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "ui_st_rank", "st_data_export_jump_height", "st_data_export_is_junk", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "ui_inv_outfit_additional_weight", "st_data_export_used_in_crafting", "st_data_export_can_be_crafted"})
+        "~",     "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "ui_st_rank", "st_data_export_jump_height", "st_data_export_is_junk", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "ui_inv_radiation", "ui_inv_outfit_power_restore", "ui_inv_outfit_additional_weight"})
     write_file(debug_file, "%s", header)
     for section,v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        section, v.name,                  v.weight,          v.cost,         v.tier,                 v.rank,       v.jump_height,                 v.is_junk,                v.ballistic_immunity,                 v.rupture_immunity,                v.burn_immunity,                 v.shock_immunity,                 v.chemical_burn_immunity,                 v.radiation_immunity,                 v.psychic_immunity,                   v.impact_immunity,                 v.explosion_immunity,                v.health_restore,         v.satiety_restore, v.bleed_restore,            v.rad_restore,                      v.stamina_restore,             v.weight_carried,                  v.used_in_crafting,                v.craftable
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+        section, v.name,                  v.weight,          v.cost,         v.tier,                 v.rank,       v.jump_height,                 v.is_junk,                v.ballistic_immunity,                 v.rupture_immunity,                v.burn_immunity,                 v.shock_immunity,                 v.chemical_burn_immunity,                 v.radiation_immunity,                 v.psychic_immunity,                   v.impact_immunity,                 v.explosion_immunity,                v.health_restore,         v.satiety_restore, v.bleed_restore,            v.rad_restore,                      v.stamina_restore,             v.weight_carried
         )
     end
     debug_file:close()
 
-    x:SendOutput("[END] export artefacts - %s total artefacts exported - see in Gamma\\Overwrite\\bin\\export_artefacts.csv", cnt)
+    x:SendOutput("[END] export artefacts - %s total artefacts exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin\\export_artefacts.csv", cnt)
 end
 
 function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
@@ -910,7 +912,7 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
     end
     debug_file:close()
 
-    x:SendOutput("[END] export belt attachments - %s total attachments exported - see in Gamma\\Overwrite\\bin\\export_belt_attachments.csv", cnt)
+    x:SendOutput("[END] export belt attachments - %s total attachments exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin\\export_belt_attachments.csv", cnt)
 end
 
 local ammo_special_types = {
@@ -964,16 +966,33 @@ function get_weapon_caliber(ammo_class)
 end
 
 function armor_to_class(val)
-    if (val < 11) then val = 0
-    elseif ( (val >= 11) and (val < 19) ) then val = 1
-    elseif ( (val >= 19) and (val < 30) ) then val = 2
-    elseif ( (val >= 30) and (val < 39) ) then val = 3
-    elseif ( (val >= 39) and (val < 46) ) then val = 4
-    elseif ( (val >= 46) and (val < 55) ) then val = 5
-    else val = 6
+    if (val < 0.011) then val = 0
+    elseif ( (val >= 0.011) and (val < 0.1) ) then val = 1
+    elseif ( (val >= 0.1) and (val < 0.2) ) then val = 2
+    elseif ( (val >= 0.2) and (val < 0.5) ) then val = 3
+    else val = 4
     end
 
     return val
+end
+
+function get_weapon_br_stats(ammo_class)
+    local brs = {
+        "", "", "", "", ""
+    }
+    local ammo_tbl = str_explode(ammo_class,",")
+    --printf("ammo_class: %s", ammo_class)
+    for i, ammo in ipairs(ammo_tbl) do
+        local ap = ini_sys:r_float_ex(ammo, "k_ap") or 0
+        --printf("%s %s", ammo, ap)
+        local br = armor_to_class(ap)
+        --printf("%s, %s", br, brs[br + 1])
+        if br > 0 and (not brs[br + 1] or brs[br + 1] == "" or brs[br + 1] < ap) then
+            brs[br + 1] = ap
+        end
+    end
+    --printf(brs[7])
+    return brs[1], brs[2], brs[3], brs[4], brs[5]
 end
 
 function get_weapon_repair_label(repair_type)
@@ -1119,6 +1138,8 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
 
                 weapon.alt_caliber = alt_calibers_str
 
+                weapon.br1, weapon.br2, weapon.br3, weapon.br4, weapon.br5 = get_weapon_br_stats(ammo_class)  --br1 is br0
+
                 tbl[kind][section] = weapon
                 alife_release(se_obj)
                 x:SendOutput("export weapon - %s, done", section)
@@ -1156,18 +1177,18 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             end
 
             local header = translate_headers({
-                "~",    "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_damage", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt"})
+                "~",    "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_damage", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt", "BR1", "BR2", "BR3", "BR4", "BR5"})
             write_file(debug_file, "%s", header)
             for section, w in pairs(weapons) do
-                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                section, w.name,                 w.weight,          w.cost,        w.repair_label, w.single_handed,               w.accuracy,        w.handling,         w.damage,        w.fire_rate,           w.ammo_mag_size, w.max_range,    w.speed,          w.reliability, w.recoil,        w.caliber,       w.alt_caliber)
+                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                section, w.name,                  w.weight,          w.cost,        w.repair_label, w.single_handed,               w.accuracy,        w.handling,         w.damage,        w.fire_rate,           w.ammo_mag_size, w.max_range,    w.speed,          w.reliability, w.recoil,        w.caliber,       w.alt_caliber,                   w.br1, w.br2, w.br3, w.br4, w.br5)
                 type_cnt = type_cnt + 1
             end
             debug_file:close()
             x:SendOutput("[END] export weapons - %s weapons exported - see %s", type_cnt, p_file)
         end
 
-        x:SendOutput("[END] export weapons - %s total weapons exported - see in Gamma\\Overwrite\\bin", cnt)
+        x:SendOutput("[END] export weapons - %s total weapons exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin", cnt)
         return true
     end, 0)
 end
@@ -1333,7 +1354,7 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
             debug_file:close()
             x:SendOutput("[END] export melee - %s melee exported - see %s", type_cnt, p_file)
         end
-        x:SendOutput("[END] export melee - %s total melee exported - see in Gamma\\Overwrite\\bin", cnt)
+        x:SendOutput("[END] export melee - %s total melee exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin", cnt)
         return true
     end, 0)
 end
@@ -1421,7 +1442,7 @@ function debug_cmd_list.cmd.export_explosives(_, txt, x)
     end
     debug_file:close()
 
-    x:SendOutput("[END] export explosives - %s total explosives exported - see in Gamma\\Overwrite\\bin\\export_explosives.csv", cnt)
+    x:SendOutput("[END] export explosives - %s total explosives exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin\\export_explosives.csv", cnt)
 end
 
 --local difficulty_scaling = ballistics_mcm and ballistics_mcm.get_config("difficulty_scaling") or false
@@ -1450,6 +1471,16 @@ function get_game_difficulty_multiplier()
     return difficulty_multiplier[game_num]
 end
 
+function get_ammo_br_stat(ammo_section)
+    local brs = {
+        "", "", "", "", ""
+    }
+    local ap = ini_sys:r_float_ex(ammo_section, "k_ap") or 0
+    local br = armor_to_class(ap)
+    brs[br + 1] = ap
+    return brs[1], brs[2], brs[3], brs[4], brs[5]
+end
+
 function normalize_mutant_ammo_mod(mod)
     if not mod then
         return 0.01
@@ -1467,8 +1498,7 @@ function sanitize_ammo_name(name)
     for _, word in ipairs(words_to_remove) do
         name = string.gsub(name, "%f[%a]" .. word .. "%f[%A]", "")
     end
-    return name
-
+    return '"' .. name .. '"'
 end
 
 function debug_cmd_list.cmd.export_ammo(_, txt, x)
@@ -1509,6 +1539,7 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
             ammo.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
             ammo.projectiles = ini_sys:r_float_ex(section, "buck_shot") or 1
             ammo.damage = ini_sys:r_float_ex(section, "k_hit") or 0
+            ammo.br1, ammo.br2, ammo.br3, ammo.br4, ammo.br5 = get_ammo_br_stat(section) --br1 is br0
             ammo.range = decimal_to_percent(ini_sys:r_float_ex(section, "k_dist"))
             ammo.velocity = decimal_to_percent(ini_sys:r_float_ex(section, "k_bullet_speed"))
             ammo.impulse = decimal_to_percent(ini_sys:r_float_ex(section, "k_impulse"))
@@ -1523,16 +1554,16 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
     local p_file = "export_ammo.csv"
     local debug_file = io.open(p_file,"w+")
     local header = translate_headers({
-        "~",    "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "st_data_export_projectiles", "ui_inv_damage",   "ui_inv_accuracy", "ui_inv_wrange", "st_data_export_falloff", "ui_inv_bspeed", "st_data_export_impulse", "st_data_export_weapon_degradation"})
+        "~",    "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "BR1", "BR2", "BR3", "BR4", "BR5", "st_data_export_projectiles", "ui_inv_damage",   "ui_inv_accuracy", "ui_inv_wrange", "st_data_export_falloff", "ui_inv_bspeed", "st_data_export_impulse", "st_data_export_weapon_degradation"})
     write_file(debug_file, "%s", header)
     for section, v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        section, v.name,                 v.weight,  v.cost,                v.projectiles,                 v.damage,          v.accuracy,       v.range,         v.falloff,                v.velocity,       v.impulse,                v.degr
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+        section, v.name,                 v.weight,  v.cost,                v.br1, v.br2, v.br3, v.br4, v.br5, v.projectiles,                 v.damage,          v.accuracy,       v.range,         v.falloff,                v.velocity,       v.impulse,                v.degr
         )
     end
     debug_file:close()
 
-    x:SendOutput("[END] export ammo - %s total ammo exported - see in Gamma\\Overwrite\\bin\\export_ammo.csv", cnt)
+    x:SendOutput("[END] export ammo - %s total ammo exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin\\export_ammo.csv", cnt)
 end
 
 function debug_cmd_list.cmd.export_disassemble_table(_, txt, x)
@@ -1622,7 +1653,7 @@ function debug_cmd_list.cmd.export_disassemble_table(_, txt, x)
     end
     disassembles_file:close()
 
-    x:SendOutput("[PROGRESS-1] export disassemble - %s total disassembles exported - see in Gamma\\Overwrite\\bin\\export_disassemble_table.csv", disassemble_count)
+    x:SendOutput("[PROGRESS-1] export disassemble - %s total disassembles exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin\\export_disassemble_table.csv", disassemble_count)
 
     local materials_file_name = "export_disassembles_materials.csv"
     local materials_file = io.open(materials_file_name,"w+")
@@ -1641,7 +1672,7 @@ function debug_cmd_list.cmd.export_disassemble_table(_, txt, x)
         write_file(materials_file, "%s", value)
     end
 
-    x:SendOutput("[END] export materials - %s total materials exported - see in Gamma\\Overwrite\\bin\\export_disassembles_materials.csv", materials_count)
+    x:SendOutput("[END] export materials - %s total materials exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin\\export_disassembles_materials.csv", materials_count)
 end
 
 function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
@@ -1806,7 +1837,7 @@ function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
             section, part.name,               part.sakharov_price,    part.butcher_price)
         end
         file:close()
-        x:SendOutput("[END] mutant parts prices - %s total parts exported - see in Gamma\\Overwrite\\bin\\export_mutant_parts_prices.csv", cnt)
+        x:SendOutput("[END] mutant parts prices - %s total parts exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin\\export_mutant_parts_prices.csv", cnt)
         return true
     end, 0)
 end
