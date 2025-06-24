@@ -268,7 +268,9 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
                 outfit.explosion = to_percent_floor(get_outfit_stat_value(obj, section, "explosion_protection"))
                 outfit.rupture = to_percent_floor(get_outfit_stat_value(obj, section, "wound_protection"))
                 outfit.ballistic = to_percent_floor(get_outfit_stat_value(obj, section, "fire_wound_protection"))
-
+                outfit.speed = decimal_to_percent(outfit_speed_mcm.get_outfit_speed(obj, section, false))
+                outfit.durability_physical = to_percent_floor(outfit_durability.get_outfit_durability_physical(obj, section)*100)
+                outfit.durability_anomaly = to_percent_floor(outfit_durability.get_outfit_durability_anomaly(obj, section)*100)
                 tbl[repair_type][section] = outfit
                 alife_release(se_obj)
                 x:SendOutput("export outfit - %s, done", section)
@@ -314,20 +316,20 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
 
             if repair_type == "outfit_helmet" then
                 local header = translate_headers({
-                    "~",     "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection"})
+                    "~",     "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_outfit_durability_physical", "ui_inv_outfit_durability_anomaly", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection"})
                 write_file(debug_file, "%s", header)
                 for section,v in spairs(outfits, functor) do
-                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                    section,  v.name,                  v.weight,         v.cost,         v.repair_label, v.ballistic,                            v.rupture,                        v.burn,                          v.shock,                           v.chemical_burn,                          v.radiation,                          v.telepatic,                          v.impact,                          v.explosion)
+                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                    section,  v.name,                  v.weight,         v.cost,         v.repair_label, v.durability_physical,              v.durability_anomaly,                v.ballistic,                            v.rupture,                        v.burn,                          v.shock,                           v.chemical_burn,                          v.radiation,                          v.telepatic,                          v.impact,                          v.explosion)
                     type_cnt = type_cnt + 1
                 end
             else
                 local header = translate_headers({
-                    "~",     "ui_st_community", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_outfit_artefact_count", "st_data_export_outfit_artefact_count_max", "ui_inv_outfit_additional_weight"})
+                    "~",     "ui_st_community", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_outfit_durability_physical", "ui_inv_outfit_durability_anomaly", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_outfit_artefact_count", "st_data_export_outfit_artefact_count_max", "ui_inv_outfit_additional_weight", "ui_inv_outfit_speed"})
                 write_file(debug_file, "%s", header)
                 for section,v in spairs(outfits, functor) do
-                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                    section, v.faction,          v.name,                   v.weight,        v.cost,         v.repair_label, v.ballistic,                           v.rupture,                        v.burn,                          v.shock,                          v.chemical_burn,                         v.radiation,                           v.telepatic,                          v.impact,                          v.explosion,                          v.arty,                         v.max_arty,                         v.carry_weight)
+                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                    section, v.faction,          v.name,                   v.weight,        v.cost,         v.repair_label, v.durability_physical,              v.durability_anomaly,                v.ballistic,                           v.rupture,                        v.burn,                          v.shock,                          v.chemical_burn,                         v.radiation,                           v.telepatic,                          v.impact,                          v.explosion,                          v.arty,                         v.max_arty,                                  v.carry_weight,                   v.speed)
                     type_cnt = type_cnt + 1
                 end
             end
@@ -829,6 +831,15 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
     x:SendOutput("[END] export artefacts - %s total artefacts exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin\\export_artefacts.csv", cnt)
 end
 
+function get_plate_penetration(section)
+    local plate = armor_inserts.plate_sections[section]
+    if plate == nil then
+        return 0
+    end
+
+    return plate[3] or 0
+end
+
 function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
     x:SendOutput("[START] export belt attachments")
 
@@ -881,6 +892,8 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
 
             belt_attachment.weight_carried = get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0
 
+            belt_attachment.penetration = get_plate_penetration(section)
+
             tbl[section] = belt_attachment
             cnt = cnt + 1
         end
@@ -903,11 +916,11 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
     local p_file = "export_belt_attachments.csv"
     local debug_file = io.open(p_file,"w+")
     local header = translate_headers({
-        "~",     "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_data_export_jump_height", "st_data_export_bonus_mutant_part_chance", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "ui_inv_outfit_additional_weight"})
+        "~",     "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_data_export_jump_height", "st_data_export_bonus_mutant_part_chance", "BR",         "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "ui_inv_outfit_additional_weight"})
     write_file(debug_file, "%s", header)
     for section,v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        section, v.name,                   v.weight,         v.cost,         v.tier,                 v.jump_height,                 v.bonus_mutant_part_chance,               v.ballistic_immunity,                   v.rupture_immunity,               v.burn_immunity,                 v.shock_immunity,                 v.chemical_burn_immunity,                 v.radiation_immunity,                 v.psychic_immunity,                   v.impact_immunity,                 v.explosion_immunity,                v.health_restore,         v.satiety_restore, v.bleed_restore,            v.rad_restore,                      v.stamina_restore,             v.weight_carried
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+        section, v.name,                   v.weight,         v.cost,         v.tier,                 v.jump_height,                 v.bonus_mutant_part_chance,               v.penetration, v.ballistic_immunity,                   v.rupture_immunity,               v.burn_immunity,                 v.shock_immunity,                 v.chemical_burn_immunity,                 v.radiation_immunity,                 v.psychic_immunity,                   v.impact_immunity,                 v.explosion_immunity,                v.health_restore,         v.satiety_restore, v.bleed_restore,            v.rad_restore,                      v.stamina_restore,             v.weight_carried
         )
     end
     debug_file:close()
@@ -1304,6 +1317,7 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
                 weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
                 local ammo = ini_sys:r_string_ex(section, "ammo_class")
                 weapon.br = (ammo and ini_sys:r_float_ex(ammo, "k_ap") or 0) * 10 * 100 * get_game_difficulty_multiplier()
+                weapon.cuts_thick_skin = (section:match('wpn_knife$') or section:match('wpn_knife2$') or not string.find(section, "knife")) and "N" or "Y"
                 weapon.light_attack_power = prop_damage(obj, section, "hit_power")
                 weapon.heavy_attack_power = prop_damage(obj, section, "hit_power_2")
 
