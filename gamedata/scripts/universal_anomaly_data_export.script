@@ -108,12 +108,12 @@ function translate_headers(headers)
     local header = ""
     for i, v in ipairs(headers) do
         if i > 1 then
-            header = header .. ","
+            header = header .. ", "
         end
 
         local translated = game.translate_string(v)
         local clean = translated:sanitize():trim():capitalize()
-
+        printf("translated header '%s' to '%s'", v, translated)
         header = header .. clean
     end
 
@@ -2068,6 +2068,14 @@ function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
     end, 0)
 end
 
+function get_weapon_kind(kind)
+    if kind == "" then
+        return ""
+    end
+
+    return "st_data_export_weapon_kind_" .. (weapon_kinds[kind] or "unknown")
+end
+
 function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
     x:SendOutput("[START] export weapon drop sources")
 
@@ -2076,6 +2084,11 @@ function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
         ['scope_blacklist'] = true,
         ['weapon_scope_blacklist'] = true,
         ['loadouts_per_name'] = true,
+        ['default'] = true,
+    }
+
+    local skip_drop_sections = {
+        "ammo",
     }
 
     local factions = {}
@@ -2083,11 +2096,14 @@ function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
     local sources = {}
     local drop_ini = ini_file("items\\settings\\npc_loadouts\\npc_loadouts.ltx")
     drop_ini:section_for_each(function(section)
+        printf("sec is %s", section)
         if skip_sections[section] then
+            printf('skip')
             return
         end
 
         if not drop_ini:line_exist(section, "primary") then
+            printf('no primary')
             return
         end
 
@@ -2095,15 +2111,28 @@ function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
         local id, value, drop_section, m, tmp, gun_section, faction, rank, tmpfk
         if (n > 0) then
             for i = 0, n - 1 do
-                _, drop_section = drop_ini:r_line(section, i, "", "")
-                m = drop_ini:line_count(drop_section) or 0
+                _, _, drop_section = drop_ini:r_line(section, i, "", "")
+
+                for z, s in pairs(skip_drop_sections) do
+                    if string.find(drop_section, s) then
+                        printf("Skipping drop section %s", drop_section)
+                        goto skip_section
+                    end
+                end
 
                 tmpfk = str_explode(section, '_')
-                faction = tmpfk[1] or ""
-                rank = tmpfk[2] or ""
+                if tmpfk[1] == "loadout" then
+                    faction = tmpfk[2] or ""
+                    rank = tmpfk[3] or "unknown"
+                else
+                    faction = tmpfk[1] or ""
+                    rank = tmpfk[2] or "any"
+                end
+                printf("section %s, faction %s, rank %s", section, faction, rank)
 
+                m = drop_ini:line_count(drop_section) or 0
                 for j = 0, m - 1 do
-                    _, id, value = drop_ini:r_line_ex(section, i, "", "")
+                    _, id, value = drop_ini:r_line_ex(drop_section, j, "", "")
                     tmp = str_explode(id, ":")
                     if tmp and tmp[1] and ini_sys:section_exist(tmp[1]) then
                         gun_section = tmp[1]
@@ -2120,11 +2149,13 @@ function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
                         if not sources[gun_section][faction]["ranks"] then
                             sources[gun_section][faction]["ranks"] = {}
                         end
-                        table.insert(sources[gun_section][faction]["ranks"], rank)
+                        sources[gun_section][faction]["ranks"][rank] = true
                     else
-                        printe("! ERROR: NPC Loadouts Export | something is wrong in [%s] - %s", section, tmp[1])
+                        printe("! ERROR: NPC Loadouts Export | something is wrong in [%s] - %s (%s) = %s and %s. Full is %s", section, tmp[1], id)
                     end
                 end
+
+                ::skip_section::
             end
         end
     end)
@@ -2139,11 +2170,18 @@ function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
     end
     table.sort(factions_sorted)
 
-    local ranks_ordered = { "" , "novice" , "trainee" , "experienced" , "professional" , "veteran" , "expert" , "master" , "legend" }
-    local rank_positions = {}
-    for i, rank in ipairs(ranks_ordered) do
-        rank_positions[rank] = i
-    end
+    local rank_positions = {
+        ["any"] = 0,
+        ["novice"] = 1,
+        ["trainee"] = 2,
+        ["experienced"] = 3,
+        ["professional"] = 4,
+        ["veteran"] = 5,
+        ["expert"] = 6,
+        ["master"] = 7,
+        ["legend"] = 8,
+        ["unknown"] = 9,
+    }
     local sortByRank = function(t, a, b)
         return (rank_positions[a] or 999) < (rank_positions[b] or 999)
     end
@@ -2155,21 +2193,24 @@ function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
     local header = translate_headers(headers)
     write_file(file, "%s", header)
     local value = ""
+    local gun_name, kind, ranks
     for gun, gun_factions in pairs(sources) do
-        value = gun .. ", \"" .. game.translate_string(gun) .. "\","
+        gun_name = game.translate_string(ini_sys:r_string_ex(gun, "inv_name") or "")
+        kind = game.translate_string(get_weapon_kind(ini_sys:r_string_ex(gun, "kind") or ""))
+        value = gun .. "," .. kind .. "," .. gun_name .. ","
         for i, faction in pairs(factions_sorted) do
             if gun_factions[faction] and gun_factions[faction]["ranks"] then
-                local ranks = {}
-                for _, rank in spairs(gun_factions[faction]["ranks"], sortByRank) do
-                    table.insert(ranks, "st_rank_" .. rank)
+                ranks = ""
+                for rank, _ in spairs(gun_factions[faction]["ranks"], sortByRank) do
+                    ranks = ranks .. game.translate_string("st_rank_" .. rank) .. ", "
                 end
-                value = value .. translate_headers(ranks)
+                ranks = string.sub(ranks, 1, -3)
+                value = value .. "\"" .. ranks .. "\""
             end
 
-            if i < #factions_sorted then
-                value = value .. ","
-            end
+            value = value .. ","
         end
+        value = string.sub(value, 1, -2)
         write_file(file, "%s", value)
         cnt = cnt + 1
     end

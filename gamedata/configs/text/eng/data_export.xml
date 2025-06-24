@@ -129,4 +129,46 @@
     <string id="st_data_export_unknown">
         <text>Unknown</text>
     </string>
+    <string id="st_data_export_weapon_kind_sniper">
+        <text>Sniper Rifle</text>
+    </string>
+    <string id="st_data_export_weapon_kind_shotgun">
+        <text>Shotgun</text>
+    </string>
+    <string id="st_data_export_weapon_kind_pistol">
+        <text>Pistol</text>
+    </string>
+    <string id="st_data_export_weapon_kind_shotgun">
+        <text>Shotgun</text>
+    </string>
+    <string id="st_data_export_weapon_kind_smg">
+        <text>SMG</text>
+    </string>
+    <string id="st_data_export_weapon_kind_rifle">
+        <text>Rifle</text>
+    </string>
+    <string id="st_rank_sniper">
+        <text>Sniper squad</text>
+    </string>
+    <string id="st_rank_rg6">
+        <text>RG6 squad</text>
+    </string>
+    <string id="st_rank_gauss">
+        <text>Gauss squad</text>
+    </string>
+    <string id="st_rank_blackops">
+        <text>Blackops squad</text>
+    </string>
+    <string id="st_rank_ssu">
+        <text>SSU</text>
+    </string>
+    <string id="st_data_export_weapon_kind_explosive">
+        <text>Explosive</text>
+    </string>
+    <string id="st_rank_any">
+        <text>Any</text>
+    </string>
+    <string id="st_data_export_weapon_kind_unknown">
+        <text>Unknown</text>
+    </string>
 </string_table>
