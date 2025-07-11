@@ -171,4 +171,7 @@
     <string id="st_data_export_weapon_kind_unknown">
         <text>Unknown</text>
     </string>
+    <string id="st_data_export_can_be_looted_by_npc">
+        <text>Can be looted?</text>
+    </string>
 </string_table>

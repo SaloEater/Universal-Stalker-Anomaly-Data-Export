@@ -15,6 +15,7 @@ local cmd_list = {
     { name = "Export outfit exchange table", cmd = "export_outfit_exchange", hide_ui = 0 },
     { name = "Export mutant parts prices", cmd = "export_mutant_parts_prices", hide_ui = 0 },
     { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
+    { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
     --{ 	name = "Export weapons upgrades" 				, cmd = "export_weapons_upgrades"    				         , hide_ui = 0 								},
 }
 
@@ -2096,14 +2097,11 @@ function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
     local sources = {}
     local drop_ini = ini_file("items\\settings\\npc_loadouts\\npc_loadouts.ltx")
     drop_ini:section_for_each(function(section)
-        printf("sec is %s", section)
         if skip_sections[section] then
-            printf('skip')
             return
         end
 
         if not drop_ini:line_exist(section, "primary") then
-            printf('no primary')
             return
         end
 
@@ -2113,7 +2111,7 @@ function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
             for i = 0, n - 1 do
                 _, _, drop_section = drop_ini:r_line(section, i, "", "")
 
-                for z, s in pairs(skip_drop_sections) do
+                for _, s in pairs(skip_drop_sections) do
                     if string.find(drop_section, s) then
                         printf("Skipping drop section %s", drop_section)
                         goto skip_section
@@ -2218,4 +2216,65 @@ function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
     file:close()
 
     x:SendOutput("[END] weapon drop sources - %s total guns exported - see in Gamma\\Overwrite\\bin\\export_weapon_drop_sources.csv", cnt)
+end
+
+
+function debug_cmd_list.cmd.export_item_list(_, txt, x)
+    x:SendOutput("[START] export items list")
+
+    -- Load buy_sell ini file for loot check
+    local buy_sell_ini = ini_file("items\\trade\\gulag_job_trade_buy_sell.ltx")
+
+    local tbl = {}
+    local cnt = 0
+    ini_sys:section_for_each(function(section)
+        if is_multiplayer_item(section) then
+            return
+        end
+
+        -- Get basic item properties
+        local kind = ini_sys:r_string_ex(section, "kind") or ""
+
+        -- Skip if no kind (not an item) or empty section
+        if kind == "" then
+            return
+        end
+
+        -- Create item data structure with only the requested fields
+        local item = {}
+        item.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+        item.cost = ini_sys:r_float_ex(section, "cost") or 0
+        item.kind = kind
+
+        -- Check if can be looted by seeing if it exists in any section of buy_sell.ltx
+        local can_be_looted = "N"
+        buy_sell_ini:section_for_each(function(bs_section)
+            if buy_sell_ini:line_exist(bs_section, section) then
+                can_be_looted = "Y"
+                return true -- break from the loop
+            end
+            return false -- continue
+        end)
+        item.can_be_looted = can_be_looted
+
+        tbl[section] = item
+        cnt = cnt + 1
+    end)
+
+    local p_file = "export_items_list.csv"
+    local debug_file = io.open(p_file, "w+")
+
+    local header = translate_headers({
+        "~", "pda_encyclopedia_name", "st_ui_dbg_spawn_type", "st_upgr_cost", "st_data_export_can_be_looted_by_npc"
+    })
+
+    write_file(debug_file, "%s", header)
+    for section, v in pairs(tbl) do
+        write_file(debug_file, "%s,%s,%s,%s,%s",
+            section, v.name, v.kind, v.cost, v.can_be_looted
+        )
+    end
+    debug_file:close()
+
+    x:SendOutput("[END] export items - %s total items exported - see in Gamma\\Overwrite\\bin\\export_items_list.csv", cnt)
 end
