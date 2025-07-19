@@ -129,4 +129,52 @@
     <string id="st_data_export_unknown">
         <text>Неизвестно</text>
     </string>
+    <string id="st_data_export_weapon_kind_sniper">
+        <text>Снайперская винтовка</text>
+    </string>
+    <string id="st_data_export_weapon_kind_shotgun">
+        <text>Дробовик</text>
+    </string>
+    <string id="st_data_export_weapon_kind_pistol">
+        <text>Пистолет</text>
+    </string>
+    <string id="st_data_export_weapon_kind_shotgun">
+        <text>Дробовик</text>
+    </string>
+    <string id="st_data_export_weapon_kind_smg">
+        <text>Пистолет-пулемёт</text>
+    </string>
+    <string id="st_data_export_weapon_kind_rifle">
+        <text>Винтовка</text>
+    </string>
+    <string id="st_rank_sniper">
+        <text>отряд со снайперской винтовкой</text>
+    </string>
+    <string id="st_rank_rg6">
+        <text>отряд RG6</text>
+    </string>
+    <string id="st_rank_gauss">
+        <text>отряд с гаусс-пушкой</text>
+    </string>
+    <string id="st_rank_blackops">
+        <text>отряд Black-Ops</text>
+    </string>
+    <string id="st_rank_ssu">
+        <text>ССУ</text>
+    </string>
+    <string id="st_data_export_weapon_kind_explosive">
+        <text>Взрывное</text>
+    </string>
+    <string id="st_rank_any">
+        <text>Любой</text>
+    </string>
+    <string id="st_data_export_weapon_kind_unknown">
+        <text>Неизвестно</text>
+    </string>
+    <string id="st_data_export_can_be_looted_by_npc">
+        <text>Можно подобрать?</text>
+    </string>
+    <string id="st_data_export_falloff">
+        <text>Потеря мощности</text>
+    </string>
 </string_table>

@@ -557,7 +557,7 @@ function debug_cmd_list.cmd.export_eatable(_, txt, x)
     write_file(debug_file, "%s", header)
     for section, v in pairs(tbl) do
         write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                section, v.name, v.weight, v.cost, v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health, v.rads, v.satiety, v.servings, v.used_in_cooking, v.can_be_cooked, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore, v.total_bleed_restore, v.rad_restore, v.total_rad_restore, v.stamina_restore, v.total_stamina_restore, v.radiation_prot, v.chemical_prot, v.psychic_prot, v.weight_carried)
+                section, v.name, v.weight, v.cost, v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health, v.rads, v.satiety, v.servings, v.used_in_cooking, v.from_cooking, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore, v.total_bleed_restore, v.rad_restore, v.total_rad_restore, v.stamina_restore, v.total_stamina_restore, v.radiation_prot, v.chemical_prot, v.psychic_prot, v.weight_carried)
     end
     debug_file:close()
 
@@ -949,6 +949,10 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
         ["test_container"] = true,
     }
 
+    local whitelist = {
+        ["kit_hunt"] = true,
+    }
+
     local used_in_crafting, craftable = export_artefacts_recipes()
 
     local tbl = {}
@@ -959,7 +963,7 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
         end
         local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
 
-        if kind and artefacts_kinds[kind] then
+        if kind and artefacts_kinds[kind] or whitelist[section] then
             x:SendOutput("export belt attachment - %s", section)
             local belt_attachment = {}
             belt_attachment.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
@@ -1144,132 +1148,139 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
         ["wpn_cz52"] = true,
     }
 
-    local tbl = {}
-    local cnt = 0
-    local counter = 0
+    local leftToProcess = 0
+   -- Build queue of sections to export
+    local sections_queue = {}
     ini_sys:section_for_each(function(section)
         if blacklist[section] or is_multiplayer_item(section) then
             return
         end
 
-        local class = ini_sys:r_string_ex(section,"class")
-        local kind = ini_sys:r_string_ex(section,"kind") -- special class name for the sake of correct listing
-        if kind == "" then
-            kind = class
-        end
-
+        local class = ini_sys:r_string_ex(section, "class")
+        local kind = ini_sys:r_string_ex(section, "kind")
+        if kind == "" then kind = class end
         if kind and weapon_kinds[kind] then
             local weapon_class = ini_sys:r_string_ex(section, "weapon_class")
             if kind == "w_explosive" and (not weapon_class or weapon_class == "") then
-                return
+                goto continue
             end
-
             local parent_section = ini_sys:r_string_ex(section, "parent_section")
             if parent_section and section ~= parent_section then
-                return
+                goto continue
             end
+            table.insert(sections_queue, section)
+            leftToProcess = leftToProcess + 1
+        end
+        ::continue::
+    end)
 
-            kind = weapon_kinds[kind]
-            if not tbl[kind] then
-                tbl[kind] = {}
-            end
+    local tbl = {}
+    local cnt = 0
+    local item_id
 
-            local pos = db.actor:position()
-            local lvid = db.actor:level_vertex_id()
-            local gvid = db.actor:game_vertex_id()
-            local id = AC_ID
+    local pos = db.actor:position()
+    local lvid = db.actor:level_vertex_id()
+    local gvid = db.actor:game_vertex_id()
+    local id = AC_ID
+    local se_obj
 
-            local se_obj
+    local function process_queue(idx, itr)
+        if idx > #sections_queue then
+            x:SendOutput("[END] export weapons - %s total exported", cnt)
+            return true
+        end
+        local section = sections_queue[idx]
+        printf("export weapons - processing %s: try %s  %s of %s", section, itr, idx, #sections_queue)
+        local class = ini_sys:r_string_ex(section, "class")
+        local kind = ini_sys:r_string_ex(section, "kind")
+        if kind == "" then kind = class end
+        kind = weapon_kinds[kind]
+        if not tbl[kind] then tbl[kind] = {} end
+        if not item_id then
             se_obj = alife_create_item(section, { pos, lvid, gvid, id })
-
             if not se_obj then
-                --printf( "No server object made for [%s]", section)
-                --x:SendOutput( "No server object made for [%s]", section)
-                return
+                printf("export weapon - %s, alife_create_item failed, retrying", section)
+                process_queue(idx, itr + 1)
+                return true
             end
             cnt = cnt + 1
-            counter = counter + 1
-            local id = se_obj.id
-
-            x:SendOutput("export weapon - %s, start", section)
-            local function createInterval(section, id, callback, idx)
-                CreateTimeEvent("export_weapon_" .. section .. "_" .. idx, "delay_func", 2, function(section, id)
-                    local success = callback(section, id)
-                    if not success then
-                        createInterval(section, id, callback, idx + 1)
-                    end
-                    return true
-                end, section, id)
+            item_id = se_obj.id
+        else
+            printf("export weapon - %s, item_id already set to %s", section, item_id)
+        end
+        local delay = 0
+        printf("export weapon - %s, start", section)
+        -- Wait for item to come offline, then export
+        CreateTimeEvent("export_weapon_" .. section .. itr, "delay_func", delay, function()
+            local obj = level.object_by_id(item_id)
+            if not obj then
+                printf("export weapon - %s, object not found, retrying", section)
+                process_queue(idx, itr + 1)
+                return true
             end
+            -- Now offline, export parameters
+            local weapon = {}
+            weapon.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+            weapon.cost = ini_sys:r_float_ex(section, "cost") or 0
+            weapon.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            local repair_type = ini_sys:r_string_ex(section, "repair_type") or ""
+            weapon.repair_label = get_weapon_repair_label(repair_type)
+            weapon.single_handed = ini_sys:r_float_ex(section, "single_handed")
+            weapon.single_handed = weapon.single_handed == 1 and "Y" or "N"
+            weapon.accuracy = to_percent_floor(get_weapon_stat_value(obj, section, "accuracy"))
+            weapon.handling = to_percent_floor(get_weapon_stat_value(obj, section, "handling"))
+            weapon.damage = get_weapon_stat_value(obj, section, "damage")
+            weapon.fire_rate = get_weapon_stat_value(obj, section, "fire_rate")
+            weapon.ammo_mag_size = get_weapon_stat_value(obj, section, "ammo_mag_size")
+            weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
+            weapon.speed = math.floor(get_weapon_stat_value(obj, section, "speed"))
+            weapon.reliability = to_percent_floor(get_weapon_stat_value(obj, section, "reliability"))
+            weapon.recoil = math.floor(get_weapon_stat_value(obj, section, "recoil"))
+            local ammo_class = ini_sys:r_string_ex(section, "ammo_class") or ""
+            weapon.caliber = get_weapon_caliber(ammo_class)
 
-            createInterval(section, id, function(section, id)
-                local obj = level.object_by_id(id)
-                if not obj then
-                    --x:SendOutput("export weapon - %s, still online", section)
-                    return false
-                end
-
-                --x:SendOutput("export weapon - %s, back offline", section)
-                local weapon = {}
-                weapon.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
-                weapon.cost = ini_sys:r_float_ex(section, "cost") or 0
-                weapon.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
-                local repair_type = ini_sys:r_string_ex(section, "repair_type") or ""
-                weapon.repair_label = get_weapon_repair_label(repair_type)
-                weapon.single_handed = ini_sys:r_float_ex(section, "single_handed")
-                weapon.single_handed = weapon.single_handed == 1 and "Y" or "N"
-
-                weapon.accuracy = to_percent_floor(get_weapon_stat_value(obj, section, "accuracy"))
-                weapon.handling = to_percent_floor(get_weapon_stat_value(obj, section, "handling"))
-                weapon.damage = get_weapon_stat_value(obj, section, "damage")
-                weapon.fire_rate = get_weapon_stat_value(obj, section, "fire_rate")
-                weapon.ammo_mag_size = get_weapon_stat_value(obj, section, "ammo_mag_size")
-                weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
-                weapon.speed = math.floor(get_weapon_stat_value(obj, section, "speed"))
-                weapon.reliability = to_percent_floor(get_weapon_stat_value(obj, section, "reliability"))
-                weapon.recoil = math.floor(get_weapon_stat_value(obj, section, "recoil"))
-
-                local ammo_class = ini_sys:r_string_ex(section, "ammo_class") or ""
-                weapon.caliber = get_weapon_caliber(ammo_class)
-
-                local alt_calibers_cnt = 1
-                local alt_calibers = {}
-                local tree = utils_item.get_upgrades_tree(section)
-                for row, v in pairs(tree) do
-                    for col, w in pairs(v) do
-                        local sec = w.section
-                        local upgrade_sec = ini_sys:r_string_ex(sec, "section")
-                        if upgrade_sec then
-                            local ammo_class = ini_sys:r_string_ex(upgrade_sec, "ammo_class")
-                            if ammo_class then
-                                alt_calibers[alt_calibers_cnt] = get_weapon_caliber(ammo_class)
-                                alt_calibers_cnt = alt_calibers_cnt + 1
-                            end
+            local alt_calibers_cnt = 1
+            local alt_calibers = {}
+            local tree = utils_item.get_upgrades_tree(section)
+            for row, v in pairs(tree) do
+                for col, w in pairs(v) do
+                    local sec = w.section
+                    local upgrade_sec = ini_sys:r_string_ex(sec, "section")
+                    if upgrade_sec then
+                        local ammo_class = ini_sys:r_string_ex(upgrade_sec, "ammo_class")
+                        if ammo_class then
+                            alt_calibers[alt_calibers_cnt] = get_weapon_caliber(ammo_class)
+                            alt_calibers_cnt = alt_calibers_cnt + 1
                         end
                     end
                 end
+            end
 
-                local alt_calibers_str = ""
-                for i, v in ipairs(alt_calibers) do
-                    if alt_calibers_str == "" then
-                        alt_calibers_str = v
-                    else
-                        alt_calibers_str = alt_calibers_str .. "; " .. v
-                    end
+            local alt_calibers_str = ""
+            for i, v in ipairs(alt_calibers) do
+                if alt_calibers_str == "" then
+                    alt_calibers_str = v
+                else
+                    alt_calibers_str = alt_calibers_str .. "; " .. v
                 end
+            end
 
-                weapon.alt_caliber = alt_calibers_str
+            weapon.alt_caliber = alt_calibers_str
 
-                weapon.br1, weapon.br2, weapon.br3, weapon.br4, weapon.br5, weapon.br6, weapon.br7 = get_weapon_br_stats(ammo_class)  --br1 is br0
+            weapon.br1, weapon.br2, weapon.br3, weapon.br4, weapon.br5, weapon.br6, weapon.br7 = get_weapon_br_stats(ammo_class)
+            tbl[kind][section] = weapon
+            alife_release(se_obj)
+            x:SendOutput("export weapon - %s, done", section)
+            leftToProcess = leftToProcess - 1
+            item_id = nil
+            process_queue(idx + 1, 0)
+            return true
+        end)
+        return true
+    end
 
-                tbl[kind][section] = weapon
-                alife_release(se_obj)
-                x:SendOutput("export weapon - %s, done", section)
-                counter = counter - 1
-                return true
-            end, 0)
-        end
-    end)
+    -- Start processing the queue
+    process_queue(1, 0)
 
     local function createTotalInterval(callback, idx)
         CreateTimeEvent("export_weapons_total_" .. idx, "delay_func", 5, function()
@@ -1282,8 +1293,8 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
     end
 
     createTotalInterval(function()
-        if counter > 0 then
-            x:SendOutput("export weapons - %s weapons still to do", counter)
+        if leftToProcess > 0 then
+            x:SendOutput("export weapons - %s weapons still to do", leftToProcess)
             return false
         end
 
@@ -1485,7 +1496,8 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
 end
 
 function is_multiplayer_item(section)
-    return not not string.find(section, "^mp_")
+    local is_mp = string.find(section, "^mp_")
+    return is_mp and true or false
 end
 
 function debug_cmd_list.cmd.export_explosives(_, txt, x)
@@ -1504,7 +1516,7 @@ function debug_cmd_list.cmd.export_explosives(_, txt, x)
     local tbl = {}
     local cnt = 0
     ini_sys:section_for_each(function(section)
-        if blacklist[section] or is_multiplayer_item(section) then
+        if blacklist[section] or is_multiplayer_item(section) or string.find(section, "bad") then
             return
         end
 
@@ -1627,7 +1639,7 @@ function sanitize_ammo_name(name)
     for _, word in ipairs(words_to_remove) do
         name = string.gsub(name, "%f[%a]" .. word .. "%f[%A]", "")
     end
-    return name
+    return '"' .. name .. '"'
 
 end
 

@@ -174,4 +174,7 @@
     <string id="st_data_export_can_be_looted_by_npc">
         <text>Can be looted?</text>
     </string>
+    <string id="st_data_export_falloff">
+        <text>Falloff</text>
+    </string>
 </string_table>
