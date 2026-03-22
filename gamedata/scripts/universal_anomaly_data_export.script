@@ -1,40 +1,44 @@
 local cmd_list = {
-    {name = "Change headers mode", cmd = "change_headers_mode", hide_ui = 0},
-    { name = "Export outfits", cmd = "export_outfits", hide_ui = 0 },
-    --{ 	name = "Export outfits upgrades" 				, cmd = "export_outfits_upgrades"    				         , hide_ui = 0 								},
-    { name = "Export eatable", cmd = "export_eatable", hide_ui = 0 },
-    { name = "Export medicine", cmd = "export_medicine", hide_ui = 0 },
-    { name = "Export artefacts", cmd = "export_artefacts", hide_ui = 0 },
-    { name = "Export artefact recipes", cmd = "export_artefact_recipes", hide_ui = 0 },
-    --{ 	name = "Export anomalies spawns" 		, cmd = "export_anomalies spawn"		             , hide_ui = 0 								},
-    { name = "Export belt attachments", cmd = "export_belt_attachments", hide_ui = 0 },
-    { name = "Export weapons", cmd = "export_weapons", hide_ui = 0 },
-    { name = "Export explosives", cmd = "export_explosives", hide_ui = 0 },
-    { name = "Export melee", cmd = "export_melee", hide_ui = 0 },
-    { name = "Export ammo", cmd = "export_ammo", hide_ui = 0 },
-    { name = "Export stash drop rates", cmd = "export_stash_drop_rates", hide_ui = 0 },
-    { name = "Export item drop locations", cmd = "item_drop_locations", hide_ui = 0 },
-    { name = "Export disassemble table", cmd = "export_disassemble_table", hide_ui = 0 },
-    { name = "Export outfit exchange table", cmd = "export_outfit_exchange", hide_ui = 0 },
-    { name = "Export mutant parts prices", cmd = "export_mutant_parts_prices", hide_ui = 0 },
-    { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
-    { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
-    {name = "Export translations", cmd = "export_translations", hide_ui = 0},
-    {name = "Export all", cmd = "export_all", hide_ui = 0},
-    --{ 	name = "Export weapons upgrades" 				, cmd = "export_weapons_upgrades"    				         , hide_ui = 0 								},
+    {name = "[USADE] Change headers mode", cmd = "export_change_headers_mode", hide_ui = 0},
+    {name = "[USADE] Export outfits", cmd = "export_outfits", hide_ui = 0},
+    {name = "[USADE] Export eatable", cmd = "export_eatable", hide_ui = 0},
+    {name = "[USADE] Export medicine", cmd = "export_medicine", hide_ui = 0},
+    {name = "[USADE] Export artefacts", cmd = "export_artefacts", hide_ui = 0},
+    {name = "[USADE] Export artefact recipes", cmd = "export_artefact_recipes", hide_ui = 0},
+    {name = "[USADE] Export belt attachments", cmd = "export_belt_attachments", hide_ui = 0},
+    {name = "[USADE] Export weapons", cmd = "export_weapons", hide_ui = 0},
+    {name = "[USADE] Export explosives", cmd = "export_explosives", hide_ui = 0},
+    {name = "[USADE] Export melee", cmd = "export_melee", hide_ui = 0},
+    {name = "[USADE] Export ammo", cmd = "export_ammo", hide_ui = 0},
+    {name = "[USADE] Export stash drop rates", cmd = "export_stash_drop_rates", hide_ui = 0},
+    {name = "[USADE] Export item drop locations", cmd = "export_item_drop_locations", hide_ui = 0},
+    {name = "[USADE] Export disassemble table", cmd = "export_disassemble_table", hide_ui = 0},
+    {name = "[USADE] Export outfit exchange table", cmd = "export_outfit_exchange", hide_ui = 0},
+    {name = "[USADE] Export mutant parts prices", cmd = "export_mutant_parts_prices", hide_ui = 0},
+    {name = "[USADE] Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0},
+    {name = "[USADE] Export complete item list", cmd = "export_item_list", hide_ui = 0},
+    {name = "[USADE] Export translations", cmd = "export_translations", hide_ui = 0},
+    {name = "[USADE] Toggle translation language filename (en_us/ru_ru)", cmd = "export_toggle_language", hide_ui = 0},
+    {name = "[USADE] Export all", cmd = "export_all", hide_ui = 0},
 }
+
+local export_language = "en_us"
+function debug_cmd_list.cmd.export_toggle_language(_, txt, x)
+    export_language = export_language == "en_us" and "ru_ru" or "en_us"
+    x:SendOutput("Translation export language: %s", export_language)
+end
 
 function debug_cmd_list.cmd.export_all(_, txt, x)
     for i, cmd in ipairs(cmd_list) do
-        if cmd.cmd ~= "export_translations" and cmd.cmd ~= "change_headers_mode" and cmd.cmd ~= "export_all" and cmd.cmd ~= "export_item_list" then
+        if cmd.cmd ~= "export_translations" and cmd.cmd ~= "export_change_headers_mode" and cmd.cmd ~= "export_all" and cmd.cmd ~= "export_item_list" and cmd.cmd ~= "export_toggle_language" then
             debug_cmd_list.cmd[cmd.cmd](nil, nil, x)
         end
     end
 end
 
 -- 0 - translated values, 1 - translation keys
-local headers_mode = 0
-function debug_cmd_list.cmd.change_headers_mode(_, txt, x)
+local headers_mode = 1
+function debug_cmd_list.cmd.export_change_headers_mode(_, txt, x)
     headers_mode = (headers_mode + 1) % 2
     local mode_text = headers_mode == 0 and "Translated" or "Translation Keys"
     x:SendOutput("Headers mode changed to %s", mode_text)
@@ -142,6 +146,7 @@ function translate(name, default, context)
     end
 
     name = name or ""
+    context = context or ""
     translated_keys[name] = true
     if headers_mode == 1 then
         if name ~= "" then
@@ -162,21 +167,91 @@ function translate_with_context(name, context)
     return translate(name, nil, context)
 end
 
+local export_files = {
+    -- outfits (filenames are dynamic: export_outfits_<repair_type>.csv)
+    { file = "export_outfits_outfit_helmet.csv", category = "outfits" },
+    { file = "export_outfits_outfit_light.csv", category = "outfits" },
+    { file = "export_outfits_outfit_medium.csv", category = "outfits" },
+    { file = "export_outfits_outfit_heavy.csv", category = "outfits" },
+    { file = "export_eatable.csv", category = "eatable" },
+    { file = "export_medicine.csv", category = "medicine" },
+    { file = "export_artefacts.csv", category = "artefacts" },
+    { file = "export_artefact_recipes.csv", category = "artefact_recipes" },
+    { file = "export_belt_attachments.csv", category = "belt_attachments" },
+    -- weapons (filenames are dynamic: export_weapons_<kind>.csv)
+    { file = "export_weapons_pistol.csv", category = "weapons" },
+    { file = "export_weapons_shotgun.csv", category = "weapons" },
+    { file = "export_weapons_smg.csv", category = "weapons" },
+    { file = "export_weapons_rifle.csv", category = "weapons" },
+    { file = "export_weapons_sniper.csv", category = "weapons" },
+    { file = "export_weapons_explosive.csv", category = "weapons" },
+    { file = "export_weapons_melee.csv", category = "melee" },
+    { file = "export_explosives.csv", category = "explosives" },
+    { file = "export_ammo.csv", category = "ammo" },
+    { file = "export_stash_drop_rates.csv", category = "stash_drop_rates" },
+    { file = "export_item_drop_locations.csv", category = "item_drop_locations" },
+    { file = "export_disassemble_table.csv", category = "disassemble" },
+    { file = "export_disassembles_materials.csv", category = "disassemble" },
+    { file = "export_outfit_exchange.csv", category = "outfit_exchange" },
+    { file = "export_mutant_parts_prices.csv", category = "mutant_parts" },
+    { file = "export_weapon_drop_sources.csv", category = "weapon_drops" },
+    { file = "export_items_list.csv", category = "items_list" },
+}
+
+function collect_translation_keys_from_csvs(filter, x)
+    local keys = {}
+
+    for _, entry in ipairs(export_files) do
+        if not filter or filter == "" or entry.category == filter then
+            local f = io.open(entry.file, "r")
+            if f then
+                for line in f:lines() do
+                    for cell in line:gmatch("[^,]+") do
+                        cell = cell:match("^%s*(.-)%s*$")
+                        cell = cell:gsub("^\"", ""):gsub("\"$", "")
+                        if cell ~= "" and not tonumber(cell) and game.translate_string(cell) ~= cell then
+                            keys[cell] = entry.category
+                        end
+                    end
+                end
+                f:close()
+                if x then x:SendOutput("export translations - read %s", entry.file) end
+            end
+        end
+    end
+
+    -- also collect any keys accumulated by other exports in this session
+    for key, _ in pairs(translated_keys) do
+        if key ~= "" then
+            keys[key] = keys[key] or "session"
+        end
+    end
+
+    return keys
+end
+
 function debug_cmd_list.cmd.export_translations(_, txt, x)
     x:SendOutput("[START] export translations")
 
-    local p_file = "export_translations.csv"
+    local filter = txt and txt:match("^%s*(.-)%s*$") or ""
+    if filter ~= "" then
+        x:SendOutput("export translations - filtering by category: %s", filter)
+    end
+
+    local keys = collect_translation_keys_from_csvs(filter, x)
+
+    local p_file = export_language .. ".csv"
     local debug_file = io.open(p_file, "w+")
     if (debug_file == nil) then
         x:SendOutput("Failed to create/open file %s", p_file)
-        debug_file:close()
         return
     end
-    write_file(debug_file, "Translation Key,Translated Value")
+    write_file(debug_file, "Translation Key,Translated Value,Category")
     local cnt = 0
-    for key, _ in pairs(translated_keys) do
-        if key ~= "" then
-            write_file(debug_file, "%s,%s", key, game.translate_string(key) or "")
+    for key, category in pairs(keys) do
+        local translated = game.translate_string(key)
+        if translated and translated ~= "" then
+            write_file(debug_file, "%s,%s,%s", key, translated, category)
             cnt = cnt + 1
         end
     end
@@ -192,7 +267,7 @@ function translate_headers(headers)
         end
 
         local translated = translate_with_context(v, "header for " .. v)
-        local clean = translated:sanitize():trim():capitalize()
+        local clean = headers_mode == 1 and translated or translated:sanitize():trim():capitalize()
         printf("translated header '%s' to '%s'", v, translated)
         header = header .. clean
     end
@@ -894,6 +969,7 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
             x:SendOutput("export artefact - %s", section)
             local artefact = {}
             artefact.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
+            artefact.description = translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section)
             artefact.cost = ini_sys:r_float_ex(section, "cost") or 0
             artefact.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
             artefact.tier = ini_sys:r_float_ex(section, "tier") or 0
@@ -958,11 +1034,11 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
     local debug_file = io.open(p_file, "w+")
 
     local header = translate_headers({
-        "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "ui_st_rank", "st_data_export_jump_height", "st_data_export_is_junk", "st_data_export_has_perk", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "gamma_fire_wound_cap", "gamma_wound_cap", "gamma_burn_cap", "gamma_shock_cap", "gamma_chemical_burn_cap", "gamma_telepatic_cap", "gamma_strike_cap", "gamma_explosion_cap", "ui_inv_outfit_additional_weight", "st_data_export_used_in_crafting", "st_data_export_can_be_crafted" })
+        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "ui_st_rank", "st_data_export_jump_height", "st_data_export_is_junk", "st_data_export_has_perk", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "gamma_fire_wound_cap", "gamma_wound_cap", "gamma_burn_cap", "gamma_shock_cap", "gamma_chemical_burn_cap", "gamma_telepatic_cap", "gamma_strike_cap", "gamma_explosion_cap", "ui_inv_outfit_additional_weight", "st_data_export_used_in_crafting", "st_data_export_can_be_crafted" })
     write_file(debug_file, "%s", header)
     for section, v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                section, v.name, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.has_perk, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.ballistic_cap, v.rupture_cap, v.burn_cap, v.shock_cap, v.chemical_burn_cap, v.telepatic_cap, v.impact_cap, v.explosion_cap, v.weight_carried, v.used_in_crafting, v.craftable
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                section, v.name, v.description, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.has_perk, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.ballistic_cap, v.rupture_cap, v.burn_cap, v.shock_cap, v.chemical_burn_cap, v.telepatic_cap, v.impact_cap, v.explosion_cap, v.weight_carried, v.used_in_crafting, v.craftable
         )
     end
     debug_file:close()
@@ -1317,7 +1393,8 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
         else
             printf("export weapon - %s, item_id already set to %s", section, item_id)
         end
-        local delay = 0
+        -- delay between spawns to prevent engine crashes from rapid object creation/release
+        local delay = 0.75
         printf("export weapon - %s, start", section)
         -- Wait for item to come offline, then export
         CreateTimeEvent("export_weapon_" .. section .. itr, "delay_func", delay, function()
@@ -2541,7 +2618,7 @@ function debug_cmd_list.cmd.export_stash_drop_rates(_, txt, x)
     x:SendOutput("[END] export stash drop rates - %s map rows written - see export_stash_drop_rates.csv", row_count)
 end
 
-function debug_cmd_list.cmd.item_drop_locations(_, txt, x)
+function debug_cmd_list.cmd.export_item_drop_locations(_, txt, x)
     x:SendOutput("[START] export stash drop rates by item")
 
     -- Load config files
@@ -2657,7 +2734,7 @@ function debug_cmd_list.cmd.item_drop_locations(_, txt, x)
     end
 
     -- Open output file and write header
-    local p_file = "item_drop_locations.csv"
+    local p_file = "export_item_drop_locations.csv"
     local out = io.open(p_file, "w+")
 
     local header = translate_headers({
