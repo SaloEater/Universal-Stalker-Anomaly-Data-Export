@@ -1,132 +1,207 @@
 <?xml version="1.0" encoding="windows-1251" ?>
 <string_table>
     <string id="st_data_export_outfit_artefact_count_max">
-        <text>Максимальное кол-во слотов</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ-пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_eat_alcohol">
-        <text>Алкоголь</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_eat_health_change">
-        <text>Изменение здоровья</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_used_in_cooking">
-        <text>Используется в кулинарии</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_can_be_cooked">
-        <text>Можно приготовить</text>
+        <text>пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_restore_health_max">
-        <text>Полное восстановление здоровья</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_restore_bleeding_max">
-        <text>Полное заживление ран</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_restore_radiation">
-        <text>Восстановление от радиации</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_restore_radiation_max">
-        <text>Полное восстановление от радиации</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_power_restore_max">
-        <text>Полное восстановление выносливости</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_limb_duration">
-        <text>Длительность конечности</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_first_aid_head">
-        <text>Временно голову</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_first_aid_torso">
-        <text>Временно торс</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_first_aid_arm">
-        <text>Временно руки</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_first_aid_leg">
-        <text>Временно ноги</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_post_heal_head">
-        <text>Полностью голову</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_post_heal_torso">
-        <text>Полностью торс</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_post_heal_arm">
-        <text>Полностью руки</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_post_heal_leg">
-        <text>Полностью ноги</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_used_in_crafting">
-        <text>Используется в крафте</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_can_be_crafted">
-        <text>Можно скрафтить</text>
+        <text>пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_jump_height">
-        <text>Высота прыжка</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_is_junk">
-        <text>Мусорный</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_has_perk">
-        <text>Имеет перк</text>
+        <text>пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_bonus_mutant_part_chance">
-        <text>Шанс бонусной части мутанта</text>
+        <text>пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_single_handed">
-        <text>В одной руке</text>
+        <text>пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_ammo_types_alt">
-        <text>Альт. боеприпасы</text>
+        <text>пїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_light_attack_power">
-        <text>Сила легкой атаки</text>
+        <text>пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_heavy_attack_power">
-        <text>Сила тяжелой атаки</text>
+        <text>пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_cuts_thick_skin">
-        <text>Режет толстую кожу</text>
+        <text>пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_pelts_quality_min">
-        <text>Минимальное качество шкуры</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_pelts_quality_max">
-        <text>Максимальное качество шкуры</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_fragments">
-        <text>Фрагменты</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_fragment_damage">
-        <text>Урон от фрагментов</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_projectiles">
-        <text>Снаряды</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_impulse">
-        <text>Импульс</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_weapon_degradation">
-        <text>Доп. износ оружия</text>
+        <text>пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_disassemble_result">
-        <text>Результат</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_disassemble_amount">
-        <text>Количество</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_disassemble_item">
-        <text>Предмет</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
     </string>
     <string id="st_data_export_from">
-        <text>из</text>
+        <text>пїЅпїЅ</text>
     </string>
     <string id="st_data_export_exchange_reward">
-        <text>Что вы получите в обмен ></text>
+        <text>пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ ></text>
     </string>
     <string id="st_data_export_unknown">
-        <text>Неизвестно</text>
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_weapon_kind_sniper">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_weapon_kind_shotgun">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_weapon_kind_pistol">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_weapon_kind_shotgun">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_weapon_kind_smg">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_weapon_kind_rifle">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_rank_sniper">
+        <text>пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_rank_rg6">
+        <text>пїЅпїЅпїЅпїЅпїЅ RG6</text>
+    </string>
+    <string id="st_rank_gauss">
+        <text>пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_rank_blackops">
+        <text>пїЅпїЅпїЅпїЅпїЅ Black-Ops</text>
+    </string>
+    <string id="st_rank_ssu">
+        <text>пїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_weapon_kind_explosive">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_rank_any">
+        <text>пїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_weapon_kind_unknown">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_can_be_looted_by_npc">
+        <text>пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ?</text>
+    </string>
+    <string id="st_data_export_falloff">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_stash_type">
+        <text>пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_stash_chance">
+        <text>пїЅпїЅпїЅпїЅ %</text>
+    </string>
+    <string id="st_data_export_stash_ecos">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_stash_type_common">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_stash_type_rare">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_ammo_box_size">
+        <text>пїЅ пїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_is_backpack">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_sleepiness">
+        <text>пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</text>
+    </string>
+    <string id="st_data_export_thirst">
+        <text>пїЅпїЅпїЅпїЅпїЅ</text>
     </string>
 </string_table>
