@@ -95,9 +95,13 @@ end
 
 function to_percent_stash(value)
     if value > 0 and value < 1 then
-        return string.format("%.2f", value) .. "%"
+        return to_percent_string(string.format("%.2f", value))
     end
     return to_percent_round(value)
+end
+
+function floor_with_precision(value)
+    return string.format("%.2f", value)
 end
 
 function decimal_to_percent(value)
@@ -336,8 +340,8 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
                 outfit.repair_label = get_outfit_repair_label(rt)
 
                 outfit.cost = ini_sys:r_float_ex(section, "cost") or 0
-                outfit.weight = math.floor(ini_sys:r_float_ex(section, "inv_weight") or 0)
-                outfit.carry_weight = get_outfit_stat_value(obj, section, "additional_inventory_weight")
+                outfit.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
+                outfit.carry_weight = math.floor(get_outfit_stat_value(obj, section, "additional_inventory_weight"))
                 outfit.arty = get_outfit_stat_value(obj, section, "artefact_count") or 0
                 local max_arty = outfit.arty
 
@@ -601,7 +605,7 @@ function debug_cmd_list.cmd.export_eatable(_, txt, x)
             eatable.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
             eatable.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
             eatable.cost = ini_sys:r_float_ex(section, "cost") or 0
-            eatable.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            eatable.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             eatable.tier = ini_sys:r_float_ex(section, "tier") or 0
             eatable.sleepiness = to_percent_string(getEatableSleepiness(section))
             eatable.thirstiness = to_percent_floor(getEatableThirstiness(section))
@@ -632,7 +636,7 @@ function debug_cmd_list.cmd.export_eatable(_, txt, x)
             eatable.radiation_prot = math.floor(get_booster_stat_value(nil, section, "boost_radiation_protection") or 0)
             eatable.chemical_prot = to_percent_floor(get_booster_stat_value(nil, section, "boost_chemburn_protection"))
             eatable.psychic_prot = math.floor(get_booster_stat_value(nil, section, "boost_telepat_protection") or 0)
-            eatable.weight_carried = ini_sys:r_float_ex(section, "boost_max_weight") or 0
+            eatable.weight_carried = floor_with_precision(ini_sys:r_float_ex(section, "boost_max_weight") or 0)
 
             tbl[section] = eatable
             cnt = cnt + 1
@@ -755,7 +759,7 @@ function debug_cmd_list.cmd.export_medicine(_, txt, x)
             eatable.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
             eatable.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
             eatable.cost = ini_sys:r_float_ex(section, "cost") or 0
-            eatable.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            eatable.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             eatable.tier = ini_sys:r_float_ex(section, "tier") or 0
             eatable.sleepiness = to_percent_round(getEatableSleepiness(section))
             eatable.thirstiness = to_percent_floor(getEatableThirstiness(section))
@@ -795,7 +799,7 @@ function debug_cmd_list.cmd.export_medicine(_, txt, x)
             eatable.explosion_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_explosion_immunity") or 0) * 100)
             eatable.ballistic_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_fire_wound_immunity") or 0) * 100)
 
-            eatable.weight_carried = ini_sys:r_float_ex(section, "boost_max_weight") or 0
+            eatable.weight_carried = floor_with_precision(ini_sys:r_float_ex(section, "boost_max_weight") or 0)
 
             eatable.used_in_crafting = used_in_crafting[section] and "Y" or "N"
             eatable.craftable = craftable[section] and "Y" or "N"
@@ -860,7 +864,7 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
             artefact.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
             artefact.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
             artefact.cost = ini_sys:r_float_ex(section, "cost") or 0
-            artefact.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            artefact.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             artefact.tier = ini_sys:r_float_ex(section, "tier") or 0
             artefact.rank = ini_sys:r_float_ex(section, "af_rank") or 0
             artefact.is_junk = kind == "i_arty_junk" and "Y" or "N"
@@ -883,7 +887,7 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
             artefact.explosion_immunity = to_percent_string(get_artefact_stat_value(nil, section, "explosion_immunity") or 0)
             artefact.impact_immunity = to_percent_string(get_artefact_stat_value(nil, section, "strike_immunity") or 0)
 
-            artefact.weight_carried = get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0
+            artefact.weight_carried = math.floor(get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0)
 
             artefact.burn_cap = to_percent_string(get_artefact_stat_value(nil, section, "burn_cap") or 0)
             artefact.shock_cap = to_percent_string(get_artefact_stat_value(nil, section, "shock_cap") or 0)
@@ -959,7 +963,7 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
             local belt_attachment = {}
             belt_attachment.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
             belt_attachment.cost = ini_sys:r_float_ex(section, "cost") or 0
-            belt_attachment.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            belt_attachment.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             belt_attachment.tier = ini_sys:r_float_ex(section, "tier") or 0
             belt_attachment.is_backpack = (kind == "i_backpack" or kind == "EQ_BAKPK") and "Y" or "N"
             belt_attachment.jump_height = ini_sys:r_float_ex(section, "jump_height") or 0
@@ -982,7 +986,7 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
             belt_attachment.explosion_immunity = to_percent_string(get_artefact_stat_value(nil, section, "explosion_immunity") or 0)
             belt_attachment.impact_immunity = to_percent_string(get_artefact_stat_value(nil, section, "strike_immunity") or 0)
 
-            belt_attachment.weight_carried = get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0
+            belt_attachment.weight_carried = math.floor(get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0)
 
             tbl[section] = belt_attachment
             cnt = cnt + 1
@@ -1229,7 +1233,7 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             weapon.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
             weapon.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
             weapon.cost = ini_sys:r_float_ex(section, "cost") or 0
-            weapon.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            weapon.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             local repair_type = ini_sys:r_string_ex(section, "repair_type") or ""
             weapon.repair_label = get_weapon_repair_label(repair_type)
 
@@ -1442,7 +1446,7 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
                 weapon.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
                 weapon.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
                 weapon.cost = ini_sys:r_float_ex(section, "cost") or 0
-                weapon.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+                weapon.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
                 weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
                 local ammo = ini_sys:r_string_ex(section, "ammo_class")
                 weapon.br = (ammo and ini_sys:r_float_ex(ammo, "k_ap") or 0) * 10 * 100 * get_game_difficulty_multiplier()
@@ -1556,7 +1560,7 @@ function debug_cmd_list.cmd.export_explosives(_, txt, x)
                 return
             end
             x:SendOutput("export explosive - %s", section)
-            explosive.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            explosive.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             local explosive_section = nil
             if rocket_class then
                 explosive_section = rocket_class
@@ -1665,7 +1669,7 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
             ammo.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
             ammo.cost = ini_sys:r_float_ex(section, "cost") or 0
             ammo.box_size = round(ini_sys:r_float_ex(section, "box_size"))
-            ammo.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            ammo.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             ammo.projectiles = ini_sys:r_float_ex(section, "buck_shot") or 1
             ammo.damage = ini_sys:r_float_ex(section, "k_hit") or 0
             ammo.range = decimal_to_percent(ini_sys:r_float_ex(section, "k_dist"))
