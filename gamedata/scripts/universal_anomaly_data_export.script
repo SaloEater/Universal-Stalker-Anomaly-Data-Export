@@ -170,7 +170,9 @@ end
 function debug_cmd_list.cmd.export_translations(_, txt, x)
     x:SendOutput("[START] export translations")
 
-    local p_file = "export_translations.csv"
+    local lang = ini_sys:r_string_ex("string_table", "language")
+    local locale = (lang == "rus" and "ru_ru") or (lang == "eng" and "en_us") or "export_translations"
+    local p_file = locale .. ".csv"
     local debug_file = io.open(p_file, "w+")
     if (debug_file == nil) then
         x:SendOutput("Failed to create/open file %s", p_file)
