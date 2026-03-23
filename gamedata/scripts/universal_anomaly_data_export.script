@@ -22,8 +22,15 @@ local cmd_list = {
 }
 
 function debug_cmd_list.cmd.export_all(_, txt, x)
+    local skip = {
+        ["export_translations"] = true,
+        ["change_headers_mode"] = true,
+        ["export_all"] = true,
+        ["export_item_list"] = true,
+    }
+
     for i, cmd in ipairs(cmd_list) do
-        if cmd.cmd ~= "export_translations" and cmd.cmd ~= "change_headers_mode" and cmd.cmd ~= "export_all" and cmd.cmd ~= "export_item_list" then
+        if not skip[cmd.cmd] then
             debug_cmd_list.cmd[cmd.cmd](nil, nil, x)
         end
     end
