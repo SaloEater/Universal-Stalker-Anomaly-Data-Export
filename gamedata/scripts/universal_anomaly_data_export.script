@@ -58,6 +58,10 @@ function get_outfit_stat_value(obj, section, type)
     return get_stat_value(obj, section, "outfit", type)
 end
 
+function get_outfit_protection_value(obj, section, type)
+    return get_outfit_stat_value(obj, section, type) * 100
+end
+
 function get_artefact_stat_value(obj, section, type)
     return get_stat_value(obj, section, "artefact", type)
 end
@@ -337,15 +341,15 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
                 end
 
                 outfit.max_arty = max_arty
-                outfit.burn = to_percent_floor(get_outfit_stat_value(obj, section, "burn_protection"))
-                outfit.shock = to_percent_floor(get_outfit_stat_value(obj, section, "shock_protection"))
-                outfit.radiation = to_percent_floor(get_outfit_stat_value(obj, section, "radiation_protection"))
-                outfit.chemical_burn = to_percent_floor(get_outfit_stat_value(obj, section, "chemical_burn_protection"))
-                outfit.telepatic = to_percent_floor(get_outfit_stat_value(obj, section, "telepatic_protection"))
-                outfit.impact = to_percent_floor(get_outfit_stat_value(obj, section, "strike_protection"))
-                outfit.explosion = to_percent_floor(get_outfit_stat_value(obj, section, "explosion_protection"))
-                outfit.rupture = to_percent_floor(get_outfit_stat_value(obj, section, "wound_protection"))
-                outfit.ballistic = to_percent_floor(get_outfit_stat_value(obj, section, "fire_wound_protection"))
+                outfit.burn = to_percent_floor(get_outfit_protection_value(obj, section, "burn_protection"))
+                outfit.shock = to_percent_floor(get_outfit_protection_value(obj, section, "shock_protection"))
+                outfit.radiation = to_percent_floor(get_outfit_protection_value(obj, section, "radiation_protection"))
+                outfit.chemical_burn = to_percent_floor(get_outfit_protection_value(obj, section, "chemical_burn_protection"))
+                outfit.telepatic = to_percent_floor(get_outfit_protection_value(obj, section, "telepatic_protection"))
+                outfit.impact = to_percent_floor(get_outfit_protection_value(obj, section, "strike_protection"))
+                outfit.explosion = to_percent_floor(get_outfit_protection_value(obj, section, "explosion_protection"))
+                outfit.rupture = to_percent_floor(get_outfit_protection_value(obj, section, "wound_protection"))
+                outfit.ballistic = to_percent_floor(get_outfit_protection_value(obj, section, "fire_wound_protection"))
 
                 tbl[repair_type][section] = outfit
                 alife_release(se_obj)
