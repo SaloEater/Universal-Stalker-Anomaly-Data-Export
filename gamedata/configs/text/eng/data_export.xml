@@ -204,4 +204,7 @@
     <string id="st_data_export_thirst">
         <text>Thirst</text>
     </string>
+    <string id="st_data_export_description">
+        <text>Description</text>
+    </string>
 </string_table>

@@ -210,4 +210,7 @@
     <string id="st_data_export_thirst">
         <text>Жажда</text>
     </string>
+    <string id="st_data_export_description">
+        <text>Описание</text>
+    </string>
 </string_table>
