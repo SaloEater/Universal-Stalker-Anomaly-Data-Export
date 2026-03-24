@@ -1,4 +1,5 @@
 local cmd_list = {
+    { name = "Change headers mode", cmd = "change_headers_mode", hide_ui = 0 },
     { name = "Export outfits", cmd = "export_outfits", hide_ui = 0 },
     --{ 	name = "Export outfits upgrades" 				, cmd = "export_outfits_upgrades"    				         , hide_ui = 0 								},
     { name = "Export eatable", cmd = "export_eatable", hide_ui = 0 },
@@ -10,10 +11,38 @@ local cmd_list = {
     { name = "Export explosives", cmd = "export_explosives", hide_ui = 0 },
     { name = "Export melee", cmd = "export_melee", hide_ui = 0 },
     { name = "Export ammo", cmd = "export_ammo", hide_ui = 0 },
+    { name = "Export item chance in stash", cmd = "item_chance_in_stash", hide_ui = 0 },
     { name = "Export disassemble table", cmd = "export_disassemble_table", hide_ui = 0 },
     { name = "Export mutant parts prices", cmd = "export_mutant_parts_prices", hide_ui = 0 },
+    { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
+    { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
+    { name = "Export translations", cmd = "export_translations", hide_ui = 0 },
+    { name = "Export all", cmd = "export_all", hide_ui = 0 },
     --{ 	name = "Export weapons upgrades" 				, cmd = "export_weapons_upgrades"    				         , hide_ui = 0 								},
 }
+
+function debug_cmd_list.cmd.export_all(_, txt, x)
+    local skip = {
+        ["export_translations"] = true,
+        ["change_headers_mode"] = true,
+        ["export_all"] = true,
+        ["export_item_list"] = true,
+    }
+
+    for i, cmd in ipairs(cmd_list) do
+        if not skip[cmd.cmd] then
+            debug_cmd_list.cmd[cmd.cmd](nil, nil, x)
+        end
+    end
+end
+
+-- 0 - translated values, 1 - translation keys
+local headers_mode = 0
+function debug_cmd_list.cmd.change_headers_mode(_, txt, x)
+    headers_mode = (headers_mode + 1) % 2
+    local mode_text = headers_mode == 0 and "Translated" or "Translation Keys"
+    x:SendOutput("Headers mode changed to %s", mode_text)
+end
 
 for i, cmd in ipairs(cmd_list) do
     ui_debug_launcher.inject("action", cmd)
@@ -34,6 +63,10 @@ end
 
 function get_outfit_stat_value(obj, section, type)
     return get_stat_value(obj, section, "outfit", type)
+end
+
+function get_outfit_protection_value(obj, section, type)
+    return get_outfit_stat_value(obj, section, type) * 100
 end
 
 function get_artefact_stat_value(obj, section, type)
@@ -60,7 +93,19 @@ function to_percent_round(value)
     return to_percent_string(round(value))
 end
 
+function to_percent_stash(value)
+    if value > 0 and value < 1 then
+        return to_percent_string(string.format("%.2f", value))
+    end
+    return to_percent_round(value)
+end
+
+function floor_with_precision(value)
+    return string.format("%.2f", value)
+end
+
 function decimal_to_percent(value)
+    value = value or 0
     return to_percent_floor(tonumber(value) * 100)
 end
 
@@ -108,16 +153,67 @@ function string.sanitize(s)
     return s:gsub("%%.*%[.*%]", ""):gsub(":", ""):gsub(",", "."):gsub("%%s", "")
 end
 
+local translated_keys = {}
+function translate(name, default, context)
+    if not name then
+        printf("[TRANSLATE for context %s] %s", context or "", debug.traceback())
+    end
+
+    name = name or ""
+    translated_keys[name] = true
+    if headers_mode == 1 then
+        if name ~= "" then
+            return name
+        end
+        translated_keys[default or ""] = true
+        return default or ""
+    end
+
+    local translated = game.translate_string(name)
+    if translated ~= "" then
+        return translated
+    end
+    return translate_with_context(default or "", context .. " (default)")
+end
+
+function translate_with_context(name, context)
+    return translate(name, nil, context)
+end
+
+function debug_cmd_list.cmd.export_translations(_, txt, x)
+    x:SendOutput("[START] export translations")
+
+    local lang = ini_sys:r_string_ex("string_table", "language")
+    local locale = (lang == "rus" and "ru_ru") or (lang == "eng" and "en_us") or "export_translations"
+    local p_file = locale .. ".csv"
+    local debug_file = io.open(p_file, "w+")
+    if (debug_file == nil) then
+        x:SendOutput("Failed to create/open file %s", p_file)
+        debug_file:close()
+        return
+    end
+    write_file(debug_file, "Translation Key,Translated Value")
+    local cnt = 0
+    for key, _ in pairs(translated_keys) do
+        if key ~= "" then
+            write_file(debug_file, "%s,%s", key, game.translate_string(key) or "")
+            cnt = cnt + 1
+        end
+    end
+    debug_file:close()
+    x:SendOutput("[END] export translations - %s total keys exported - see in Gamma\\Overwrite\\bin\\%s", cnt, p_file)
+end
+
 function translate_headers(headers)
     local header = ""
     for i, v in ipairs(headers) do
         if i > 1 then
-            header = header .. ","
+            header = header .. ", "
         end
 
-        local translated = game.translate_string(v)
+        local translated = translate_with_context(v, "header for " .. v)
         local clean = translated:sanitize():trim():capitalize()
-
+        printf("translated header '%s' to '%s'", v, translated)
         header = header .. clean
     end
 
@@ -170,7 +266,6 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
         ["without_outfit"] = true,
         ["tch_helmet"] = true,
         ["mp_scientific_outfit"] = true,
-
     }
     local tbl = {}
     local cnt = 0
@@ -239,15 +334,16 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
                 local outfit = {}
                 outfit.typ = repair_type
                 outfit.indx = outfit_type[repair_type] or 0
-                outfit.faction = game.translate_string(ini_sys:r_string_ex(section, "community")) or "Unknown"
-                outfit.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+                outfit.faction = translate(ini_sys:r_string_ex(section, "community"), "st_data_export_unknown", "faction for " .. section)
+                outfit.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
+                outfit.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
                 local rt = ini_sys:r_string_ex(section, "repair_type")
                 --printf("export outfit - %s, repair type %s", section, rt)
                 outfit.repair_label = get_outfit_repair_label(rt)
 
                 outfit.cost = ini_sys:r_float_ex(section, "cost") or 0
-                outfit.weight = math.floor(ini_sys:r_float_ex(section, "inv_weight") or 0)
-                outfit.carry_weight = get_outfit_stat_value(obj, section, "additional_inventory_weight")
+                outfit.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
+                outfit.carry_weight = math.floor(get_outfit_stat_value(obj, section, "additional_inventory_weight"))
                 outfit.arty = get_outfit_stat_value(obj, section, "artefact_count") or 0
                 local max_arty = outfit.arty
 
@@ -261,15 +357,15 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
                 end
 
                 outfit.max_arty = max_arty
-                outfit.burn = to_percent_floor(get_outfit_stat_value(obj, section, "burn_protection"))
-                outfit.shock = to_percent_floor(get_outfit_stat_value(obj, section, "shock_protection"))
-                outfit.radiation = to_percent_floor(get_outfit_stat_value(obj, section, "radiation_protection"))
-                outfit.chemical_burn = to_percent_floor(get_outfit_stat_value(obj, section, "chemical_burn_protection"))
-                outfit.telepatic = to_percent_floor(get_outfit_stat_value(obj, section, "telepatic_protection"))
-                outfit.impact = to_percent_floor(get_outfit_stat_value(obj, section, "strike_protection"))
-                outfit.explosion = to_percent_floor(get_outfit_stat_value(obj, section, "explosion_protection"))
-                outfit.rupture = to_percent_floor(get_outfit_stat_value(obj, section, "wound_protection"))
-                outfit.ballistic = to_percent_floor(get_outfit_stat_value(obj, section, "fire_wound_protection"))
+                outfit.burn = to_percent_floor(get_outfit_protection_value(obj, section, "burn_protection"))
+                outfit.shock = to_percent_floor(get_outfit_protection_value(obj, section, "shock_protection"))
+                outfit.radiation = to_percent_floor(get_outfit_protection_value(obj, section, "radiation_protection"))
+                outfit.chemical_burn = to_percent_floor(get_outfit_protection_value(obj, section, "chemical_burn_protection"))
+                outfit.telepatic = to_percent_floor(get_outfit_protection_value(obj, section, "telepatic_protection"))
+                outfit.impact = to_percent_floor(get_outfit_protection_value(obj, section, "strike_protection"))
+                outfit.explosion = to_percent_floor(get_outfit_protection_value(obj, section, "explosion_protection"))
+                outfit.rupture = to_percent_floor(get_outfit_protection_value(obj, section, "wound_protection"))
+                outfit.ballistic = to_percent_floor(get_outfit_protection_value(obj, section, "fire_wound_protection"))
                 outfit.speed = decimal_to_percent(outfit_speed_mcm.get_outfit_speed(obj, section, false))
                 outfit.durability_physical = to_percent_floor(outfit_durability.get_outfit_durability_physical(obj, section) * 100)
                 outfit.durability_anomaly = to_percent_floor(outfit_durability.get_outfit_durability_anomaly(obj, section) * 100)
@@ -320,20 +416,20 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
 
             if repair_type == "outfit_helmet" then
                 local header = translate_headers({
-                    "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_outfit_durability_physical", "ui_inv_outfit_durability_anomaly", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection" })
+                    "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_outfit_durability_physical", "ui_inv_outfit_durability_anomaly", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection" })
                 write_file(debug_file, "%s", header)
                 for section, v in spairs(outfits, functor) do
-                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                            section, v.name, v.weight, v.cost, v.repair_label, v.durability_physical, v.durability_anomaly, v.ballistic, v.rupture, v.burn, v.shock, v.chemical_burn, v.radiation, v.telepatic, v.impact, v.explosion)
+                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                            section, v.name, v.description, v.weight, v.cost, v.repair_label, v.durability_physical, v.durability_anomaly, v.ballistic, v.rupture, v.burn, v.shock, v.chemical_burn, v.radiation, v.telepatic, v.impact, v.explosion)
                     type_cnt = type_cnt + 1
                 end
             else
                 local header = translate_headers({
-                    "~", "ui_st_community", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_outfit_durability_physical", "ui_inv_outfit_durability_anomaly", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_outfit_artefact_count", "st_data_export_outfit_artefact_count_max", "ui_inv_outfit_additional_weight", "ui_inv_outfit_speed" })
+                    "~", "ui_st_community", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_outfit_durability_physical", "ui_inv_outfit_durability_anomaly", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_outfit_artefact_count", "st_data_export_outfit_artefact_count_max", "ui_inv_outfit_additional_weight", "ui_inv_outfit_speed" })
                 write_file(debug_file, "%s", header)
                 for section, v in spairs(outfits, functor) do
-                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                            section, v.faction, v.name, v.weight, v.cost, v.repair_label, v.durability_physical, v.durability_anomaly, v.ballistic, v.rupture, v.burn, v.shock, v.chemical_burn, v.radiation, v.telepatic, v.impact, v.explosion, v.arty, v.max_arty, v.carry_weight, v.speed)
+                    write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                            section, v.faction, v.name, v.description, v.weight, v.cost, v.repair_label, v.durability_physical, v.durability_anomaly, v.ballistic, v.rupture, v.burn, v.shock, v.chemical_burn, v.radiation, v.telepatic, v.impact, v.explosion, v.arty, v.max_arty, v.carry_weight, v.speed)
                     type_cnt = type_cnt + 1
                 end
             end
@@ -386,7 +482,7 @@ function getEatableSleepiness(section)
     local sleep_mult = get_local_val([[gamedata\scripts\actor_status_sleep.script]], "actor_status_sleep", "local eat_sleepiness_mul") or 1000
     eat_sleepiness = eat_sleepiness * sleep_mult
     local sleep_num = eat_sleepiness / max_sleep * 100
-    return sleep_num
+    return tonumber(string.format("%.2f", sleep_num))
 end
 
 function getEatableThirstiness(section)
@@ -510,9 +606,10 @@ function debug_cmd_list.cmd.export_eatable(_, txt, x)
         if kind and food_kinds[kind] then
             x:SendOutput("export eatable - %s", section)
             local eatable = {}
-            eatable.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+            eatable.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
+            eatable.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
             eatable.cost = ini_sys:r_float_ex(section, "cost") or 0
-            eatable.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            eatable.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             eatable.tier = ini_sys:r_float_ex(section, "tier") or 0
             eatable.sleepiness = to_percent_string(getEatableSleepiness(section))
             eatable.thirstiness = to_percent_floor(getEatableThirstiness(section))
@@ -543,7 +640,7 @@ function debug_cmd_list.cmd.export_eatable(_, txt, x)
             eatable.radiation_prot = math.floor(get_booster_stat_value(nil, section, "boost_radiation_protection") or 0)
             eatable.chemical_prot = to_percent_floor(get_booster_stat_value(nil, section, "boost_chemburn_protection"))
             eatable.psychic_prot = math.floor(get_booster_stat_value(nil, section, "boost_telepat_protection") or 0)
-            eatable.weight_carried = ini_sys:r_float_ex(section, "boost_max_weight") or 0
+            eatable.weight_carried = floor_with_precision(ini_sys:r_float_ex(section, "boost_max_weight") or 0)
 
             tbl[section] = eatable
             cnt = cnt + 1
@@ -553,11 +650,11 @@ function debug_cmd_list.cmd.export_eatable(_, txt, x)
     local p_file = "export_eatable.csv"
     local debug_file = io.open(p_file, "w+")
     local header = translate_headers({
-        "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_itm_desc_eat_sleepiness", "st_itm_desc_eat_thirst", "st_data_export_eat_alcohol", "st_data_export_eat_health_change", "ui_inv_radiation", "ui_inv_satiety", "st_ui_number_of_uses", "st_data_export_used_in_cooking", "st_data_export_can_be_cooked", "ui_inv_effect_time", "st_prop_restore_health", "st_data_export_restore_health_max", "st_prop_restore_bleeding", "st_data_export_restore_bleeding_max", "st_data_export_restore_radiation", "st_data_export_restore_radiation_max", "ui_inv_outfit_power_restore", "st_data_export_power_restore_max", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_additional_weight" })
+        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_data_export_sleepiness", "st_data_export_thirst", "st_data_export_eat_alcohol", "st_data_export_eat_health_change", "ui_inv_radiation", "ui_inv_satiety", "st_ui_number_of_uses", "st_data_export_used_in_cooking", "st_data_export_can_be_cooked", "ui_inv_effect_time", "st_prop_restore_health", "st_data_export_restore_health_max", "st_prop_restore_bleeding", "st_data_export_restore_bleeding_max", "st_data_export_restore_radiation", "st_data_export_restore_radiation_max", "ui_inv_outfit_power_restore", "st_data_export_power_restore_max", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_additional_weight" })
     write_file(debug_file, "%s", header)
     for section, v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                section, v.name, v.weight, v.cost, v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health, v.rads, v.satiety, v.servings, v.used_in_cooking, v.can_be_cooked, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore, v.total_bleed_restore, v.rad_restore, v.total_rad_restore, v.stamina_restore, v.total_stamina_restore, v.radiation_prot, v.chemical_prot, v.psychic_prot, v.weight_carried)
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                section, v.name, v.description, v.weight, v.cost, v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health, v.rads, v.satiety, v.servings, v.used_in_cooking, v.from_cooking, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore, v.total_bleed_restore, v.rad_restore, v.total_rad_restore, v.stamina_restore, v.total_stamina_restore, v.radiation_prot, v.chemical_prot, v.psychic_prot, v.weight_carried)
     end
     debug_file:close()
 
@@ -663,9 +760,10 @@ function debug_cmd_list.cmd.export_medicine(_, txt, x)
         if kind and food_kinds[kind] then
             x:SendOutput("export medicine - %s", section)
             local eatable = {}
-            eatable.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+            eatable.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
+            eatable.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
             eatable.cost = ini_sys:r_float_ex(section, "cost") or 0
-            eatable.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            eatable.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             eatable.tier = ini_sys:r_float_ex(section, "tier") or 0
             eatable.sleepiness = to_percent_round(getEatableSleepiness(section))
             eatable.thirstiness = to_percent_floor(getEatableThirstiness(section))
@@ -705,7 +803,7 @@ function debug_cmd_list.cmd.export_medicine(_, txt, x)
             eatable.explosion_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_explosion_immunity") or 0) * 100)
             eatable.ballistic_immunity = to_percent_string((ini_sys:r_float_ex(section, "boost_fire_wound_immunity") or 0) * 100)
 
-            eatable.weight_carried = ini_sys:r_float_ex(section, "boost_max_weight") or 0
+            eatable.weight_carried = floor_with_precision(ini_sys:r_float_ex(section, "boost_max_weight") or 0)
 
             eatable.used_in_crafting = used_in_crafting[section] and "Y" or "N"
             eatable.craftable = craftable[section] and "Y" or "N"
@@ -718,11 +816,11 @@ function debug_cmd_list.cmd.export_medicine(_, txt, x)
     local p_file = "export_medicine.csv"
     local debug_file = io.open(p_file, "w+")
     local header = translate_headers({
-        "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_itm_desc_eat_sleepiness", "st_itm_desc_eat_thirst", "st_data_export_eat_alcohol", "st_data_export_eat_health_change", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_satiety", "st_ui_number_of_uses", "ui_inv_effect_time", "st_prop_restore_health", "st_data_export_restore_health_max", "st_prop_restore_bleeding", "st_data_export_restore_bleeding_max", "st_data_export_restore_radiation", "st_data_export_restore_radiation_max", "ui_inv_outfit_power_restore", "st_data_export_power_restore_max", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_additional_weight", "st_data_export_used_in_crafting", "st_data_export_can_be_crafted" })
+        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_data_export_sleepiness", "st_data_export_thirst", "st_data_export_eat_alcohol", "st_data_export_eat_health_change", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_satiety", "st_ui_number_of_uses", "ui_inv_effect_time", "st_prop_restore_health", "st_data_export_restore_health_max", "st_prop_restore_bleeding", "st_data_export_restore_bleeding_max", "st_data_export_restore_radiation", "st_data_export_restore_radiation_max", "ui_inv_outfit_power_restore", "st_data_export_power_restore_max", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_additional_weight", "st_data_export_used_in_crafting", "st_data_export_can_be_crafted" })
     write_file(debug_file, "%s", header)
     for section, v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                section, v.name, v.weight, v.cost, v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.satiety, v.servings, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore, v.total_bleed_restore, v.rad_restore, v.total_rad_restore, v.stamina_restore, v.total_stamina_restore, v.radiation_prot, v.chemical_prot, v.psychic_prot, v.weight_carried, v.used_in_crafting, v.craftable)
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                section, v.name, v.description, v.weight, v.cost, v.tier, v.sleepiness, v.thirstiness, v.alcohol, v.health, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.satiety, v.servings, v.duration, v.health_restore, v.total_health_restore, v.bleed_restore, v.total_bleed_restore, v.rad_restore, v.total_rad_restore, v.stamina_restore, v.total_stamina_restore, v.radiation_prot, v.chemical_prot, v.psychic_prot, v.weight_carried, v.used_in_crafting, v.craftable)
     end
     debug_file:close()
 
@@ -767,9 +865,10 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
         if kind and artefacts_kinds[kind] then
             x:SendOutput("export artefact - %s", section)
             local artefact = {}
-            artefact.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+            artefact.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
+            artefact.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
             artefact.cost = ini_sys:r_float_ex(section, "cost") or 0
-            artefact.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            artefact.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             artefact.tier = ini_sys:r_float_ex(section, "tier") or 0
             artefact.rank = ini_sys:r_float_ex(section, "af_rank") or 0
             artefact.is_junk = kind == "i_arty_junk" and "Y" or "N"
@@ -792,7 +891,7 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
             artefact.explosion_immunity = to_percent_string(get_artefact_stat_value(nil, section, "explosion_immunity") or 0)
             artefact.impact_immunity = to_percent_string(get_artefact_stat_value(nil, section, "strike_immunity") or 0)
 
-            artefact.weight_carried = get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0
+            artefact.weight_carried = math.floor(get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0)
 
             artefact.burn_cap = to_percent_string(get_artefact_stat_value(nil, section, "burn_cap") or 0)
             artefact.shock_cap = to_percent_string(get_artefact_stat_value(nil, section, "shock_cap") or 0)
@@ -828,11 +927,11 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
     local debug_file = io.open(p_file, "w+")
 
     local header = translate_headers({
-        "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "ui_st_rank", "st_data_export_jump_height", "st_data_export_is_junk", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "ui_inv_radiation", "ui_inv_outfit_power_restore", "ui_inv_outfit_additional_weight" })
+        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "ui_st_rank", "st_data_export_jump_height", "st_data_export_is_junk", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "ui_inv_outfit_additional_weight" })
     write_file(debug_file, "%s", header)
     for section, v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                section, v.name, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.weight_carried
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                section, v.name, v.description, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.weight_carried
         )
     end
     debug_file:close()
@@ -875,10 +974,11 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
         if kind and artefacts_kinds[kind] then
             x:SendOutput("export belt attachment - %s", section)
             local belt_attachment = {}
-            belt_attachment.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+            belt_attachment.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
             belt_attachment.cost = ini_sys:r_float_ex(section, "cost") or 0
-            belt_attachment.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            belt_attachment.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             belt_attachment.tier = ini_sys:r_float_ex(section, "tier") or 0
+            belt_attachment.is_backpack = (kind == "i_backpack" or kind == "EQ_BAKPK") and "Y" or "N"
             belt_attachment.jump_height = ini_sys:r_float_ex(section, "jump_height") or 0
             belt_attachment.bonus_mutant_part_chance = to_percent_string(ini_sys:r_float_ex(section, "bonus_mutant_part_chance"))
 
@@ -899,7 +999,7 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
             belt_attachment.explosion_immunity = to_percent_string(get_artefact_stat_value(nil, section, "explosion_immunity") or 0)
             belt_attachment.impact_immunity = to_percent_string(get_artefact_stat_value(nil, section, "strike_immunity") or 0)
 
-            belt_attachment.weight_carried = get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0
+            belt_attachment.weight_carried = math.floor(get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0)
 
             belt_attachment.penetration = get_plate_penetration(section)
 
@@ -926,11 +1026,11 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
     local p_file = "export_belt_attachments.csv"
     local debug_file = io.open(p_file, "w+")
     local header = translate_headers({
-        "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_data_export_jump_height", "st_data_export_bonus_mutant_part_chance", "BR", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "ui_inv_outfit_additional_weight" })
+        "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_data_export_is_backpack", "st_data_export_jump_height", "st_data_export_bonus_mutant_part_chance", "BR", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "ui_inv_outfit_additional_weight" })
     write_file(debug_file, "%s", header)
     for section, v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                section, v.name, v.weight, v.cost, v.tier, v.jump_height, v.bonus_mutant_part_chance, v.penetration, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.weight_carried
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                section, v.name, v.weight, v.cost, v.tier, v.is_backpack, v.jump_height, v.bonus_mutant_part_chance, v.penetration, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.weight_carried
         )
     end
     debug_file:close()
@@ -951,38 +1051,51 @@ local ammo_special_types = {
     ["338"] = ".338 Federal",
 }
 
+local blacklist_ammo = {
+    ["_knife"] = true,
+    ["_binoc"] = true,
+    ["_base$"] = true,
+    ["_dyno$"] = true,
+    ["_batteries"] = true,
+    ["^mp_"] = true,
+    ["_heli$"] = true,
+    ["_parts$"] = true,
+    ["^casing_"] = true,
+    ["^powder_"] = true,
+    ["^bullet_"] = true,
+}
+
+function is_blacklisted_ammo(section)
+    for black, _ in pairs(blacklist_ammo) do
+        if string.find(section, black) then
+            return true
+        end
+    end
+    return false
+end
+
 function get_weapon_caliber(ammo_class)
     --printf("ammo_class: %s", ammo_class)
     local ammo_tbl = str_explode(ammo_class, ",")
     if #ammo_tbl == 0 then
         return ""
     end
-    local ammo_types = {}
+    local ammo_list = ""
 
     for i, ammo in ipairs(ammo_tbl) do
         --printf("ammo: %s", ammo)
-        local regular_start, regular_end = string.find(ammo, "[0-9.]*x[0-9]*")
-        if regular_start then
-            ammo_types[string.sub(ammo, regular_start, regular_end)] = true
-        else
-            for ammo_type, label in pairs(ammo_special_types) do
-                local special_start, special_end = string.find(ammo, ammo_type)
-                --printf("try: %s - %s", ammo_type, special_start)
-                if special_start then
-                    ammo_types[label] = true
-                end
-            end
+        if is_blacklisted_ammo(ammo) then
+            goto continue
         end
-    end
 
-    local ammo_list = ""
-
-    for ammo_type, _ in pairs(ammo_types) do
+        local ammo_name = sanitize_ammo_name(translate_with_context(ini_sys:r_string_ex(ammo, "inv_name"), "item name for " .. ammo))
         if ammo_list == "" then
-            ammo_list = ammo_type
+            ammo_list = ammo_name
         else
-            ammo_list = ammo_list .. "; " .. ammo_type
+            local space = headers_mode == 0 and " " or ""
+            ammo_list = ammo_list .. ";" .. space .. ammo_name
         end
+        :: continue ::
     end
 
     return ammo_list
@@ -1036,17 +1149,17 @@ function get_weapon_repair_label(repair_type)
     return "N/A"
 end
 
+local weapon_kinds = {
+    ["w_pistol"] = "pistol",
+    ["w_shotgun"] = "shotgun",
+    ["w_smg"] = "smg",
+    ["w_rifle"] = "rifle",
+    ["w_sniper"] = "sniper",
+    ["w_explosive"] = "explosive"
+}
+
 function debug_cmd_list.cmd.export_weapons(_, txt, x)
     x:SendOutput("[START] export weapons")
-
-    local weapon_kinds = {
-        ["w_pistol"] = "pistol",
-        ["w_shotgun"] = "shotgun",
-        ["w_smg"] = "smg",
-        ["w_rifle"] = "rifle",
-        ["w_sniper"] = "sniper",
-        ["w_explosive"] = "explosive"
-    }
 
     local blacklist = {
         ["wpn_colt_kimber"] = true,
@@ -1054,128 +1167,164 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
         ["wpn_cz52"] = true,
     }
 
-    local tbl = {}
-    local cnt = 0
-    local counter = 0
+    local leftToProcess = 0
+    -- Build queue of sections to export
+    local sections_queue = {}
     ini_sys:section_for_each(function(section)
         if blacklist[section] or is_multiplayer_item(section) then
             return
         end
 
-        local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
-
+        local class = ini_sys:r_string_ex(section, "class")
+        local kind = ini_sys:r_string_ex(section, "kind")
+        if kind == "" then
+            kind = class
+        end
         if kind and weapon_kinds[kind] then
             local weapon_class = ini_sys:r_string_ex(section, "weapon_class")
             if kind == "w_explosive" and (not weapon_class or weapon_class == "") then
-                return
+                goto continue
             end
-
             local parent_section = ini_sys:r_string_ex(section, "parent_section")
             if parent_section and section ~= parent_section then
-                return
+                goto continue
             end
+            table.insert(sections_queue, section)
+            leftToProcess = leftToProcess + 1
+        end
+        :: continue ::
+    end)
 
-            kind = weapon_kinds[kind]
-            if not tbl[kind] then
-                tbl[kind] = {}
-            end
+    local tbl = {}
+    local cnt = 0
+    local item_id
 
-            local pos = db.actor:position()
-            local lvid = db.actor:level_vertex_id()
-            local gvid = db.actor:game_vertex_id()
-            local id = AC_ID
+    local pos = db.actor:position()
+    local lvid = db.actor:level_vertex_id()
+    local gvid = db.actor:game_vertex_id()
+    local id = AC_ID
+    local se_obj
 
-            local se_obj
+    ui_inventory.start("inventory", nil)
+    local GUI = ui_inventory.GUI
+    local slot_cells = GUI.slot_cell
+    local onehanded_slots = {
+        1, 4, 5, 6, 8, 9
+    }
+    local allowed_slots = {}
+    for _, slot in pairs(onehanded_slots) do
+        local cells = slot_cells[slot]
+        for _, slot_idx in pairs(cells) do
+            allowed_slots[slot_idx] = true
+        end
+    end
+    GUI:Close()
+
+    local function process_queue(idx, itr)
+        if idx > #sections_queue then
+            x:SendOutput("[END] export weapons - %s total exported", cnt)
+            return true
+        end
+        local section = sections_queue[idx]
+        printf("export weapons - processing %s: try %s  %s of %s", section, itr, idx, #sections_queue)
+        local class = ini_sys:r_string_ex(section, "class")
+        local kind = ini_sys:r_string_ex(section, "kind")
+        if kind == "" then
+            kind = class
+        end
+        kind = weapon_kinds[kind]
+        if not tbl[kind] then
+            tbl[kind] = {}
+        end
+        if not item_id then
             se_obj = alife_create_item(section, { pos, lvid, gvid, id })
-
             if not se_obj then
-                --printf( "No server object made for [%s]", section)
-                --x:SendOutput( "No server object made for [%s]", section)
-                return
+                printf("export weapon - %s, alife_create_item failed, retrying", section)
+                process_queue(idx, itr + 1)
+                return true
             end
             cnt = cnt + 1
-            counter = counter + 1
-            local id = se_obj.id
-
-            x:SendOutput("export weapon - %s, start", section)
-            local function createInterval(section, id, callback, idx)
-                CreateTimeEvent("export_weapon_" .. section .. "_" .. idx, "delay_func", 2, function(section, id)
-                    local success = callback(section, id)
-                    if not success then
-                        createInterval(section, id, callback, idx + 1)
-                    end
-                    return true
-                end, section, id)
+            item_id = se_obj.id
+        else
+            printf("export weapon - %s, item_id already set to %s", section, item_id)
+        end
+        local delay = 0
+        printf("export weapon - %s, start", section)
+        -- Wait for item to come offline, then export
+        CreateTimeEvent("export_weapon_" .. section .. itr, "delay_func", delay, function()
+            local obj = level.object_by_id(item_id)
+            if not obj then
+                printf("export weapon - %s, object not found, retrying", section)
+                process_queue(idx, itr + 1)
+                return true
             end
+            -- Now offline, export parameters
+            local weapon = {}
+            weapon.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
+            weapon.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
+            weapon.cost = ini_sys:r_float_ex(section, "cost") or 0
+            weapon.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
+            local repair_type = ini_sys:r_string_ex(section, "repair_type") or ""
+            weapon.repair_label = get_weapon_repair_label(repair_type)
 
-            createInterval(section, id, function(section, id)
-                local obj = level.object_by_id(id)
-                if not obj then
-                    --x:SendOutput("export weapon - %s, still online", section)
-                    return false
-                end
+            weapon.single_handed = ini_sys:r_float_ex(section, "slot") or -1
+            weapon.single_handed = allowed_slots[weapon.single_handed] and "Y" or "N"
 
-                --x:SendOutput("export weapon - %s, back offline", section)
-                local weapon = {}
-                weapon.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
-                weapon.cost = ini_sys:r_float_ex(section, "cost") or 0
-                weapon.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
-                local repair_type = ini_sys:r_string_ex(section, "repair_type") or ""
-                weapon.repair_label = get_weapon_repair_label(repair_type)
-                weapon.single_handed = ini_sys:r_float_ex(section, "single_handed")
-                weapon.single_handed = weapon.single_handed == 1 and "Y" or "N"
+            weapon.accuracy = to_percent_floor(get_weapon_stat_value(obj, section, "accuracy"))
+            weapon.handling = to_percent_floor(get_weapon_stat_value(obj, section, "handling"))
+            weapon.damage = get_weapon_stat_value(obj, section, "damage")
+            weapon.fire_rate = get_weapon_stat_value(obj, section, "fire_rate")
+            weapon.ammo_mag_size = get_weapon_stat_value(obj, section, "ammo_mag_size")
+            weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
+            weapon.speed = math.floor(get_weapon_stat_value(obj, section, "speed"))
+            weapon.reliability = to_percent_floor(get_weapon_stat_value(obj, section, "reliability"))
+            weapon.recoil = math.floor(get_weapon_stat_value(obj, section, "recoil"))
+            local ammo_class = ini_sys:r_string_ex(section, "ammo_class") or ""
+            weapon.caliber = get_weapon_caliber(ammo_class)
 
-                weapon.accuracy = to_percent_floor(get_weapon_stat_value(obj, section, "accuracy"))
-                weapon.handling = to_percent_floor(get_weapon_stat_value(obj, section, "handling"))
-                weapon.damage = get_weapon_stat_value(obj, section, "damage")
-                weapon.fire_rate = get_weapon_stat_value(obj, section, "fire_rate")
-                weapon.ammo_mag_size = get_weapon_stat_value(obj, section, "ammo_mag_size")
-                weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
-                weapon.speed = math.floor(get_weapon_stat_value(obj, section, "speed"))
-                weapon.reliability = to_percent_floor(get_weapon_stat_value(obj, section, "reliability"))
-                weapon.recoil = math.floor(get_weapon_stat_value(obj, section, "recoil"))
-
-                local ammo_class = ini_sys:r_string_ex(section, "ammo_class") or ""
-                weapon.caliber = get_weapon_caliber(ammo_class)
-
-                local alt_calibers_cnt = 1
-                local alt_calibers = {}
-                local tree = utils_item.get_upgrades_tree(section)
-                for row, v in pairs(tree) do
-                    for col, w in pairs(v) do
-                        local sec = w.section
-                        local upgrade_sec = ini_sys:r_string_ex(sec, "section")
-                        if upgrade_sec then
-                            local ammo_class = ini_sys:r_string_ex(upgrade_sec, "ammo_class")
-                            if ammo_class then
-                                alt_calibers[alt_calibers_cnt] = get_weapon_caliber(ammo_class)
-                                alt_calibers_cnt = alt_calibers_cnt + 1
-                            end
+            local alt_calibers_cnt = 1
+            local alt_calibers = {}
+            local tree = utils_item.get_upgrades_tree(section)
+            for row, v in pairs(tree) do
+                for col, w in pairs(v) do
+                    local sec = w.section
+                    local upgrade_sec = ini_sys:r_string_ex(sec, "section")
+                    if upgrade_sec then
+                        local ammo_class = ini_sys:r_string_ex(upgrade_sec, "ammo_class")
+                        if ammo_class then
+                            alt_calibers[alt_calibers_cnt] = get_weapon_caliber(ammo_class)
+                            alt_calibers_cnt = alt_calibers_cnt + 1
                         end
                     end
                 end
+            end
 
-                local alt_calibers_str = ""
-                for i, v in ipairs(alt_calibers) do
-                    if alt_calibers_str == "" then
-                        alt_calibers_str = v
-                    else
-                        alt_calibers_str = alt_calibers_str .. "; " .. v
-                    end
+            local alt_calibers_str = ""
+            for i, v in ipairs(alt_calibers) do
+                if alt_calibers_str == "" then
+                    alt_calibers_str = v
+                else
+                    alt_calibers_str = alt_calibers_str .. "; " .. v
                 end
+            end
 
-                weapon.alt_caliber = alt_calibers_str
+            weapon.alt_caliber = alt_calibers_str
 
-                weapon.br1, weapon.br2, weapon.br3, weapon.br4, weapon.br5 = get_weapon_br_stats(ammo_class)  --br1 is br0
+            weapon.br1, weapon.br2, weapon.br3, weapon.br4, weapon.br5 = get_weapon_br_stats(ammo_class)  --br1 is br0
 
-                tbl[kind][section] = weapon
-                alife_release(se_obj)
-                x:SendOutput("export weapon - %s, done", section)
-                counter = counter - 1
-                return true
-            end, 0)
-        end
-    end)
+            tbl[kind][section] = weapon
+            alife_release(se_obj)
+            x:SendOutput("export weapon - %s, done", section)
+            leftToProcess = leftToProcess - 1
+            item_id = nil
+            process_queue(idx + 1, 0)
+            return true
+        end)
+        return true
+    end
+
+    -- Start processing the queue
+    process_queue(1, 0)
 
     local function createTotalInterval(callback, idx)
         CreateTimeEvent("export_weapons_total_" .. idx, "delay_func", 5, function()
@@ -1188,8 +1337,8 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
     end
 
     createTotalInterval(function()
-        if counter > 0 then
-            x:SendOutput("export weapons - %s weapons still to do", counter)
+        if leftToProcess > 0 then
+            x:SendOutput("export weapons - %s weapons still to do", leftToProcess)
             return false
         end
 
@@ -1205,11 +1354,11 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             end
 
             local header = translate_headers({
-                "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_damage", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt", "BR1", "BR2", "BR3", "BR4", "BR5" })
+                "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_damage", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt", "BR1", "BR2", "BR3", "BR4", "BR5" })
             write_file(debug_file, "%s", header)
             for section, w in pairs(weapons) do
-                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                        section, w.name, w.weight, w.cost, w.repair_label, w.single_handed, w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.caliber, w.alt_caliber, w.br1, w.br2, w.br3, w.br4, w.br5)
+                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                        section, w.name, w.description, w.weight, w.cost, w.repair_label, w.single_handed, w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.caliber, w.alt_caliber, w.br1, w.br2, w.br3, w.br4, w.br5)
                 type_cnt = type_cnt + 1
             end
             debug_file:close()
@@ -1326,9 +1475,10 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
 
                 --x:SendOutput("export weapon - %s, back offline", section)
                 local weapon = {}
-                weapon.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name")) or ""
+                weapon.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
+                weapon.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
                 weapon.cost = ini_sys:r_float_ex(section, "cost") or 0
-                weapon.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+                weapon.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
                 weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
                 local ammo = ini_sys:r_string_ex(section, "ammo_class")
                 weapon.br = (ammo and ini_sys:r_float_ex(ammo, "k_ap") or 0) * 10 * 100 * get_game_difficulty_multiplier()
@@ -1373,11 +1523,11 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
             end
 
             local header = translate_headers({
-                "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "st_data_export_light_attack_power", "st_data_export_heavy_attack_power", "BR", "ui_inv_wrange" })
+                "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "st_data_export_light_attack_power", "st_data_export_heavy_attack_power", "BR", "ui_inv_wrange" })
             write_file(debug_file, "%s", header)
             for section, w in pairs(weapons) do
-                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s",
-                        section, w.name, w.weight, w.cost, w.light_attack_power, w.heavy_attack_power, w.br, w.max_range)
+                write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                        section, w.name, w.description, w.weight, w.cost, w.light_attack_power, w.heavy_attack_power, w.br, w.max_range)
                 type_cnt = type_cnt + 1
             end
             debug_file:close()
@@ -1389,7 +1539,8 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
 end
 
 function is_multiplayer_item(section)
-    return not not string.find(section, "^mp_")
+    local is_mp = string.find(section, "^mp_")
+    return is_mp and true or false
 end
 
 function debug_cmd_list.cmd.export_explosives(_, txt, x)
@@ -1403,11 +1554,18 @@ function debug_cmd_list.cmd.export_explosives(_, txt, x)
 
     local blacklist = {
         [""] = true,
+        ["helicopter"] = true,
     }
 
     local tbl = {}
     local cnt = 0
     ini_sys:section_for_each(function(section)
+        for i, _ in pairs(blacklist) do
+            if i ~= "" and section:find(i) then
+                return
+            end
+        end
+
         if blacklist[section] or is_multiplayer_item(section) then
             return
         end
@@ -1424,17 +1582,18 @@ function debug_cmd_list.cmd.export_explosives(_, txt, x)
                 return
             end
             local explosive = {}
-            explosive.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name"))
+            explosive.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
             if not explosive.name or explosive.name == "" then
                 return
             end
+            explosive.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
 
             explosive.cost = ini_sys:r_float_ex(section, "cost") or 0
             if explosive.cost == 0 then
                 return
             end
             x:SendOutput("export explosive - %s", section)
-            explosive.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            explosive.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             local explosive_section = nil
             if rocket_class then
                 explosive_section = rocket_class
@@ -1462,11 +1621,11 @@ function debug_cmd_list.cmd.export_explosives(_, txt, x)
     local p_file = "export_explosives.csv"
     local debug_file = io.open(p_file, "w+")
     local header = translate_headers({
-        "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "st_data_export_blast_power", "st_detonation_radius", "st_data_export_fragments", "st_data_fragment_damage", "st_detonation_time" })
+        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "st_data_export_blast_power", "st_detonation_radius", "st_data_export_fragments", "st_data_fragment_damage", "st_detonation_time" })
     write_file(debug_file, "%s", header)
     for section, v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                section, v.name, v.weight, v.cost, v.blast_power, v.blast_radius, v.frags, v.frag_hit, v.delay
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                section, v.name, v.description, v.weight, v.cost, v.blast_power, v.blast_radius, v.frags, v.frag_hit, v.delay
         )
     end
     debug_file:close()
@@ -1531,34 +1690,17 @@ function sanitize_ammo_name(name)
         name = string.gsub(name, "%f[%a]" .. word .. "%f[%A]", "")
     end
     return '"' .. name .. '"'
+
 end
 
 function debug_cmd_list.cmd.export_ammo(_, txt, x)
     x:SendOutput("[START] export ammo")
 
-    local blacklist = {
-        ["_knife"] = true,
-        ["_binoc"] = true,
-        ["_base$"] = true,
-        ["_dyno$"] = true,
-        ["_batteries"] = true,
-        ["^mp_"] = true,
-        ["_bad$"] = true,
-        ["_verybad$"] = true,
-        ["_heli$"] = true,
-        ["_parts$"] = true,
-        ["^casing_"] = true,
-        ["^powder_"] = true,
-        ["^bullet_"] = true,
-    }
-
     local tbl = {}
     local cnt = 0
     ini_sys:section_for_each(function(section)
-        for black, _ in pairs(blacklist) do
-            if string.find(section, black) then
-                return
-            end
+        if is_blacklisted_ammo(section) then
+            return
         end
 
         local kind = ini_sys:r_string_ex(section, "kind") -- special class name for the sake of correct listing
@@ -1566,9 +1708,11 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
         if kind == "w_ammo" then
             x:SendOutput("export ammo - %s", section)
             local ammo = {}
-            ammo.name = sanitize_ammo_name(game.translate_string(ini_sys:r_string_ex(section, "inv_name")))
+            ammo.name = sanitize_ammo_name(translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section))
+            ammo.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
             ammo.cost = ini_sys:r_float_ex(section, "cost") or 0
-            ammo.weight = ini_sys:r_float_ex(section, "inv_weight") or 0
+            ammo.box_size = round(ini_sys:r_float_ex(section, "box_size"))
+            ammo.weight = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
             ammo.projectiles = ini_sys:r_float_ex(section, "buck_shot") or 1
             ammo.damage = ini_sys:r_float_ex(section, "k_hit") or 0
             ammo.br1, ammo.br2, ammo.br3, ammo.br4, ammo.br5 = get_ammo_br_stat(section) --br1 is br0
@@ -1586,11 +1730,11 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
     local p_file = "export_ammo.csv"
     local debug_file = io.open(p_file, "w+")
     local header = translate_headers({
-        "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "BR1", "BR2", "BR3", "BR4", "BR5", "st_data_export_projectiles", "ui_inv_damage", "ui_inv_accuracy", "ui_inv_wrange", "st_data_export_falloff", "ui_inv_bspeed", "st_data_export_impulse", "st_data_export_weapon_degradation" })
+        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_data_export_ammo_box_size", "st_upgr_cost", "BR1", "BR2", "BR3", "BR4", "BR5", "st_data_export_projectiles", "ui_inv_damage", "ui_inv_accuracy", "ui_inv_wrange", "st_data_export_falloff", "ui_inv_bspeed", "st_data_export_impulse", "st_data_export_weapon_degradation" })
     write_file(debug_file, "%s", header)
     for section, v in pairs(tbl) do
-        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                section, v.name, v.weight, v.cost, v.br1, v.br2, v.br3, v.br4, v.br5, v.projectiles, v.damage, v.accuracy, v.range, v.falloff, v.velocity, v.impulse, v.degr
+        write_file(debug_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                section, v.name, v.description, v.weight, v.box_size, v.cost, v.br1, v.br2, v.br3, v.br4, v.br5, v.projectiles, v.damage, v.accuracy, v.range, v.falloff, v.velocity, v.impulse, v.degr
         )
     end
     debug_file:close()
@@ -1628,7 +1772,7 @@ function debug_cmd_list.cmd.export_disassemble_table(_, txt, x)
         x:SendOutput("export disassemble item - %s", section)
 
         local disassemble = {}
-        local item_name = game.translate_string(ini_sys:r_string_ex(section, "inv_name"))
+        local item_name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
         table.insert(disassemble, item_name)
         local parts = {}
         for i, part in ipairs(parts_tbl) do
@@ -1650,7 +1794,7 @@ function debug_cmd_list.cmd.export_disassemble_table(_, txt, x)
         end
 
         for part_section, part in spairs(parts, sortByCount) do
-            local part_name = game.translate_string(ini_sys:r_string_ex(part_section, "inv_name"))
+            local part_name = translate_with_context(ini_sys:r_string_ex(part_section, "inv_name"), "item name for " .. part_section)
             local parts_count = part.count
             table.insert(disassemble, part_name)
             table.insert(disassemble, "x" .. parts_count)
@@ -1699,7 +1843,7 @@ function debug_cmd_list.cmd.export_disassemble_table(_, txt, x)
     local sortMaterialsByName = function(t, a, b)
         return t[a].name < t[b].name
     end
-    local fromStr = game.translate_string("st_data_export_from")
+    local fromStr = translate("st_data_export_from")
     header = translate_headers({
         "~", "pda_encyclopedia_name", "st_data_export_disassemble_amount", "st_data_export_disassemble_item", "st_data_export_disassemble_amount", "st_data_export_disassemble_item", "st_data_export_disassemble_amount", "st_data_export_disassemble_item", "st_data_export_disassemble_amount", "st_data_export_disassemble_item", "st_data_export_disassemble_amount", "st_data_export_disassemble_item", "st_data_export_disassemble_amount", "st_data_export_disassemble_item", "st_data_export_disassemble_amount", "st_data_export_disassemble_item", "st_data_export_disassemble_amount", "st_data_export_disassemble_item", "st_data_export_disassemble_amount", "st_data_export_disassemble_item", "st_data_export_disassemble_amount", "st_data_export_disassemble_item" })
     write_file(materials_file, "%s", header)
@@ -1753,7 +1897,7 @@ function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
     trade_manager.trade_init(fake_sakharov, "items\\trade\\trade_ecolog_sakharov.ltx")
     trade_manager.update(fake_sakharov)
 
-    local GUI = ui_inventory.UIInventory()
+    local GUI = ui_inventory.GUI
 
     GUI:TMode_InitProfile(fake_butcher)
     local butcher_profile = GUI.CC["actor_trade"].trade_profile
@@ -1825,9 +1969,9 @@ function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
             local part = {}
             part = {}
             part.type = type
-            part.name = game.translate_string(ini_sys:r_string_ex(section, "inv_name"))
-            part.sakharov_price = math.floor(utils_item.get_item_cost(obj, sakharov_profile) or 0)
-            part.butcher_price = math.floor(utils_item.get_item_cost(obj, butcher_profile) or 0)
+            part.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
+            part.sakharov_price = math.floor(utils_item.get_item_cost(obj, sakharov_profile))
+            part.butcher_price = math.floor(utils_item.get_item_cost(obj, butcher_profile))
 
             parts[section] = part
             alife_release(se_obj)
@@ -1879,4 +2023,334 @@ function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
         x:SendOutput("[END] mutant parts prices - %s total parts exported - see in S.T.A.L.K.E.R. Grim Raid\\Overwrite\\bin\\export_mutant_parts_prices.csv", cnt)
         return true
     end, 0)
+end
+
+function get_weapon_kind(kind)
+    if kind == "" then
+        return ""
+    end
+
+    return "st_data_export_weapon_kind_" .. (weapon_kinds[kind] or "unknown")
+end
+
+function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
+    x:SendOutput("[START] export weapon drop sources")
+
+    local skip_sections = {
+        ['skip_npcs'] = true,
+        ['scope_blacklist'] = true,
+        ['weapon_scope_blacklist'] = true,
+        ['loadouts_per_name'] = true,
+        ['default'] = true,
+    }
+
+    local skip_drop_sections = {
+        "ammo",
+    }
+
+    local factions = {}
+
+    local sources = {}
+    local drop_ini = ini_file("items\\settings\\npc_loadouts\\npc_loadouts.ltx")
+    drop_ini:section_for_each(function(section)
+        if skip_sections[section] then
+            return
+        end
+
+        if not drop_ini:line_exist(section, "primary") then
+            return
+        end
+
+        local n = drop_ini:line_count(section) or 0
+        local id, value, drop_section, m, tmp, gun_section, faction, rank, tmpfk
+        if (n > 0) then
+            for i = 0, n - 1 do
+                _, _, drop_section = drop_ini:r_line(section, i, "", "")
+
+                for _, s in pairs(skip_drop_sections) do
+                    if string.find(drop_section, s) then
+                        printf("Skipping drop section %s", drop_section)
+                        goto skip_section
+                    end
+                end
+
+                tmpfk = str_explode(section, '_')
+                if tmpfk[1] == "loadout" then
+                    faction = tmpfk[2] or ""
+                    rank = tmpfk[3] or "unknown"
+                else
+                    faction = tmpfk[1] or ""
+                    rank = tmpfk[2] or "any"
+                end
+                printf("section %s, faction %s, rank %s", section, faction, rank)
+
+                m = drop_ini:line_count(drop_section) or 0
+                for j = 0, m - 1 do
+                    _, id, value = drop_ini:r_line_ex(drop_section, j, "", "")
+                    tmp = str_explode(id, ":")
+                    if tmp and tmp[1] and ini_sys:section_exist(tmp[1]) then
+                        gun_section = tmp[1]
+                        if not sources[gun_section] then
+                            sources[gun_section] = {}
+                        end
+
+                        if not sources[gun_section][faction] then
+                            sources[gun_section][faction] = {}
+                        end
+
+                        factions[faction] = true
+
+                        if not sources[gun_section][faction]["ranks"] then
+                            sources[gun_section][faction]["ranks"] = {}
+                        end
+                        sources[gun_section][faction]["ranks"][rank] = true
+                    else
+                        printe("! ERROR: NPC Loadouts Export | something is wrong in [%s] - %s (%s) = %s and %s. Full is %s", section, tmp[1], id)
+                    end
+                end
+
+                :: skip_section ::
+            end
+        end
+    end)
+
+    local cnt = 0
+    local file_name = "export_weapon_drop_sources.csv"
+    local file = io.open(file_name, "w+")
+
+    local factions_sorted = {}
+    for faction, _ in pairs(factions) do
+        table.insert(factions_sorted, faction)
+    end
+    table.sort(factions_sorted)
+
+    local rank_positions = {
+        ["any"] = 0,
+        ["novice"] = 1,
+        ["trainee"] = 2,
+        ["experienced"] = 3,
+        ["professional"] = 4,
+        ["veteran"] = 5,
+        ["expert"] = 6,
+        ["master"] = 7,
+        ["legend"] = 8,
+        ["unknown"] = 9,
+    }
+    local sortByRank = function(t, a, b)
+        return (rank_positions[a] or 999) < (rank_positions[b] or 999)
+    end
+
+    local headers = { "~", "st_ui_dbg_spawn_type", "pda_encyclopedia_name" }
+    for i, community in ipairs(factions_sorted) do
+        table.insert(headers, community)
+    end
+    local header = translate_headers(headers)
+    write_file(file, "%s", header)
+    local value = ""
+    local gun_name, kind, ranks
+    for gun, gun_factions in pairs(sources) do
+        gun_name = translate_with_context(ini_sys:r_string_ex(gun, "inv_name"), "item name for " .. gun)
+        kind = translate_with_context(get_weapon_kind(ini_sys:r_string_ex(gun, "kind")), "weapon kind for " .. gun)
+        value = gun .. "," .. kind .. "," .. gun_name .. ","
+        for i, faction in pairs(factions_sorted) do
+            if gun_factions[faction] and gun_factions[faction]["ranks"] then
+                ranks = ""
+                for rank, _ in spairs(gun_factions[faction]["ranks"], sortByRank) do
+                    ranks = ranks .. translate("st_rank_" .. rank) .. ", "
+                end
+                ranks = string.sub(ranks, 1, -3)
+                value = value .. "\"" .. ranks .. "\""
+            end
+
+            value = value .. ","
+        end
+        value = string.sub(value, 1, -2)
+        write_file(file, "%s", value)
+        cnt = cnt + 1
+    end
+
+    file:close()
+
+    x:SendOutput("[END] weapon drop sources - %s total guns exported - see in Gamma\\Overwrite\\bin\\export_weapon_drop_sources.csv", cnt)
+end
+
+function debug_cmd_list.cmd.export_item_list(_, txt, x)
+    x:SendOutput("[START] export items list")
+
+    -- Load buy_sell ini file for loot check
+    local buy_sell_ini = ini_file("items\\trade\\gulag_job_trade_buy_sell.ltx")
+
+    local tbl = {}
+    local cnt = 0
+    ini_sys:section_for_each(function(section)
+        if is_multiplayer_item(section) then
+            return
+        end
+
+        -- Get basic item properties
+        local kind = ini_sys:r_string_ex(section, "kind") or ""
+
+        -- Skip if no kind (not an item) or empty section
+        if kind == "" then
+            return
+        end
+
+        -- Create item data structure with only the requested fields
+        local item = {}
+        item.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
+        item.cost = ini_sys:r_float_ex(section, "cost") or 0
+        item.kind = kind
+
+        -- Check if can be looted by seeing if it exists in any section of buy_sell.ltx
+        local can_be_looted = "N"
+        buy_sell_ini:section_for_each(function(bs_section)
+            if buy_sell_ini:line_exist(bs_section, section) then
+                can_be_looted = "Y"
+                return true -- break from the loop
+            end
+            return false -- continue
+        end)
+        item.can_be_looted = can_be_looted
+
+        tbl[section] = item
+        cnt = cnt + 1
+    end)
+
+    local p_file = "export_items_list.csv"
+    local debug_file = io.open(p_file, "w+")
+
+    local header = translate_headers({
+        "~", "pda_encyclopedia_name", "st_ui_dbg_spawn_type", "st_upgr_cost", "st_data_export_can_be_looted_by_npc"
+    })
+
+    write_file(debug_file, "%s", header)
+    for section, v in pairs(tbl) do
+        write_file(debug_file, "%s,%s,%s,%s,%s",
+                section, v.name, v.kind, v.cost, v.can_be_looted
+        )
+    end
+    debug_file:close()
+
+    x:SendOutput("[END] export items - %s total items exported - see in Gamma\\Overwrite\\bin\\export_items_list.csv", cnt)
+end
+
+function debug_cmd_list.cmd.item_chance_in_stash(_, txt, x)
+    x:SendOutput("[START] export item chance in stash")
+
+    local ini_tm = treasure_manager.ini_treasure
+
+    -- Parse kind/tier effects for common and rare stash types
+    local kind_effects = { common = {}, rare = {} }
+    local stash_sections = { common = "kind_tier_effect_common", rare = "kind_tier_effect_rare" }
+    local stash_type_labels = {
+        common = translate("st_data_export_stash_type_common"),
+        rare = translate("st_data_export_stash_type_rare"),
+    }
+    local num_tiers = 5
+
+    for stash_type, ltx_section in pairs(stash_sections) do
+        local n = ini_tm:line_count(ltx_section)
+        for i = 0, n - 1 do
+            local _, kind, value = ini_tm:r_line(ltx_section, i, "", "")
+            if kind and value and kind ~= "" and value ~= "" then
+                local str = str_explode(value, ",")
+                if #str >= (2 + num_tiers * 2) then
+                    local entry = {
+                        chance = tonumber(str[1]),
+                        tiers = {}
+                    }
+                    for tier = 1, num_tiers do
+                        entry.tiers[tier] = { chance_multi = tonumber(str[(tier * 2) + 1]) }
+                    end
+                    kind_effects[stash_type][kind] = entry
+                end
+            end
+        end
+    end
+
+    -- Parse possible_items: build section -> {kind, tier, allowed_ecos, name}
+    local all_ecos = { 1, 2, 3 }
+    local items = {}
+    local n = ini_tm:line_count("possible_items")
+    for i = 0, n - 1 do
+        local _, section, value = ini_tm:r_line("possible_items", i, "", "")
+        if section and section ~= "" then
+            local blacklist_set = {}
+            if value and value ~= "" then
+                local bl = str_explode(value, ",")
+                for _, v in ipairs(bl) do
+                    local e = tonumber(v)
+                    if e then
+                        blacklist_set[e] = true
+                    end
+                end
+            end
+            local allowed = {}
+            for _, e in ipairs(all_ecos) do
+                if not blacklist_set[e] then
+                    allowed[#allowed + 1] = e
+                end
+            end
+            local allowed_ecos = table.concat(allowed, "/")
+
+            local kind = ini_sys:r_string_ex(section, "kind")
+            if not kind then
+                goto continue
+            end
+
+            local sec_p = section
+            local uses, max_uses = 1, 1
+            local sec_base, sec_uses = utils_item.get_defined_uses(section)
+            if sec_base and sec_uses and ini_sys:section_exist(sec_base) then
+                sec_p = sec_base
+                uses = sec_uses
+                max_uses = ini_sys:r_float_ex(sec_base, "max_uses") or sec_uses
+            end
+
+            local tier = ini_sys:r_float_ex(sec_p, "tier")
+            if not tier then
+                goto continue
+            end
+
+            local lost_uses = max_uses - uses
+            tier = math.ceil(tier - (lost_uses / 2))
+            tier = clamp(tier, 1, 5)
+
+            local inv_name = translate_with_context(ini_sys:r_string_ex(sec_p, "inv_name"), "item name for " .. sec_p)
+            items[section] = { kind = kind, tier = tier, allowed_ecos = allowed_ecos, name = inv_name }
+
+            :: continue ::
+        end
+    end
+
+    -- Open output file and write header
+    local p_file = "item_chance_in_stash.csv"
+    local out = io.open(p_file, "w+")
+
+    local header = translate_headers({
+        "~",
+        "pda_encyclopedia_name",
+        "st_data_export_stash_type",
+        "st_data_export_stash_chance",
+        "st_data_export_stash_ecos",
+    })
+    out:write(header .. "\n")
+
+    -- Write two rows per item (common + rare), each with stash type and spawn chance
+    local row_count = 0
+    for section, item in spairs(items) do
+        local kfx_c = kind_effects.common[item.kind]
+        local kfx_r = kind_effects.rare[item.kind]
+
+        local common_pct = kfx_c and kfx_c.tiers[item.tier] and kfx_c.chance * kfx_c.tiers[item.tier].chance_multi or 0
+        local rare_pct = kfx_r and kfx_r.tiers[item.tier] and kfx_r.chance * kfx_r.tiers[item.tier].chance_multi or 0
+
+        local base = section .. ", " .. item.name:sanitize() .. ", "
+        out:write(base .. stash_type_labels.common .. ", " .. to_percent_stash(common_pct) .. ", " .. item.allowed_ecos .. "\n")
+        out:write(base .. stash_type_labels.rare .. ", " .. to_percent_stash(rare_pct) .. ", " .. item.allowed_ecos .. "\n")
+        row_count = row_count + 2
+    end
+
+    out:close()
+    x:SendOutput("[END] export item chance in stash - %s items written - see item_chance_in_stash.csv", row_count)
 end

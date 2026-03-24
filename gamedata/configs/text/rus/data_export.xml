@@ -31,7 +31,7 @@
         <text>Полное восстановление выносливости</text>
     </string>
     <string id="st_data_export_limb_duration">
-        <text>Длительность конечности</text>
+        <text>Длительность эффекта на конечность</text>
     </string>
     <string id="st_data_export_first_aid_head">
         <text>Временно голову</text>
@@ -100,7 +100,7 @@
         <text>Фрагменты</text>
     </string>
     <string id="st_data_fragment_damage">
-        <text>Урон от фрагментов</text>
+        <text>Осколочный урон</text>
     </string>
     <string id="st_data_export_projectiles">
         <text>Снаряды</text>
@@ -109,7 +109,7 @@
         <text>Импульс</text>
     </string>
     <string id="st_data_export_weapon_degradation">
-        <text>Доп. износ оружия</text>
+        <text>Износ оружия</text>
     </string>
     <string id="st_data_export_disassemble_result">
         <text>Результат</text>
@@ -128,5 +128,89 @@
     </string>
     <string id="st_data_export_unknown">
         <text>Неизвестно</text>
+    </string>
+    <string id="st_data_export_weapon_kind_sniper">
+        <text>Снайперская винтовка</text>
+    </string>
+    <string id="st_data_export_weapon_kind_shotgun">
+        <text>Дробовик</text>
+    </string>
+    <string id="st_data_export_weapon_kind_pistol">
+        <text>Пистолет</text>
+    </string>
+    <string id="st_data_export_weapon_kind_shotgun">
+        <text>Дробовик</text>
+    </string>
+    <string id="st_data_export_weapon_kind_smg">
+        <text>Пистолет-пулемёт</text>
+    </string>
+    <string id="st_data_export_weapon_kind_rifle">
+        <text>Винтовка</text>
+    </string>
+    <string id="st_rank_sniper">
+        <text>отряд со снайперской винтовкой</text>
+    </string>
+    <string id="st_rank_rg6">
+        <text>отряд RG6</text>
+    </string>
+    <string id="st_rank_gauss">
+        <text>отряд с гаусс-пушкой</text>
+    </string>
+    <string id="st_rank_blackops">
+        <text>отряд Black-Ops</text>
+    </string>
+    <string id="st_rank_ssu">
+        <text>ССУ</text>
+    </string>
+    <string id="st_data_export_weapon_kind_explosive">
+        <text>Взрывное</text>
+    </string>
+    <string id="st_rank_any">
+        <text>Любой</text>
+    </string>
+    <string id="st_data_export_weapon_kind_unknown">
+        <text>Неизвестно</text>
+    </string>
+    <string id="st_data_export_can_be_looted_by_npc">
+        <text>Можно подобрать?</text>
+    </string>
+    <string id="st_data_export_falloff">
+        <text>Падение урона</text>
+    </string>
+    <string id="st_data_export_stash_map">
+        <text>Локация</text>
+    </string>
+    <string id="st_data_export_stash_type">
+        <text>Тип схрона</text>
+    </string>
+    <string id="st_data_export_stash_item">
+        <text>Предмет</text>
+    </string>
+    <string id="st_data_export_stash_chance">
+        <text>Шанс %</text>
+    </string>
+    <string id="st_data_export_stash_ecos">
+        <text>Экономика</text>
+    </string>
+    <string id="st_data_export_stash_type_common">
+        <text>Обычный</text>
+    </string>
+    <string id="st_data_export_stash_type_rare">
+        <text>Редкий</text>
+    </string>
+    <string id="st_data_export_ammo_box_size">
+        <text>В пачке</text>
+    </string>
+    <string id="st_data_export_is_backpack">
+        <text>Рюкзак</text>
+    </string>
+    <string id="st_data_export_sleepiness">
+        <text>Сонливости</text>
+    </string>
+    <string id="st_data_export_thirst">
+        <text>Жажда</text>
+    </string>
+    <string id="st_data_export_description">
+        <text>Описание</text>
     </string>
 </string_table>
