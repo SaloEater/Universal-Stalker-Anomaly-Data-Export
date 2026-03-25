@@ -27,3 +27,44 @@ If you are using MO2, they would be in the `MO2/overwrite/bin` folder.
 - Item names and descriptions are also stored as translation keys (e.g. `st_wpn_ak74`) and resolved via the translation files
 - Translation CSVs (`en_us.csv`, `ru_ru.csv`) map every key to its translated value in that language
 - Some exports produce multiple files split by type (e.g. `export_weapons_pistol.csv`, `export_outfits_outfit_heavy.csv`)
+
+## Weapon icon extraction script
+
+Use `gamedata/scripts/extract_weapon_icons.py` to crop weapon icon images from `ui_icon_equipment.dds` using `inv_grid_*` values from all `w_*.ltx` files.
+
+By default it writes PNG files to `img-data/weapons` in this repository.
+
+Output filenames are taken from the weapon config in this order:
+- `inv_name`
+- `inv_name_short`
+- the `.ltx` filename as a final fallback
+
+Install Python dependency:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+Run the script:
+
+```powershell
+python .\gamedata\scripts\extract_weapon_icons.py
+```
+
+The script then opens an interactive console flow and asks you to enter:
+- the full path to the folder containing `w_*.ltx` files
+- the full path to `ui_icon_equipment.dds`
+
+It validates empty input, missing paths, wrong file/folder types, and non-`.dds` atlas files before continuing.
+
+Example values you can paste when prompted:
+- `C:\Anomaly\tools\_unpacked\configs\items\weapons`
+- `C:\Anomaly\tools\_unpacked\configs\ui\ui_icon_equipment.dds`
+
+Optional arguments for output customization:
+
+```powershell
+python .\gamedata\scripts\extract_weapon_icons.py `
+  --output-dir ".\img-data\weapons" `
+  --cell-size 50
+```
