@@ -11,7 +11,10 @@ local cmd_list = {
     { name = "Export explosives", cmd = "export_explosives", hide_ui = 0 },
     { name = "Export melee", cmd = "export_melee", hide_ui = 0 },
     { name = "Export ammo", cmd = "export_ammo", hide_ui = 0 },
-    { name = "Export item chance in stash", cmd = "item_chance_in_stash", hide_ui = 0 },
+    { name = "Export stash drop rates", cmd = "export_stash_drop_rates", hide_ui = 0 },
+    { name = "Export toolkit map rates", cmd = "export_toolkit_map_rates", hide_ui = 0 },
+    { name = "Export upgrades", cmd = "export_upgrades", hide_ui = 0 },
+    { name = "Export item drop locations", cmd = "item_drop_locations", hide_ui = 0 },
     { name = "Export disassemble table", cmd = "export_disassemble_table", hide_ui = 0 },
     { name = "Export mutant parts prices", cmd = "export_mutant_parts_prices", hide_ui = 0 },
     { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
@@ -59,6 +62,37 @@ function get_stat_value(obj, section, stat_type, type)
     local m = gr["magnitude"]
     local result = v * m
     return result
+end
+
+function get_real_stat_value_display(upgrade_section, value, stat_type, type)
+    if stat_type == "weapon" then
+        if not utils_ui.stats_table[stat_type] or not utils_ui.stats_table[stat_type][type] then
+            return value
+        end
+        local m = utils_ui.stats_table[stat_type][type]["magnitude"]
+        return value * m
+    elseif stat_type == "outfit" then
+        if type:find("_protection") then
+            if type == "fire_wound_protection" then
+                local bones_add = ini_sys:r_string_ex(upgrade_section, "bones_koeff_protection_add", "", "") or ""
+                if bones_add == "" then return 0 end
+                local bone_values = parse_list(ini_sys, bones_add, "bip01_spine")
+                local bone_value = tonumber(bone_values[2] or 0) or 0
+
+                if bone_value == 0 then
+                    bone_values = parse_list(ini_sys, bones_add, "bip01_head")
+                    bone_value = tonumber(bone_values[2] or 0) or 0
+                end
+
+                return floor_with_precision(bone_value)
+            end
+
+            local m = utils_ui.stats_table[stat_type][type]["magnitude"]
+            return floor_with_precision(value * m)
+        end
+    end
+
+    return value
 end
 
 function get_outfit_stat_value(obj, section, type)
@@ -1023,19 +1057,6 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
     x:SendOutput("[END] export belt attachments - %s total attachments exported - see in Gamma\\Overwrite\\bin\\export_belt_attachments.csv", cnt)
 end
 
-local ammo_special_types = {
-    ["gauss"] = "Gauss Batteries",
-    ["pkm_100"] = "7.62x54  PP",
-    ["magnum_300"] = ".338 Lapua Magnum",
-    ["m209"] = "M203",
-    ["357_hp"] = ".357 HP",
-    ["25"] = "VOG-25", --for some reason vog-25 doesn't work
-    ["30"] = "VOG-30", --for some reason vog-30 doesn't work
-    ["7b"] = "OG-7B", --for some reason og-7b doesn't work
-    ["23_eco"] = "Ecolog-23",
-    ["338"] = ".338 Federal",
-}
-
 local blacklist_ammo = {
     ["_knife"] = true,
     ["_binoc"] = true,
@@ -1078,12 +1099,12 @@ function get_weapon_caliber(ammo_class)
             ammo_list = ammo_name
         else
             local space = headers_mode == 0 and " " or ""
-            ammo_list = ammo_list .. ";" .. space .. ammo_name
+            ammo_list = ammo_list .. "," .. space .. ammo_name
         end
         :: continue ::
     end
 
-    return ammo_list
+    return sanitize_value(ammo_list)
 end
 
 function armor_to_class(val)
@@ -1648,6 +1669,14 @@ function sanitize_ammo_name(name)
     end
     return '"' .. name .. '"'
 
+end
+
+function sanitize_value(name)
+    if not name or name == "" then
+        return ""
+    end
+
+    return '"' .. name .. '"'
 end
 
 function debug_cmd_list.cmd.export_ammo(_, txt, x)
@@ -2309,4 +2338,169 @@ function debug_cmd_list.cmd.item_chance_in_stash(_, txt, x)
 
     out:close()
     x:SendOutput("[END] export item chance in stash - %s items written - see item_chance_in_stash.csv", row_count)
+end
+
+function debug_cmd_list.cmd.export_upgrades(_, txt, x)
+    x:SendOutput("[START] export upgrades")
+
+    -- ── Pass 1: collect all items with upgrades ──────────────────────────
+    local all_items = {}  -- section -> { name, upgrades[] }
+    local all_stats_sections = {}  -- stat_type -> { stats_section -> true }
+
+    local blacklist = {
+    }
+
+    ini_sys:section_for_each(function(section)
+        if blacklist[section] or is_multiplayer_item(section) then return end
+
+        local upg_str = ini_sys:r_string_ex(section, "upgrades")
+        if not upg_str or upg_str == "" then return end
+
+        local name = ini_sys:r_string_ex(section, "inv_name")
+        if name == nil then
+            printf("Skipping [%s] because it has no inv_name", section)
+            return
+        end
+
+        name = translate_with_context(name, "item name for " .. section)
+        if not name or name == "" then return end
+
+        local tree = utils_item.get_upgrades_tree(section)
+        if not next(tree) then return end
+
+        local type = (IsItem("outfit", section) or IsItem("helmet", section)) and "outfit"
+                or (ini_sys:r_string_ex(section, "ammo_class") and not IsItem("fake_ammo_wpn", section)) and "weapon"
+                or "any"
+
+        -- Flatten tree into sorted list
+        local upgrades = {}
+        for row, v in pairs(tree) do
+            for col, w in pairs(v) do
+                if w.stats then
+                    upgrades[#upgrades + 1] = {
+                        row    = row,
+                        column = math.ceil(col / 2),         -- tier column 1-3
+                        cell   = (col % 2 == 0) and 2 or 1, -- position in column: 1 or 2
+                        sec    = w.section,
+                        stats  = w.stats,
+                        prop   = w.prop,
+                    }
+                    if type then
+                        all_stats_sections[type] = all_stats_sections[type] or {}
+                        all_stats_sections[type][w.stats] = true
+                    end
+                end
+            end
+        end
+        table.sort(upgrades, function(a, b)
+            if a.row ~= b.row then return a.row < b.row end
+            if a.column ~= b.column then return a.column < b.column end
+            return a.cell < b.cell
+        end)
+
+        all_items[section] = { name = name, upgrades = upgrades }
+    end)
+
+    -- ── Pass 2: determine max upgrade count for File 1 column width ──────
+    local max_upg = 0
+    for _, item in pairs(all_items) do
+        if #item.upgrades > max_upg then max_upg = #item.upgrades end
+    end
+
+    -- ── File 1: items CSV ────────────────────────────────────────────────
+    local f1 = io.open("export_upgrades_items.csv", "w+")
+
+    local h1 = "~,Name"
+    for i = 1, max_upg do
+        h1 = h1 .. string.format(",Row_%d,Column_%d,Cell_%d,Property_%d,Section_%d", i, i, i, i, i)
+    end
+    f1:write(h1 .. "\n")
+
+    local sorted_sections = {}
+    for sec in pairs(all_items) do sorted_sections[#sorted_sections + 1] = sec end
+    table.sort(sorted_sections)
+
+    local properties = ini_file("items\\weapons\\upgrades_properties.ltx")
+
+    local item_count = 0
+    for _, sec in ipairs(sorted_sections) do
+        local item = all_items[sec]
+        local row = sec .. "," .. item.name
+        for i = 1, max_upg do
+            local u = item.upgrades[i]
+            if u then
+                local property_name = properties:r_string_ex(u.prop[1], "name") or u.prop[1]
+                row = row .. "," .. u.row .. "," .. u.column .. "," .. u.cell .. "," .. translate_with_context(property_name, "upgrade property for " .. u.sec) .. "," .. u.stats
+            else
+                row = row .. ",,,,"
+            end
+        end
+        f1:write(row .. "\n")
+        item_count = item_count + 1
+    end
+    f1:close()
+    x:SendOutput("export upgrades - %s items written", item_count)
+
+    -- ── Pass 3: determine max property count for File 2 column width ─────
+    local max_props = 0
+    for _, sections in pairs(all_stats_sections) do
+        for stats_sec in pairs(sections) do
+            local n = ini_sys:line_count(stats_sec)
+            if n and n > max_props then max_props = n end
+        end
+    end
+
+    -- ── File 2: upgrade sections CSV ─────────────────────────────────────
+    local f2 = io.open("export_upgrade_sections.csv", "w+")
+
+    local h2 = "Section,Type"
+    for i = 1, max_props do
+        h2 = h2 .. string.format(",Key_%d,Value_%d", i, i)
+    end
+    f2:write(h2 .. "\n")
+
+    -- Collect (stat_type, stats_sec) pairs and sort by type then section
+    local sorted_stats = {}
+    for stat_type, sections in pairs(all_stats_sections) do
+        for stats_sec in pairs(sections) do
+            sorted_stats[#sorted_stats + 1] = { stat_type = stat_type, stats_sec = stats_sec }
+        end
+    end
+    table.sort(sorted_stats, function(a, b)
+        if a.stat_type ~= b.stat_type then return a.stat_type < b.stat_type end
+        return a.stats_sec < b.stats_sec
+    end)
+
+    local sec_count = 0
+    for _, entry in ipairs(sorted_stats) do
+        local stat_type = entry.stat_type
+        local stats_sec = entry.stats_sec
+        local row = stats_sec .. "," .. stat_type
+        local n = ini_sys:line_count(stats_sec) or 0
+        local props_written = 0
+        for i = 0, n - 1 do
+            local _, key, val = ini_sys:r_line(stats_sec, i, "", "")
+            if key and key ~= "" then
+                if key == "ammo_class" then
+                    val = get_weapon_caliber(val)
+                end
+
+                local num_val = tonumber(val)
+                local display_val = val or ""
+                if num_val and utils_ui.stats_table[stat_type] then
+                    display_val = tostring(get_real_stat_value_display(stats_sec, num_val, stat_type, key))
+                end
+                row = row .. "," .. key .. "," .. sanitize_value(display_val)
+                props_written = props_written + 1
+            end
+        end
+        for _ = props_written + 1, max_props do
+            row = row .. ",,"
+        end
+        f2:write(row .. "\n")
+        sec_count = sec_count + 1
+    end
+    f2:close()
+
+    x:SendOutput("[END] export upgrades - %s items, %s upgrade sections - see export_upgrades_items.csv, export_upgrade_sections.csv", item_count, sec_count)
 end
