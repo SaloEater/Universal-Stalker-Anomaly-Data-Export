@@ -1099,12 +1099,12 @@ function get_weapon_caliber(ammo_class)
             ammo_list = ammo_name
         else
             local space = headers_mode == 0 and " " or ""
-            ammo_list = ammo_list .. "," .. space .. ammo_name
+            ammo_list = ammo_list .. ";" .. space .. ammo_name
         end
         :: continue ::
     end
 
-    return sanitize_value(ammo_list)
+    return ammo_list
 end
 
 function armor_to_class(val)
@@ -1149,6 +1149,23 @@ local weapon_kinds = {
     ["w_explosive"] = "explosive"
 }
 
+function is_weapon_modification(section)
+    local class = ini_sys:r_string_ex(section, "class")
+    local kind = ini_sys:r_string_ex(section, "kind")
+    if kind == "" then kind = class end
+    if kind and weapon_kinds[kind] then
+        local weapon_class = ini_sys:r_string_ex(section, "weapon_class")
+        if kind == "w_explosive" and (not weapon_class or weapon_class == "") then
+            return true
+        end
+        local parent_section = ini_sys:r_string_ex(section, "parent_section")
+        if parent_section and section ~= parent_section then
+            return true
+        end
+    end
+    return false
+end
+
 function debug_cmd_list.cmd.export_weapons(_, txt, x)
     x:SendOutput("[START] export weapons")
 
@@ -1168,22 +1185,11 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
 
         local class = ini_sys:r_string_ex(section, "class")
         local kind = ini_sys:r_string_ex(section, "kind")
-        if kind == "" then
-            kind = class
-        end
-        if kind and weapon_kinds[kind] then
-            local weapon_class = ini_sys:r_string_ex(section, "weapon_class")
-            if kind == "w_explosive" and (not weapon_class or weapon_class == "") then
-                goto continue
-            end
-            local parent_section = ini_sys:r_string_ex(section, "parent_section")
-            if parent_section and section ~= parent_section then
-                goto continue
-            end
+        if kind == "" then kind = class end
+        if kind and weapon_kinds[kind] and not is_weapon_modification(section) then
             table.insert(sections_queue, section)
             leftToProcess = leftToProcess + 1
         end
-        :: continue ::
     end)
 
     local tbl = {}
@@ -2352,6 +2358,13 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
 
     ini_sys:section_for_each(function(section)
         if blacklist[section] or is_multiplayer_item(section) then return end
+
+        local class = ini_sys:r_string_ex(section, "class")
+        local kind = ini_sys:r_string_ex(section, "kind")
+        if kind == "" then kind = class end
+        if kind and weapon_kinds[kind] and is_weapon_modification(section) then
+            return
+        end
 
         local upg_str = ini_sys:r_string_ex(section, "upgrades")
         if not upg_str or upg_str == "" then return end
