@@ -30,4 +30,7 @@ If you are using MO2, they would be in the `MO2/overwrite/bin` folder.
 
 ## Weapon and outfit icon extraction script
 
-To generate icons, add a new executable to your MO2 that points at `scripts\extract-weapon-and-outfit-icons.bat`
+To generate icons:
+1) Update `data/export_item_icons.csv`
+2) Add a new executable to your MO2 that points at `scripts\extract-weapon-and-outfit-icons.bat`
+3) Run it
