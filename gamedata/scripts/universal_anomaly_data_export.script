@@ -17,6 +17,7 @@ local cmd_list = {
     { name = "Export item icons", cmd = "export_item_icons", hide_ui = 0 },
     { name = "Export disassemble table", cmd = "export_disassemble_table", hide_ui = 0 },
     { name = "Export mutant parts prices", cmd = "export_mutant_parts_prices", hide_ui = 0 },
+    { name = "Export mutant profiles", cmd = "export_mutant_profiles", hide_ui = 0 },
     { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
     { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
     { name = "Export translations", cmd = "export_translations", hide_ui = 0 },
@@ -2005,6 +2006,81 @@ function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
         x:SendOutput("[END] mutant parts prices - %s total parts exported - see in Gamma\\Overwrite\\bin\\export_mutant_parts_prices.csv", cnt)
         return true
     end, 0)
+end
+
+function debug_cmd_list.cmd.export_mutant_profiles(_, txt, x)
+    x:SendOutput("[START] export mutant profiles")
+
+    local function read_bone_mult(damage_sect, bone)
+        local raw = ini_sys:r_string_ex(damage_sect, bone)
+        if not raw then return nil end
+        local vals = str_explode(raw, ",")
+        return tonumber(vals[1])
+    end
+
+    local tbl = {}
+    local cnt = 0
+
+    ini_sys:section_for_each(function(section)
+        local immunities_sect = ini_sys:r_string_ex(section, "immunities_sect")
+        if not immunities_sect then return end
+        local damage_sect = ini_sys:r_string_ex(section, "damage")
+        if not damage_sect then return end
+
+        -- skin_armor and hit_fraction: prefer protections_sect, fall back to section directly
+        local protections_sect = ini_sys:r_string_ex(section, "protections_sect")
+        local skin_armor    = (protections_sect and ini_sys:r_float_ex(protections_sect, "skin_armor"))
+                           or ini_sys:r_float_ex(section, "skin_armor") or 0
+        local hit_fraction  = (protections_sect and ini_sys:r_float_ex(protections_sect, "hit_fraction_monster"))
+                           or ini_sys:r_float_ex(section, "hit_fraction_monster") or 0
+
+        -- fire_wound_immunity from immunities section
+        local fire_wound_immunity = ini_sys:r_float_ex(immunities_sect, "fire_wound_immunity") or 0
+
+        -- hitzone multipliers: try specific bones, fall back to default
+        local default_mult = read_bone_mult(damage_sect, "default") or 1
+        local head  = read_bone_mult(damage_sect, "bip01_head") or default_mult
+        local torso = read_bone_mult(damage_sect, "bip01_spine1")
+                   or read_bone_mult(damage_sect, "bip01_spine") or default_mult
+        local limbs = read_bone_mult(damage_sect, "bip01_l_thigh")
+                   or read_bone_mult(damage_sect, "bip01_r_thigh")
+                   or read_bone_mult(damage_sect, "bip01_l_upperarm") or default_mult
+        local rear  = read_bone_mult(damage_sect, "bip01_pelvis") or default_mult
+
+        tbl[section] = {
+            skin_armor            = skin_armor,
+            hit_fraction          = hit_fraction,
+            fire_wound_immunity   = fire_wound_immunity,
+            head                  = head,
+            torso                 = torso,
+            limbs                 = limbs,
+            rear                  = rear,
+        }
+        cnt = cnt + 1
+    end)
+
+    local p_file = "export_mutant_profiles.csv"
+    local f = io.open(p_file, "w+")
+    local header = translate_headers({
+        "~",
+        "st_data_export_skin_armor", "st_data_export_hit_fraction", "st_data_export_fire_wound_immunity",
+        "st_data_export_hitzone_head", "st_data_export_hitzone_torso",
+        "st_data_export_hitzone_limbs", "st_data_export_hitzone_rear",
+    })
+    write_csv(f, header)
+
+    local sorted = {}
+    for sec in pairs(tbl) do sorted[#sorted + 1] = sec end
+    table.sort(sorted)
+
+    for _, sec in ipairs(sorted) do
+        local v = tbl[sec]
+        write_csv(f, sec, v.skin_armor, v.hit_fraction, v.fire_wound_immunity,
+                  v.head, v.torso, v.limbs, v.rear)
+    end
+    f:close()
+
+    x:SendOutput("[END] export mutant profiles - %s profiles written - see %s", cnt, p_file)
 end
 
 function get_weapon_kind(kind)

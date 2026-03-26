@@ -223,5 +223,27 @@
         <text>К. БП</text>
     </string>
     <string id="st_data_export_k_air_resistance">
-    <text>К. Сопр. воздуха</text>
+        <text>К. Сопр. воздуха</text>
+    </string>
+    <string id="st_data_export_skin_armor">
+        <text>Броня кожи</text>
+    </string>
+    <string id="st_data_export_hit_fraction">
+        <text>Фракция удара</text>
+    </string>
+    <string id="st_data_export_fire_wound_immunity">
+        <text>Иммунитет к огнестрелу</text>
+    </string>
+    <string id="st_data_export_hitzone_head">
+        <text>Множ. голова</text>
+    </string>
+    <string id="st_data_export_hitzone_torso">
+        <text>Множ. торс</text>
+    </string>
+    <string id="st_data_export_hitzone_limbs">
+        <text>Множ. конечности</text>
+    </string>
+    <string id="st_data_export_hitzone_rear">
+        <text>Множ. зад</text>
+    </string>
 </string_table>
