@@ -210,4 +210,13 @@
     <string id="st_data_export_hit_power">
         <text>Hit Power</text>
     </string>
+    <string id="st_data_export_k_hit">
+        <text>K Hit</text>
+    </string>
+    <string id="st_data_export_k_ap">
+        <text>K AP</text>
+    </string>
+    <string id="st_data_export_k_air_resistance">
+        <text>K Air Resistance</text>
+    </string>
 </string_table>

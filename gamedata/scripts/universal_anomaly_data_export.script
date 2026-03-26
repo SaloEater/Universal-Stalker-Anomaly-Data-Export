@@ -1702,6 +1702,9 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
             ammo.accuracy = decimal_to_percent(ini_sys:r_float_ex(section, "k_disp"))
             ammo.degr = decimal_to_percent(ini_sys:r_float_ex(section, "impair"))
             ammo.falloff = decimal_to_percent(ini_sys:r_float_ex(section, "k_air_resistance"))
+            ammo.k_hit = ini_sys:r_float_ex(section, "k_hit") or 0
+            ammo.k_ap = ini_sys:r_float_ex(section, "k_ap") or 0
+            ammo.k_air_resistance = ini_sys:r_float_ex(section, "k_air_resistance") or 0
             tbl[section] = ammo
             cnt = cnt + 1
         end
@@ -1710,11 +1713,11 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
     local p_file = "export_ammo.csv"
     local debug_file = io.open(p_file, "w+")
     local header = translate_headers({
-        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_data_export_ammo_box_size", "st_upgr_cost", "st_data_export_projectiles", "ui_inv_damage", "ui_inv_accuracy", "ui_inv_wrange", "st_data_export_falloff", "ui_inv_bspeed", "st_data_export_impulse", "st_data_export_weapon_degradation" })
+        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_data_export_ammo_box_size", "st_upgr_cost", "st_data_export_projectiles", "ui_inv_damage", "ui_inv_accuracy", "ui_inv_wrange", "st_data_export_falloff", "ui_inv_bspeed", "st_data_export_impulse", "st_data_export_weapon_degradation", "st_data_export_k_hit", "st_data_export_k_ap", "st_data_export_k_air_resistance" })
     write_csv(debug_file, header)
     for section, v in pairs(tbl) do
         write_csv(debug_file,
-                section, v.name, v.description, v.weight, v.box_size, v.cost, v.projectiles, v.damage, v.accuracy, v.range, v.falloff, v.velocity, v.impulse, v.degr
+                section, v.name, v.description, v.weight, v.box_size, v.cost, v.projectiles, v.damage, v.accuracy, v.range, v.falloff, v.velocity, v.impulse, v.degr, v.k_hit, v.k_ap, v.k_air_resistance
         )
     end
     debug_file:close()

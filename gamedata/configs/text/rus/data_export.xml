@@ -216,4 +216,12 @@
     <string id="st_data_export_hit_power">
         <text>Мощность выстрела</text>
     </string>
+    <string id="st_data_export_k_hit">
+        <text>К. Хит</text>
+    </string>
+    <string id="st_data_export_k_ap">
+        <text>К. БП</text>
+    </string>
+    <string id="st_data_export_k_air_resistance">
+    <text>К. Сопр. воздуха</text>
 </string_table>
