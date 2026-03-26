@@ -207,4 +207,7 @@
     <string id="st_data_export_description">
         <text>Description</text>
     </string>
+    <string id="st_data_export_hit_power">
+        <text>Hit Power</text>
+    </string>
 </string_table>

@@ -213,4 +213,7 @@
     <string id="st_data_export_description">
         <text>Описание</text>
     </string>
+    <string id="st_data_export_hit_power">
+        <text>Мощность выстрела</text>
+    </string>
 </string_table>
