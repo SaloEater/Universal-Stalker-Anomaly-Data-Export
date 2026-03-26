@@ -246,4 +246,7 @@
     <string id="st_data_export_hitzone_rear">
         <text>Множ. зад</text>
     </string>
+    <string id="st_data_export_visual_item_id">
+        <text>ID предмета</text>
+    </string>
 </string_table>

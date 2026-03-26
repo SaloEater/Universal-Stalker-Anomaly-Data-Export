@@ -240,4 +240,7 @@
     <string id="st_data_export_hitzone_rear">
         <text>Rear Mult</text>
     </string>
+    <string id="st_data_export_visual_item_id">
+        <text>Item ID</text>
+    </string>
 </string_table>
