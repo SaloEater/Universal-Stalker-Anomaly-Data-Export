@@ -1548,19 +1548,12 @@ function debug_cmd_list.cmd.export_explosives(_, txt, x)
         ["new_tasks_addon_heli_strong"] = true,
         ["rpg_blow"] = true,
         ["rpg_new_blow"] = true,
-        ["simulation_army_helicopter_strong"] = true,
     }
 
     local tbl = {}
     local cnt = 0
     ini_sys:section_for_each(function(section)
-        for i, _ in pairs(blacklist) do
-            if i ~= "" and section:find(i) then
-                return
-            end
-        end
-
-        if blacklist[section] or is_multiplayer_item(section) then
+        if blacklist[section] or is_multiplayer_item(section) or string.find(section, "bad") or string.find(section, "helicopter_strong") or string.find(section, "helicopter_weak") then
             return
         end
 
