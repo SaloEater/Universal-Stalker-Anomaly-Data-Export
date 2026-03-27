@@ -1300,7 +1300,7 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             end
 
             weapon.alt_caliber = alt_calibers_str
-            weapon.hit_power = ini_sys:r_float_ex(section, "hit_power") or 0
+            weapon.hit_power = ui_wpn_params.read_float(section, "", "hit_power")
 
             tbl[kind][section] = weapon
             alife_release(se_obj)
