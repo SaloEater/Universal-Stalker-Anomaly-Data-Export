@@ -136,12 +136,24 @@ function to_percent_stash(value)
 end
 
 function floor_with_precision(value)
-    return string.format("%.2f", value)
+    local s = string.format("%.2f", value)
+    if s:sub(-3) == ".00" then
+        return s:sub(1, -4)
+    end
+    return s
 end
 
 function decimal_to_percent(value)
     value = value or 0
     return to_percent_floor(tonumber(value) * 100)
+end
+
+function to_100(value)
+    return floor_with_precision(math.floor((value or 0) * 100))
+end
+
+function to_percent_100(value)
+    return to_percent_floor(to_100(value))
 end
 
 function write_file(file, text, ...)
@@ -927,33 +939,23 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
             artefact.jump_height = ini_sys:r_float_ex(section, "jump_height") or 0
 
             artefact.health_restore = get_artefact_stat_value(nil, section, "health_restore_speed")
-            artefact.rad_restore = math.floor(get_artefact_stat_value(nil, section, "radiation_restore_speed") or 0)
-            artefact.bleed_restore = (get_artefact_stat_value(nil, section, "bleeding_restore_speed") or 0) / 1000
-            artefact.stamina_restore = to_percent_round((get_artefact_stat_value(nil, section, "power_restore_speed") or 0))
-            artefact.satiety_restore = to_percent_string(getSatietyPercent(get_artefact_stat_value(nil, section, "satiety_restore_speed")))
+            artefact.rad_restore = get_artefact_stat_value(nil, section, "radiation_restore_speed")
+            artefact.bleed_restore = get_artefact_stat_value(nil, section, "bleeding_restore_speed")
+            artefact.stamina_restore = get_artefact_stat_value(nil, section, "power_restore_speed")
+            artefact.satiety_restore = getSatietyPercent(get_artefact_stat_value(nil, section, "satiety_restore_speed"))
 
             artefact.burn_immunity = to_percent_string(get_artefact_stat_value(nil, section, "burn_immunity") or 0)
-            artefact.shock_immunity = to_percent_string(get_artefact_stat_value(nil, section, "shock_immunity") or 0)
+            artefact.shock_immunity = get_artefact_stat_value(nil, section, "shock_immunity")
             artefact.radiation_immunity = to_percent_string(get_artefact_stat_value(nil, section, "radiation_immunity") or 0)
             artefact.psychic_immunity = to_percent_string(get_artefact_stat_value(nil, section, "telepatic_immunity") or 0)
             artefact.chemical_burn_immunity = to_percent_string(get_artefact_stat_value(nil, section, "chemical_burn_immunity") or 0)
 
-            artefact.rupture_immunity = to_percent_string(get_artefact_stat_value(nil, section, "wound_immunity") or 0)
-            artefact.ballistic_immunity = to_percent_string(get_artefact_stat_value(nil, section, "fire_wound_immunity") or 0)
-            artefact.explosion_immunity = to_percent_string(get_artefact_stat_value(nil, section, "explosion_immunity") or 0)
-            artefact.impact_immunity = to_percent_string(get_artefact_stat_value(nil, section, "strike_immunity") or 0)
+            artefact.rupture_immunity = get_artefact_stat_value(nil, section, "wound_immunity")
+            artefact.ballistic_immunity = get_artefact_stat_value(nil, section, "fire_wound_immunity")
+            artefact.explosion_immunity = get_artefact_stat_value(nil, section, "explosion_immunity")
+            artefact.impact_immunity = get_artefact_stat_value(nil, section, "strike_immunity")
 
             artefact.weight_carried = math.floor(get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0)
-
-            artefact.burn_cap = to_percent_string(get_artefact_stat_value(nil, section, "burn_cap") or 0)
-            artefact.shock_cap = to_percent_string(get_artefact_stat_value(nil, section, "shock_cap") or 0)
-            artefact.telepatic_cap = to_percent_string(get_artefact_stat_value(nil, section, "telepatic_cap") or 0)
-            artefact.chemical_burn_cap = to_percent_string(get_artefact_stat_value(nil, section, "chemical_burn_cap") or 0)
-
-            artefact.rupture_cap = to_percent_string(get_artefact_stat_value(nil, section, "wound_cap") or 0)
-            artefact.ballistic_cap = to_percent_string(get_artefact_stat_value(nil, section, "fire_wound_cap") or 0)
-            artefact.explosion_cap = to_percent_string(get_artefact_stat_value(nil, section, "explosion_cap") or 0)
-            artefact.impact_cap = to_percent_string(get_artefact_stat_value(nil, section, "strike_cap") or 0)
 
             tbl[section] = artefact
             cnt = cnt + 1
@@ -968,7 +970,7 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
     write_csv_header(debug_file, header)
     for section, v in pairs(tbl) do
         write_csv(debug_file,
-                section, v.name, v.description, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.has_perk, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.ballistic_cap, v.rupture_cap, v.burn_cap, v.shock_cap, v.chemical_burn_cap, v.telepatic_cap, v.impact_cap, v.explosion_cap, v.weight_carried
+                section, v.name, v.description, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.weight_carried
         )
     end
     debug_file:close()
@@ -1259,15 +1261,11 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             weapon.single_handed = ini_sys:r_float_ex(section, "slot") or -1
             weapon.single_handed = allowed_slots[weapon.single_handed] and "Y" or "N"
 
-            weapon.accuracy = to_percent_floor(get_weapon_stat_value(obj, section, "accuracy"))
-            weapon.handling = to_percent_floor(get_weapon_stat_value(obj, section, "handling"))
-            weapon.damage = get_weapon_stat_value(obj, section, "damage")
-            weapon.fire_rate = get_weapon_stat_value(obj, section, "fire_rate")
+            weapon.accuracy = to_percent_100(get_weapon_stat_value(obj, section, "accuracy"))
+            weapon.handling = to_percent_100(get_weapon_stat_value(obj, section, "handling"))
+            weapon.damage = to_100(get_weapon_stat_value(obj, section, "damage"))
+            weapon.fire_rate = to_100(get_weapon_stat_value(obj, section, "fire_rate"))
             weapon.ammo_mag_size = get_weapon_stat_value(obj, section, "ammo_mag_size")
-            weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
-            weapon.speed = math.floor(get_weapon_stat_value(obj, section, "speed"))
-            weapon.reliability = to_percent_floor(get_weapon_stat_value(obj, section, "reliability"))
-            weapon.recoil = math.floor(get_weapon_stat_value(obj, section, "recoil"))
             local ammo_class = ini_sys:r_string_ex(section, "ammo_class") or ""
             weapon.caliber = get_weapon_caliber(ammo_class)
 
@@ -1342,11 +1340,11 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             end
 
             local header = translate_headers({
-                "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_damage", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt", "st_data_export_hit_power" })
+                "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_damage", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_ammo_types", "st_data_export_ammo_types_alt", "st_data_export_hit_power" })
             write_csv_header(debug_file, header)
             for section, w in pairs(weapons) do
                 write_csv(debug_file,
-                        section, w.name, w.description, w.weight, w.cost, w.repair_label, w.single_handed, w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.caliber, w.alt_caliber, w.hit_power)
+                        section, w.name, w.description, w.weight, w.cost, w.repair_label, w.single_handed, w.accuracy, w.handling, w.damage, w.fire_rate, w.ammo_mag_size, w.caliber, w.alt_caliber, w.hit_power)
                 type_cnt = type_cnt + 1
             end
             debug_file:close()
