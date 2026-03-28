@@ -11,7 +11,7 @@ local cmd_list = {
     { name = "Export explosives", cmd = "export_explosives", hide_ui = 0 },
     { name = "Export melee", cmd = "export_melee", hide_ui = 0 },
     { name = "Export ammo", cmd = "export_ammo", hide_ui = 0 },
-    { name = "Export item chance in stash", cmd = "item_chance_in_stash", hide_ui = 0 },
+    { name = "Export item chance in stash", cmd = "export_item_chance_in_stash", hide_ui = 0 },
     { name = "Export upgrades", cmd = "export_upgrades", hide_ui = 0 },
     { name = "Export item icons", cmd = "export_item_icons", hide_ui = 0 },
     { name = "Export disassemble table", cmd = "export_disassemble_table", hide_ui = 0 },
@@ -2293,7 +2293,7 @@ function debug_cmd_list.cmd.export_item_list(_, txt, x)
     x:SendOutput("[END] export items - %s total items exported - see in Gamma\\Overwrite\\bin\\export_items_list.csv", cnt)
 end
 
-function debug_cmd_list.cmd.item_chance_in_stash(_, txt, x)
+function debug_cmd_list.cmd.export_item_chance_in_stash(_, txt, x)
     x:SendOutput("[START] export item chance in stash")
 
     local ini_tm = treasure_manager.ini_treasure
@@ -2410,7 +2410,7 @@ function debug_cmd_list.cmd.item_chance_in_stash(_, txt, x)
     end
 
     out:close()
-    x:SendOutput("[END] export item chance in stash - %s items written - see item_chance_in_stash.csv", row_count)
+    x:SendOutput("[END] export item chance in stash - %s items written - see export_item_chance_in_stash.csv", row_count)
 end
 
 function debug_cmd_list.cmd.export_upgrades(_, txt, x)
