@@ -11,13 +11,15 @@ local cmd_list = {
     { name = "Export explosives", cmd = "export_explosives", hide_ui = 0 },
     { name = "Export melee", cmd = "export_melee", hide_ui = 0 },
     { name = "Export ammo", cmd = "export_ammo", hide_ui = 0 },
-    { name = "Export item chance in stash", cmd = "item_chance_in_stash", hide_ui = 0 },
+    { name = "Export stash drop rates", cmd = "export_stash_drop_rates", hide_ui = 0 },
+    { name = "Export toolkit map rates", cmd = "export_toolkit_map_rates", hide_ui = 0 },
     { name = "Export upgrades", cmd = "export_upgrades", hide_ui = 0 },
     { name = "Export item icons", cmd = "export_item_icons", hide_ui = 0 },
+    { name = "Export item drop locations", cmd = "item_drop_locations", hide_ui = 0 },
     { name = "Export disassemble table", cmd = "export_disassemble_table", hide_ui = 0 },
     { name = "Export mutant parts prices", cmd = "export_mutant_parts_prices", hide_ui = 0 },
-    --{ name = "Export mutant profiles", cmd = "export_mutant_profiles", hide_ui = 0 },--TODO: figure out if it's possible to display for vanilla
-    -- { name = "Export npc armor profiles", cmd = "export_npc_armor_profiles", hide_ui = 0 },--TODO: figure out if it's possible to display for vanilla
+    { name = "Export mutant profiles", cmd = "export_mutant_profiles", hide_ui = 0 },
+    { name = "Export npc armor profiles", cmd = "export_npc_armor_profiles", hide_ui = 0 },
     { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
     { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
     { name = "Export translations", cmd = "export_translations", hide_ui = 0 },
@@ -101,7 +103,7 @@ function get_outfit_stat_value(obj, section, type)
 end
 
 function get_outfit_protection_value(obj, section, type)
-    return get_outfit_stat_value(obj, section, type) * 100
+    return get_outfit_stat_value(obj, section, type)
 end
 
 function get_artefact_stat_value(obj, section, type)
@@ -2341,17 +2343,21 @@ function debug_cmd_list.cmd.export_item_list(_, txt, x)
     x:SendOutput("[END] export items - %s total items exported - see in Gamma\\Overwrite\\bin\\export_items_list.csv", cnt)
 end
 
-function debug_cmd_list.cmd.item_chance_in_stash(_, txt, x)
-    x:SendOutput("[START] export item chance in stash")
+function debug_cmd_list.cmd.export_stash_drop_rates(_, txt, x)
+    x:SendOutput("[START] export stash drop rates")
 
-    local ini_tm = treasure_manager.ini_treasure
+    local use_item_names = true  -- set to true to output display names instead of section IDs
+
+    -- Load config files
+    local ini_tm   = treasure_manager.ini_treasure
+    local ini_tier = treasure_manager.ini_tiers
 
     -- Parse kind/tier effects for common and rare stash types
     local kind_effects = { common = {}, rare = {} }
     local stash_sections = { common = "kind_tier_effect_common", rare = "kind_tier_effect_rare" }
     local stash_type_labels = {
         common = translate("st_data_export_stash_type_common"),
-        rare = translate("st_data_export_stash_type_rare"),
+        rare   = translate("st_data_export_stash_type_rare"),
     }
     local num_tiers = 5
 
@@ -2364,10 +2370,12 @@ function debug_cmd_list.cmd.item_chance_in_stash(_, txt, x)
                 if #str >= (2 + num_tiers * 2) then
                     local entry = {
                         chance = tonumber(str[1]),
-                        tiers = {}
+                        tiers  = {}
                     }
                     for tier = 1, num_tiers do
-                        entry.tiers[tier] = { chance_multi = tonumber(str[(tier * 2) + 1]) }
+                        entry.tiers[tier] = {
+                            chance_multi = tonumber(str[(tier * 2) + 1])
+                        }
                     end
                     kind_effects[stash_type][kind] = entry
                 end
@@ -2375,49 +2383,44 @@ function debug_cmd_list.cmd.item_chance_in_stash(_, txt, x)
         end
     end
 
-    -- Parse possible_items: build section -> {kind, tier, allowed_ecos, name}
+    -- Parse possible_items: build section -> {kind, tier, allowed_ecos}
     local all_ecos = { 1, 2, 3 }
     local items = {}
     local n = ini_tm:line_count("possible_items")
     for i = 0, n - 1 do
         local _, section, value = ini_tm:r_line("possible_items", i, "", "")
         if section and section ~= "" then
+            -- Compute allowed ecos by inverting the blacklist
             local blacklist_set = {}
             if value and value ~= "" then
                 local bl = str_explode(value, ",")
                 for _, v in ipairs(bl) do
-                    local e = tonumber(v)
-                    if e then
-                        blacklist_set[e] = true
-                    end
+                    local n = tonumber(v)
+                    if n then blacklist_set[n] = true end
                 end
             end
             local allowed = {}
             for _, e in ipairs(all_ecos) do
-                if not blacklist_set[e] then
-                    allowed[#allowed + 1] = e
-                end
+                if not blacklist_set[e] then allowed[#allowed + 1] = e end
             end
             local allowed_ecos = table.concat(allowed, "/")
 
+            -- Get kind from ini_sys
             local kind = ini_sys:r_string_ex(section, "kind")
-            if not kind then
-                goto continue
-            end
+            if not kind then goto continue end
 
+            -- Get tier from grok_items_tier.ltx; handle multi-use items
             local sec_p = section
             local uses, max_uses = 1, 1
             local sec_base, sec_uses = utils_item.get_defined_uses(section)
             if sec_base and sec_uses and ini_sys:section_exist(sec_base) then
-                sec_p = sec_base
-                uses = sec_uses
-                max_uses = ini_sys:r_float_ex(sec_base, "max_uses") or sec_uses
+                sec_p     = sec_base
+                uses      = sec_uses
+                max_uses  = ini_sys:r_float_ex(sec_base, "max_uses") or sec_uses
             end
 
-            local tier = ini_sys:r_float_ex(sec_p, "tier")
-            if not tier then
-                goto continue
-            end
+            local tier = ini_tier:r_float_ex(sec_p, "tier")
+            if not tier then goto continue end
 
             local lost_uses = max_uses - uses
             tier = math.ceil(tier - (lost_uses / 2))
@@ -2426,39 +2429,146 @@ function debug_cmd_list.cmd.item_chance_in_stash(_, txt, x)
             local inv_name = translate_with_context(ini_sys:r_string_ex(sec_p, "inv_name"), "item name for " .. sec_p)
             items[section] = { kind = kind, tier = tier, allowed_ecos = allowed_ecos, name = inv_name }
 
-            :: continue ::
+            ::continue::
         end
     end
 
     -- Open output file and write header
-    local p_file = "export_item_chance_in_stash.csv"
+    local p_file = "export_stash_drop_rates.csv"
     local out = io.open(p_file, "w+")
 
     local header = translate_headers({
         "~",
-        "pda_encyclopedia_name",
+        "st_data_export_stash_map",
         "st_data_export_stash_type",
+        "st_data_export_stash_item",
         "st_data_export_stash_chance",
-        "st_data_export_stash_ecos",
+        "st_data_export_stash_ecos"
     })
     out:write(header .. "\n")
 
-    -- Write two rows per item (common + rare), each with stash type and spawn chance
+    -- Iterate maps and stash types
     local row_count = 0
-    for section, item in spairs(items) do
-        local kfx_c = kind_effects.common[item.kind]
-        local kfx_r = kind_effects.rare[item.kind]
+    for map_name, vec in pairs(treasure_manager.map_tiers) do
+        -- Count tier occurrences in the map's tier vector
+        local tier_counts = {}
+        for _, t in ipairs(vec) do
+            tier_counts[t] = (tier_counts[t] or 0) + 1
+        end
+        local vec_size = #vec
 
-        local common_pct = kfx_c and kfx_c.tiers[item.tier] and kfx_c.chance * kfx_c.tiers[item.tier].chance_multi or 0
-        local rare_pct = kfx_r and kfx_r.tiers[item.tier] and kfx_r.chance * kfx_r.tiers[item.tier].chance_multi or 0
+        for stash_type, effects in pairs(kind_effects) do
+            -- Compute effective chance for every item on this map+type
+            local row_items = {}
+            for section, item in pairs(items) do
+                local kind = item.kind
+                local tier = item.tier
+                local kfx  = effects[kind]
+                if kfx and kfx.tiers[tier] then
+                    local tier_prob     = (tier_counts[tier] or 0) / vec_size
+                    local spawn_check   = kfx.chance * kfx.tiers[tier].chance_multi
+                    local effective_pct = tier_prob * spawn_check
+                    if effective_pct > 0 then
+                        row_items[#row_items + 1] = {
+                            label        = use_item_names and item.name:sanitize() or section,
+                            pct          = effective_pct,
+                            allowed_ecos = item.allowed_ecos
+                        }
+                    end
+                end
+            end
 
-        write_csv_table(out, {section, item.name:sanitize(), stash_type_labels.common,to_percent_stash(common_pct),item.allowed_ecos})
-        write_csv_table(out, {section, item.name:sanitize(), stash_type_labels.rare, to_percent_stash(rare_pct), item.allowed_ecos})
-        row_count = row_count + 2
+            -- Sort descending by effective chance
+            table.sort(row_items, function(a, b) return a.pct > b.pct end)
+
+            -- Build and write the row
+            local parts = { map_name, translate(map_name), stash_type_labels[stash_type] }
+            for _, entry in ipairs(row_items) do
+                parts[#parts + 1] = entry.label
+                parts[#parts + 1] = to_percent_stash(entry.pct)
+                parts[#parts + 1] = entry.allowed_ecos
+            end
+            write_csv(out, unpack(parts))
+            row_count = row_count + 1
+        end
     end
 
     out:close()
-    x:SendOutput("[END] export item chance in stash - %s items written - see item_chance_in_stash.csv", row_count)
+    x:SendOutput("[END] export stash drop rates - %s map rows written - see export_stash_drop_rates.csv", row_count)
+end
+
+function debug_cmd_list.cmd.export_toolkit_map_rates(_, txt, x)
+    x:SendOutput("[START] export toolkit map rates")
+
+    -- Toolkit probability per tier (steady-state: all prerequisite kits already found)
+    local toolkit_probs = {
+        [1] = { itm_ammokit = 1/2,   itm_drugkit = 1/2 },
+        [2] = { itm_ammokit = 1/4,   itm_drugkit = 1/4,   itm_basickit = 2/4 },
+        [3] = { itm_ammokit = 2/11,  itm_drugkit = 2/11,  itm_basickit = 5/11, itm_advancedkit = 2/11 },
+        [4] = { itm_advancedkit = 1 },
+        [5] = { itm_expertkit   = 1 },
+    }
+    local toolkit_order = { "itm_basickit", "itm_advancedkit", "itm_expertkit", "itm_drugkit", "itm_ammokit" }
+
+    -- Resolve toolkit display names for column headers
+    local toolkit_names = {}
+    for _, sec in ipairs(toolkit_order) do
+        toolkit_names[sec] = translate_with_context(ini_sys:r_string_ex(sec, "inv_name"), "toolkit name for " .. sec)
+    end
+
+    -- Open output file
+    local p_file = "export_toolkit_map_rates.csv"
+    local out = io.open(p_file, "w+")
+
+    -- Write header
+    local header_parts = { "~", translate("st_data_export_stash_map") }
+    for _, sec in ipairs(toolkit_order) do
+        header_parts[#header_parts + 1] = toolkit_names[sec]
+    end
+    out:write(table.concat(header_parts, ",") .. "\n")
+
+    -- Sort maps alphabetically
+    local sorted_maps = {}
+    for map_name in pairs(treasure_manager.tools_map_tiers) do
+        sorted_maps[#sorted_maps + 1] = map_name
+    end
+    table.sort(sorted_maps)
+
+    -- Compute and write one row per map
+    local row_count = 0
+    for _, map_name in ipairs(sorted_maps) do
+        local vec = treasure_manager.tools_map_tiers[map_name]
+
+        -- Count tier occurrences
+        local tier_counts = {}
+        for _, t in ipairs(vec) do
+            tier_counts[t] = (tier_counts[t] or 0) + 1
+        end
+        local vec_size = #vec
+
+        -- Weighted sum of per-tier toolkit probabilities
+        local kit_pct = {}
+        for tier, count in pairs(tier_counts) do
+            local tier_prob = count / vec_size
+            local probs = toolkit_probs[tier]
+            if probs then
+                for sec, p in pairs(probs) do
+                    kit_pct[sec] = (kit_pct[sec] or 0) + tier_prob * p
+                end
+            end
+        end
+
+        -- Build row
+        local cols = { map_name, translate(map_name) }
+        for _, sec in ipairs(toolkit_order) do
+            cols[#cols + 1] = to_percent_stash((kit_pct[sec] or 0)*100)
+        end
+        out:write(table.concat(cols, ",") .. "\n")
+        row_count = row_count + 1
+    end
+
+    out:close()
+    x:SendOutput("[END] export toolkit map rates - %s map rows written - see export_toolkit_map_rates.csv", row_count)
 end
 
 function debug_cmd_list.cmd.export_upgrades(_, txt, x)
@@ -2469,6 +2579,7 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
     local all_stats_sections = {}  -- stat_type -> { stats_section -> true }
 
     local blacklist = {
+        ["wpn_kar98_retrotac"] = true, -- gun is missing
     }
 
     ini_sys:section_for_each(function(section)
@@ -2680,6 +2791,158 @@ function debug_cmd_list.cmd.export_item_icons(_, txt, x)
     f:close()
 
     x:SendOutput("[END] export item icons - %s sections written - see export_item_icons.csv", cnt)
+end
+
+function debug_cmd_list.cmd.item_drop_locations(_, txt, x)
+    x:SendOutput("[START] export stash drop rates by item")
+
+    -- Load config files
+    local ini_tm   = treasure_manager.ini_treasure
+    local ini_tier = treasure_manager.ini_tiers
+
+    -- Parse kind/tier effects for common and rare stash types
+    local kind_effects = { common = {}, rare = {} }
+    local stash_sections = { common = "kind_tier_effect_common", rare = "kind_tier_effect_rare" }
+    local stash_type_labels = {
+        common = translate("st_data_export_stash_type_common"),
+        rare   = translate("st_data_export_stash_type_rare"),
+    }
+    local num_tiers = 5
+
+    for stash_type, ltx_section in pairs(stash_sections) do
+        local n = ini_tm:line_count(ltx_section)
+        for i = 0, n - 1 do
+            local _, kind, value = ini_tm:r_line(ltx_section, i, "", "")
+            if kind and value and kind ~= "" and value ~= "" then
+                local str = str_explode(value, ",")
+                if #str >= (2 + num_tiers * 2) then
+                    local entry = { chance = tonumber(str[1]), tiers = {} }
+                    for tier = 1, num_tiers do
+                        entry.tiers[tier] = { chance_multi = tonumber(str[(tier * 2) + 1]) }
+                    end
+                    kind_effects[stash_type][kind] = entry
+                end
+            end
+        end
+    end
+
+    -- Parse possible_items: build section -> {kind, tier, allowed_ecos, name}
+    local all_ecos = { 1, 2, 3 }
+    local items = {}
+    local n = ini_tm:line_count("possible_items")
+    for i = 0, n - 1 do
+        local _, section, value = ini_tm:r_line("possible_items", i, "", "")
+        if section and section ~= "" then
+            local blacklist_set = {}
+            if value and value ~= "" then
+                local bl = str_explode(value, ",")
+                for _, v in ipairs(bl) do
+                    local e = tonumber(v)
+                    if e then blacklist_set[e] = true end
+                end
+            end
+            local allowed = {}
+            for _, e in ipairs(all_ecos) do
+                if not blacklist_set[e] then allowed[#allowed + 1] = e end
+            end
+            local allowed_ecos = table.concat(allowed, "/")
+
+            local kind = ini_sys:r_string_ex(section, "kind")
+            if not kind then goto continue end
+
+            local sec_p = section
+            local uses, max_uses = 1, 1
+            local sec_base, sec_uses = utils_item.get_defined_uses(section)
+            if sec_base and sec_uses and ini_sys:section_exist(sec_base) then
+                sec_p    = sec_base
+                uses     = sec_uses
+                max_uses = ini_sys:r_float_ex(sec_base, "max_uses") or sec_uses
+            end
+
+            local tier = ini_tier:r_float_ex(sec_p, "tier")
+            if not tier then goto continue end
+
+            local lost_uses = max_uses - uses
+            tier = math.ceil(tier - (lost_uses / 2))
+            tier = clamp(tier, 1, 5)
+
+            local inv_name = translate_with_context(ini_sys:r_string_ex(sec_p, "inv_name"), "item name for " .. sec_p)
+            items[section] = { kind = kind, tier = tier, allowed_ecos = allowed_ecos, name = inv_name }
+
+            ::continue::
+        end
+    end
+
+    -- Build per-item data: item -> stash_type -> list of {map, pct} sorted desc
+    local item_maps = {}  -- item_maps[section][stash_type] = { {map, pct}, ... }
+
+    for map_name, vec in pairs(treasure_manager.map_tiers) do
+        local tier_counts = {}
+        for _, t in ipairs(vec) do
+            tier_counts[t] = (tier_counts[t] or 0) + 1
+        end
+        local vec_size = #vec
+
+        for stash_type, effects in pairs(kind_effects) do
+            for section, item in pairs(items) do
+                local kfx = effects[item.kind]
+                if kfx and kfx.tiers[item.tier] then
+                    local tier_prob     = (tier_counts[item.tier] or 0) / vec_size
+                    local spawn_check   = kfx.chance * kfx.tiers[item.tier].chance_multi
+                    local effective_pct = tier_prob * spawn_check
+                    if effective_pct > 0 then
+                        if not item_maps[section] then item_maps[section] = {} end
+                        if not item_maps[section][stash_type] then item_maps[section][stash_type] = {} end
+                        local t = item_maps[section][stash_type]
+                        t[#t + 1] = { map = map_name, pct = effective_pct }
+                    end
+                end
+            end
+        end
+    end
+
+    -- Sort each item's map list descending by chance
+    for section, by_type in pairs(item_maps) do
+        for _, map_list in pairs(by_type) do
+            table.sort(map_list, function(a, b) return a.pct > b.pct end)
+        end
+    end
+
+    -- Open output file and write header
+    local p_file = "item_drop_locations.csv"
+    local out = io.open(p_file, "w+")
+
+    local header = translate_headers({
+        "~",
+        "pda_encyclopedia_name",
+        "st_data_export_stash_type",
+        "st_data_export_stash_map",
+        "st_data_export_stash_chance",
+        "st_data_export_stash_ecos"
+    })
+    write_csv_header(out, header)
+
+    -- Write rows: two rows per item (common, rare), maps sorted desc by chance
+    local row_count = 0
+    for section, item in spairs(items) do
+        local label = section
+        for _, stash_type in ipairs({ "common", "rare" }) do
+            local map_list = item_maps[section] and item_maps[section][stash_type]
+            if map_list and #map_list > 0 then
+                local parts = { label, item.name, stash_type_labels[stash_type] }
+                for _, entry in ipairs(map_list) do
+                    parts[#parts + 1] = translate(entry.map)
+                    parts[#parts + 1] = to_percent_stash(entry.pct)
+                    parts[#parts + 1] = item.allowed_ecos
+                end
+                write_csv_table(out, parts, true)
+                row_count = row_count + 1
+            end
+        end
+    end
+
+    out:close()
+    x:SendOutput("[END] export stash drop rates by item - %s rows written - see item_drop_locations.csv", row_count)
 end
 
 function debug_cmd_list.cmd.export_npc_armor_profiles(_, txt, x)
