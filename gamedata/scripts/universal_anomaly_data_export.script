@@ -11,14 +11,13 @@ local cmd_list = {
     { name = "Export explosives", cmd = "export_explosives", hide_ui = 0 },
     { name = "Export melee", cmd = "export_melee", hide_ui = 0 },
     { name = "Export ammo", cmd = "export_ammo", hide_ui = 0 },
-    { name = "Export stash drop rates", cmd = "export_stash_drop_rates", hide_ui = 0 },
-    { name = "Export toolkit map rates", cmd = "export_toolkit_map_rates", hide_ui = 0 },
+    { name = "Export item chance in stash", cmd = "item_chance_in_stash", hide_ui = 0 },
     { name = "Export upgrades", cmd = "export_upgrades", hide_ui = 0 },
     { name = "Export item icons", cmd = "export_item_icons", hide_ui = 0 },
     { name = "Export disassemble table", cmd = "export_disassemble_table", hide_ui = 0 },
     { name = "Export mutant parts prices", cmd = "export_mutant_parts_prices", hide_ui = 0 },
-    { name = "Export mutant profiles", cmd = "export_mutant_profiles", hide_ui = 0 },
-    { name = "Export npc armor profiles", cmd = "export_npc_armor_profiles", hide_ui = 0 },
+    --{ name = "Export mutant profiles", cmd = "export_mutant_profiles", hide_ui = 0 },--TODO: figure out if it's possible to display for vanilla
+    -- { name = "Export npc armor profiles", cmd = "export_npc_armor_profiles", hide_ui = 0 },--TODO: figure out if it's possible to display for vanilla
     { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
     { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
     { name = "Export translations", cmd = "export_translations", hide_ui = 0 },
@@ -421,7 +420,6 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
                 outfit.explosion = to_percent_floor(get_outfit_protection_value(obj, section, "explosion_protection"))
                 outfit.rupture = to_percent_floor(get_outfit_protection_value(obj, section, "wound_protection"))
                 outfit.ballistic = to_percent_floor(get_outfit_protection_value(obj, section, "fire_wound_protection"))
-                outfit.speed = decimal_to_percent(outfit_speed_mcm.get_outfit_speed(obj, section, false))
 
                 tbl[repair_type][section] = outfit
                 alife_release(se_obj)
@@ -483,7 +481,7 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
                 write_csv_header(debug_file, header)
                 for section, v in spairs(outfits, functor) do
                     write_csv(debug_file,
-                            section, v.faction, v.name, v.description, v.weight, v.cost, v.ballistic, v.rupture, v.burn, v.shock, v.chemical_burn, v.radiation, v.telepatic, v.impact, v.explosion, v.arty, v.max_arty, v.carry_weight, v.speed)
+                            section, v.faction, v.name, v.description, v.weight, v.cost, v.ballistic, v.rupture, v.burn, v.shock, v.chemical_burn, v.radiation, v.telepatic, v.impact, v.explosion, v.arty, v.max_arty, v.carry_weight)
                     type_cnt = type_cnt + 1
                 end
             end
@@ -970,7 +968,7 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
     write_csv_header(debug_file, header)
     for section, v in pairs(tbl) do
         write_csv(debug_file,
-                section, v.name, v.description, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.has_perk, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.ballistic_cap, v.rupture_cap, v.burn_cap, v.shock_cap, v.chemical_burn_cap, v.telepatic_cap, v.impact_cap, v.explosion_cap, v.weight_carried, v.used_in_crafting, v.craftable
+                section, v.name, v.description, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.has_perk, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.ballistic_cap, v.rupture_cap, v.burn_cap, v.shock_cap, v.chemical_burn_cap, v.telepatic_cap, v.impact_cap, v.explosion_cap, v.weight_carried
         )
     end
     debug_file:close()
@@ -1553,7 +1551,7 @@ function debug_cmd_list.cmd.export_explosives(_, txt, x)
     local tbl = {}
     local cnt = 0
     ini_sys:section_for_each(function(section)
-        if blacklist[section] or is_multiplayer_item(section) or string.find(section, "bad") or string.find(section, "helicopter_strong") or string.find(section, "helicopter_weak") then
+        if blacklist[section] or is_multiplayer_item(section) or string.find(section, "helicopter_strong") or string.find(section, "helicopter_weak") then
             return
         end
 
@@ -2387,7 +2385,7 @@ function debug_cmd_list.cmd.item_chance_in_stash(_, txt, x)
     end
 
     -- Open output file and write header
-    local p_file = "item_chance_in_stash.csv"
+    local p_file = "export_item_chance_in_stash.csv"
     local out = io.open(p_file, "w+")
 
     local header = translate_headers({
@@ -2408,9 +2406,8 @@ function debug_cmd_list.cmd.item_chance_in_stash(_, txt, x)
         local common_pct = kfx_c and kfx_c.tiers[item.tier] and kfx_c.chance * kfx_c.tiers[item.tier].chance_multi or 0
         local rare_pct = kfx_r and kfx_r.tiers[item.tier] and kfx_r.chance * kfx_r.tiers[item.tier].chance_multi or 0
 
-        local base = section .. ", " .. item.name:sanitize() .. ", "
-        write_csv(out, base .. stash_type_labels.common .. ", " .. to_percent_stash(common_pct) .. ", " .. item.allowed_ecos .. "\n")
-        write_csv(out, base .. stash_type_labels.rare .. ", " .. to_percent_stash(rare_pct) .. ", " .. item.allowed_ecos .. "\n")
+        write_csv_table(out, {section, item.name:sanitize(), stash_type_labels.common,to_percent_stash(common_pct),item.allowed_ecos})
+        write_csv_table(out, {section, item.name:sanitize(), stash_type_labels.rare, to_percent_stash(rare_pct), item.allowed_ecos})
         row_count = row_count + 2
     end
 
@@ -2637,4 +2634,96 @@ function debug_cmd_list.cmd.export_item_icons(_, txt, x)
     f:close()
 
     x:SendOutput("[END] export item icons - %s sections written - see export_item_icons.csv", cnt)
+end
+
+function debug_cmd_list.cmd.export_npc_armor_profiles(_, txt, x)
+    x:SendOutput("[START] export NPC armor profiles")
+
+    local ini_bp = grok_bo.ini_bones
+    local ini_capture = grok_bo.ini_capture
+    local ini_death = itms_manager.ini_death
+
+    local function read_bonearmor(damage_sect, bone)
+        if not damage_sect or damage_sect == "" then return 0 end
+        local raw = ini_sys:r_string_ex(damage_sect, bone)
+        if not raw then return 0 end
+        local vals = str_explode(raw, ",")
+        return tonumber(vals[2]) or 0
+    end
+
+    local function strip_model_path(path)
+        if not path then return nil end
+        -- normalize to forward slashes
+        local p = path:gsub("\\", "/")
+        -- get filename (part after last slash)
+        local fname = p:match("([^/]+)$") or p
+        -- remove last extension (e.g. ".ltx")
+        local base = fname:gsub("%.[^%.]+$", "")
+        return base
+    end
+
+    local tbl = {}
+    local cnt = 0
+
+    ini_capture:section_for_each(function(section)
+        local npc_armor_path = ini_capture:r_string(section,"model_path")
+        local ini_npc_armor = ini_file(npc_armor_path)
+        if not ini_npc_armor then return end
+
+        printf("Processing NPC armor section [%s] with model %s", section, npc_armor_path)
+        local npc_armor_section = ini_npc_armor:r_string_ex('bone_protection','bones_protection_sect')
+        if not npc_armor_section or npc_armor_section == "" then
+            printf("Skipping [%s] because it has no bone_protection section", section)
+            return
+        end
+
+        local bone_profile  = ini_bp:r_string_ex(npc_armor_section, "bone_profile") or ""
+        local head_profile  = ini_bp:r_string_ex(npc_armor_section, "head_profile") or ""
+
+        local hit_fraction  = ini_bp:r_float_ex(npc_armor_section, "hit_fraction_npc") or 0
+        local ap_scale      = ini_bp:r_float_ex(npc_armor_section, "ap_scale") or 0
+
+        local body_bonearmor = read_bonearmor(bone_profile, "bip01_spine")
+        local head_bonearmor = read_bonearmor(head_profile, "bip01_head")
+
+        local visual = strip_model_path(section)
+        local real_armor = ini_death:r_string_ex("outfit_by_visual", visual) or ""
+
+        if real_armor == "" then
+            visual = strip_model_path(npc_armor_path)
+            real_armor = ini_death:r_string_ex("outfit_by_visual", visual) or ""
+        end
+
+
+        tbl[section] = {
+            item = real_armor,
+            hit_fraction  = hit_fraction,
+            ap_scale      = ap_scale,
+            body_bonearmor = body_bonearmor,
+            head_bonearmor = head_bonearmor,
+        }
+        cnt = cnt + 1
+    end)
+
+    local p_file = "export_npc_armor_profiles.csv"
+    local f = io.open(p_file, "w+")
+    local header = translate_headers({
+        "~", "st_data_export_visual_item_id",
+        "st_data_export_hit_fraction", "st_data_export_ap_scale",
+        "st_data_export_body_bonearmor", "st_data_export_head_bonearmor",
+    })
+    write_csv_header(f, header)
+
+    local sorted = {}
+    for sec in pairs(tbl) do sorted[#sorted + 1] = sec end
+    table.sort(sorted)
+
+    for _, sec in ipairs(sorted) do
+        local v = tbl[sec]
+        write_csv(f, sec, v.item, v.hit_fraction, v.ap_scale, v.body_bonearmor,
+                v.head_bonearmor)
+    end
+    f:close()
+
+    x:SendOutput("[END] export NPC armor profiles - %s profiles written - see %s", cnt, p_file)
 end
