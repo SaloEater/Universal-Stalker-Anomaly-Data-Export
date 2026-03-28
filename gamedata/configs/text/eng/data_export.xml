@@ -207,4 +207,40 @@
     <string id="st_data_export_description">
         <text>Description</text>
     </string>
+    <string id="st_data_export_hit_power">
+        <text>Hit Power</text>
+    </string>
+    <string id="st_data_export_k_hit">
+        <text>K Hit</text>
+    </string>
+    <string id="st_data_export_k_ap">
+        <text>K AP</text>
+    </string>
+    <string id="st_data_export_k_air_resistance">
+        <text>K Air Resistance</text>
+    </string>
+    <string id="st_data_export_skin_armor">
+        <text>Skin Armor</text>
+    </string>
+    <string id="st_data_export_hit_fraction">
+        <text>Hit Fraction</text>
+    </string>
+    <string id="st_data_export_fire_wound_immunity">
+        <text>Fire Wound Immunity</text>
+    </string>
+    <string id="st_data_export_hitzone_head">
+        <text>Head Mult</text>
+    </string>
+    <string id="st_data_export_hitzone_torso">
+        <text>Torso Mult</text>
+    </string>
+    <string id="st_data_export_hitzone_limbs">
+        <text>Limbs Mult</text>
+    </string>
+    <string id="st_data_export_hitzone_rear">
+        <text>Rear Mult</text>
+    </string>
+    <string id="st_data_export_visual_item_id">
+        <text>Item ID</text>
+    </string>
 </string_table>

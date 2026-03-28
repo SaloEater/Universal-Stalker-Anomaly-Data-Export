@@ -213,4 +213,40 @@
     <string id="st_data_export_description">
         <text>Описание</text>
     </string>
+    <string id="st_data_export_hit_power">
+        <text>Мощность выстрела</text>
+    </string>
+    <string id="st_data_export_k_hit">
+        <text>К. Хит</text>
+    </string>
+    <string id="st_data_export_k_ap">
+        <text>К. БП</text>
+    </string>
+    <string id="st_data_export_k_air_resistance">
+        <text>К. Сопр. воздуха</text>
+    </string>
+    <string id="st_data_export_skin_armor">
+        <text>Броня кожи</text>
+    </string>
+    <string id="st_data_export_hit_fraction">
+        <text>Фракция удара</text>
+    </string>
+    <string id="st_data_export_fire_wound_immunity">
+        <text>Иммунитет к огнестрелу</text>
+    </string>
+    <string id="st_data_export_hitzone_head">
+        <text>Множ. голова</text>
+    </string>
+    <string id="st_data_export_hitzone_torso">
+        <text>Множ. торс</text>
+    </string>
+    <string id="st_data_export_hitzone_limbs">
+        <text>Множ. конечности</text>
+    </string>
+    <string id="st_data_export_hitzone_rear">
+        <text>Множ. зад</text>
+    </string>
+    <string id="st_data_export_visual_item_id">
+        <text>ID предмета</text>
+    </string>
 </string_table>
