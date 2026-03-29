@@ -2591,7 +2591,7 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
 
     local h1 = "~,Name"
     for i = 1, max_upg do
-        h1 = h1 .. string.format(",Row_%d,Column_%d,Cell_%d,Property_%d,Section_%d", i, i, i, i, i)
+        h1 = h1 .. string.format(",Row_%d,Column_%d,Cell_%d,Property_%d,Description_%d,Section_%d", i, i, i, i, i,i)
     end
     f1:write(h1 .. "\n")
 
