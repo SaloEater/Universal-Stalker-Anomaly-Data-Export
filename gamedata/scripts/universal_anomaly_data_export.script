@@ -26,6 +26,8 @@ local cmd_list = {
     --{ 	name = "Export weapons upgrades" 				, cmd = "export_weapons_upgrades"    				         , hide_ui = 0 								},
 }
 
+local icon_candidates = {}
+
 function debug_cmd_list.cmd.export_all(_, txt, x)
     local skip = {
         ["export_translations"] = true,
@@ -33,6 +35,7 @@ function debug_cmd_list.cmd.export_all(_, txt, x)
         ["export_all"] = true,
         ["export_item_list"] = true,
         ["export_mutant_parts_prices"] = true,
+        ["export_item_icons"] = true,
     }
 
     for i, cmd in ipairs(cmd_list) do
@@ -445,6 +448,7 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
                 x:SendOutput("export outfit - %s, done", section)
                 counter = counter - 1
                 leftovers[section] = nil
+                icon_candidates[section] = true
                 return true
             end)
         end
@@ -714,6 +718,7 @@ function debug_cmd_list.cmd.export_eatable(_, txt, x)
             eatable.weight_carried = floor_with_precision(ini_sys:r_float_ex(section, "boost_max_weight") or 0)
 
             tbl[section] = eatable
+            icon_candidates[section] = true
             cnt = cnt + 1
         end
     end)
@@ -880,6 +885,7 @@ function debug_cmd_list.cmd.export_medicine(_, txt, x)
             eatable.craftable = craftable[section] and "Y" or "N"
 
             tbl[section] = eatable
+            icon_candidates[section] = true
             cnt = cnt + 1
         end
     end)
@@ -965,6 +971,7 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
             artefact.weight_carried = math.floor(get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0)
 
             tbl[section] = artefact
+            icon_candidates[section] = true
             cnt = cnt + 1
         end
     end)
@@ -1049,6 +1056,7 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
             belt_attachment.penetration = get_plate_penetration(section)
 
             tbl[section] = belt_attachment
+            icon_candidates[section] = true
             cnt = cnt + 1
         end
     end)
@@ -1337,6 +1345,7 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             weapon.br1, weapon.br2, weapon.br3, weapon.br4, weapon.br5 = get_weapon_br_stats(ammo_class)  --br1 is br0
 
             tbl[kind][section] = weapon
+            icon_candidates[section] = true
             alife_release(se_obj)
             x:SendOutput("export weapon - %s, done", section)
             leftToProcess = leftToProcess - 1
@@ -1511,6 +1520,7 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
                 weapon.heavy_attack_power = prop_damage(obj, section, "hit_power_2")
 
                 tbl[kind][section] = weapon
+                icon_candidates[section] = true
                 alife_release(se_obj)
                 x:SendOutput("export melee - %s, done", section)
                 counter = counter - 1
@@ -1636,6 +1646,7 @@ function debug_cmd_list.cmd.export_explosives(_, txt, x)
             explosive.delay = ini_sys:r_float_ex(explosive_section, "explode_duration") or 0
 
             tbl[section] = explosive
+            icon_candidates[section] = true
             cnt = cnt + 1
         end
     end)
@@ -1756,6 +1767,7 @@ function debug_cmd_list.cmd.export_ammo(_, txt, x)
             ammo.k_ap = ini_sys:r_float_ex(section, "k_ap") or 0
             ammo.k_air_resistance = ini_sys:r_float_ex(section, "k_air_resistance") or 0
             tbl[section] = ammo
+            icon_candidates[section] = true
             cnt = cnt + 1
         end
     end)
@@ -1842,9 +1854,11 @@ function debug_cmd_list.cmd.export_disassemble_table(_, txt, x)
             tbl_materials[part_section].results[section] = {}
             tbl_materials[part_section].results[section].name = item_name
             tbl_materials[part_section].results[section].count = parts_count
+            icon_candidates[part_section] = true
         end
 
         tbl_disassemble[section] = disassemble
+        icon_candidates[section] = true
         disassemble_count = disassemble_count + 1
     end)
 
@@ -2678,17 +2692,17 @@ function debug_cmd_list.cmd.export_item_icons(_, txt, x)
     }
     local tbl = {}
     local cnt = 0
-    ini_sys:section_for_each(function(section)
+    for section, _ in pairs(icon_candidates) do
         local grid_x = ini_sys:r_float_ex(section, "inv_grid_x")
-        if not grid_x then return end
+        if not grid_x then goto continue end
 
-        if blacklist[section] or is_multiplayer_item(section) then return end
+        if blacklist[section] or is_multiplayer_item(section) then goto continue end
 
         local class = ini_sys:r_string_ex(section, "class")
         local kind = ini_sys:r_string_ex(section, "kind")
         if kind == "" then kind = class end
         if kind and weapon_kinds[kind] and is_weapon_modification(section) then
-            return
+            goto continue
         end
 
         local item = {}
@@ -2701,7 +2715,8 @@ function debug_cmd_list.cmd.export_item_icons(_, txt, x)
 
         tbl[section] = item
         cnt = cnt + 1
-    end)
+        ::continue::
+    end
 
     local f = io.open("export_item_icons.csv", "w+")
     f:write("id,texture,width,height,x,y\n")
