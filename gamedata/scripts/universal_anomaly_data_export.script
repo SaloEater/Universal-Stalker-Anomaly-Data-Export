@@ -1,7 +1,6 @@
 local cmd_list = {
     { name = "Change headers mode", cmd = "change_headers_mode", hide_ui = 0 },
     { name = "Export outfits", cmd = "export_outfits", hide_ui = 0 },
-    --{ 	name = "Export outfits upgrades" 				, cmd = "export_outfits_upgrades"    				         , hide_ui = 0 								},
     { name = "Export eatable", cmd = "export_eatable", hide_ui = 0 },
     { name = "Export medicine", cmd = "export_medicine", hide_ui = 0 },
     { name = "Export artefacts", cmd = "export_artefacts", hide_ui = 0 },
@@ -2478,6 +2477,7 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
                         sec    = w.section,
                         stats  = w.stats,
                         prop   = w.prop,
+                        desc   = w.desc,
                     }
                     if type then
                         all_stats_sections[type] = all_stats_sections[type] or {}
@@ -2519,17 +2519,26 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
     local item_count = 0
     for _, sec in ipairs(sorted_sections) do
         local item = all_items[sec]
-        local row = sec .. "," .. item.name
+        local parts = { sec, item.name }
         for i = 1, max_upg do
             local u = item.upgrades[i]
             if u then
-                local property_name = properties:r_string_ex(u.prop[1], "name") or u.prop[1]
-                row = row .. "," .. u.row .. "," .. u.column .. "," .. u.cell .. "," .. translate_with_context(property_name, "upgrade property for " .. u.sec) .. "," .. u.stats
+                local property_name = properties:r_string_ex(u.prop[1], "name") or ""
+                parts[#parts+1] = u.row
+                parts[#parts+1] = u.column
+                parts[#parts+1] = u.cell
+                parts[#parts+1] = translate_with_context(property_name, "upgrade property for " .. u.sec)
+                parts[#parts+1] = translate_with_context(u.desc, "upgrade description for " .. u.sec)
+                parts[#parts+1] = u.stats
             else
-                row = row .. ",,,,"
+                parts[#parts+1] = ""
+                parts[#parts+1] = ""
+                parts[#parts+1] = ""
+                parts[#parts+1] = ""
+                parts[#parts+1] = ""
             end
         end
-        f1:write(row .. "\n")
+        f1:write(table.concat(parts, ",") .. "\n")
         item_count = item_count + 1
     end
     f1:close()
@@ -2565,16 +2574,89 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
         return a.stats_sec < b.stats_sec
     end)
 
+    local stats = {}
     local sec_count = 0
     for _, entry in ipairs(sorted_stats) do
         local stat_type = entry.stat_type
         local stats_sec = entry.stats_sec
-        local row = stats_sec .. "," .. stat_type
         local n = ini_sys:line_count(stats_sec) or 0
         local props_written = 0
+        local parts = {stats_sec, stat_type}
+
+        local disable_in_second_pass = {
+            ["hit_fraction_actor"] = true,
+            ["silencer_light_range"] = true,
+            ["misfire_start_prob"] = true,
+            ["misfire_end_prob"] = true,
+            ["PDM_disp_vel_factor"] = true,
+            ["silencer_smoke_particles"] = true,
+            ["shell_particles"] = true,
+            ["scope_zoom_factor"] = true,
+            ["scope_status"] = true,
+            ["fire_modes"] = true,
+            ["scope_alive_detector"] = true,
+            ["9a91ue"] = true,
+            ["zoom_cam_dispersion"] = true,
+            ["cam_dispersion_frac"] = true,
+            ["silencer_light_time"] = true,
+            ["scopes_sect"] = true,
+            ["snd_shoot1"] = true,
+            ["cam_step_angle_horz"] = true,
+            ["condition_shot_dec"] = true,
+            ["silencer_y"] = true,
+            ["fire_dispersion_base"] = true,
+            ["PDM_disp_accel_factor"] = true,
+            ["power_loss"] = true,
+            ["cam_dispersion"] = true,
+            ["silencer_light_var_range"] = true,
+            ["silencer_light_color"] = true,
+            ["zoom_cam_step_angle_horz"] = true,
+            ["zoom_cam_dispersion_inc"] = true,
+            ["snd_silncer_shot"] = true,
+            ["silencer_light_var_color"] = true,
+            ["bones_koeff_protection_add"] = true,
+            ["silencer_status"] = true,
+            ["fire_distance"] = true,
+            ["crosshair_inertion"] = true,
+            ["snd_silncer_shot_actor"] = true,
+            ["condition_queue_shot_dec"] = true,
+            ["cam_dispersion_inc"] = true,
+            ["hit_impulse"] = true,
+            ["scope_nightvision"] = true,
+            ["bullet_speed"] = true,
+            ["bleeding_restore_speed"] = true,
+            ["grenade_launcher_name"] = true,
+            ["grenade_launcher_y"] = true,
+            ["grenade_launcher_x"] = true,
+            ["PDM_disp_base"] = true,
+            ["silencer_name"] = true,
+            ["silencer_x"] = true,
+            ["snd_shoot"] = true,
+            ["scope_dynamic_zoom"] = true,
+            ["grenade_launcher_status"] = true,
+            ["value"] = true,
+        }
+
+        -- First pass for prioritized upgrades
         for i = 0, n - 1 do
             local _, key, val = ini_sys:r_line(stats_sec, i, "", "")
-            if key and key ~= "" then
+            if not key or key == "" then goto continue end
+            stats[key] = true
+
+            if key == "bones_koeff_protection_add" then
+                local display_val = tostring(get_real_stat_value_display(stats_sec, 0, "outfit", "fire_wound_protection"))
+                key = "fire_wound_protection"
+                parts[#parts + 1] = key
+                parts[#parts + 1] = sanitize_value(display_val)
+                props_written = props_written + 1
+                disable_in_second_pass[key] = true
+            end
+            ::continue::
+        end
+
+        for i = 0, n - 1 do
+            local _, key, val = ini_sys:r_line(stats_sec, i, "", "")
+            if key and key ~= "" and not disable_in_second_pass[key] then
                 if key == "ammo_class" then
                     val = get_weapon_caliber(val)
                 end
@@ -2584,17 +2666,24 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
                 if num_val and utils_ui.stats_table[stat_type] then
                     display_val = tostring(get_real_stat_value_display(stats_sec, num_val, stat_type, key))
                 end
-                row = row .. "," .. key .. "," .. sanitize_value(display_val)
+                parts[#parts + 1] = key
+                parts[#parts + 1] = sanitize_value(display_val)
                 props_written = props_written + 1
+                ::continue::
             end
         end
+
         for _ = props_written + 1, max_props do
-            row = row .. ",,"
+            parts[#parts + 1] = ""
         end
-        f2:write(row .. "\n")
+        f2:write(table.concat(parts, ",") .. "\n")
         sec_count = sec_count + 1
     end
     f2:close()
+
+    for stat, _ in pairs(stats) do
+        printf(stat)
+    end
 
     x:SendOutput("[END] export upgrades - %s items, %s upgrade sections - see export_upgrades_items.csv, export_upgrade_sections.csv", item_count, sec_count)
 end
