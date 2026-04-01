@@ -1,4 +1,8 @@
 id,texture,width,height,x,y
+1p29,ui\ui_icon_equipment,50,50,250,1450
+ac10632,ui\ui_icon_equipment,50,50,400,1450
+ac11090,ui\ui_icon_equipment,50,50,550,1500
+acog,ui\ui_icon_equipment,50,50,450,1450
 adrenalin,ui\ui_icon_equipment,50,50,750,3300
 af_aac,ui\ui_icon_equipment,50,50,100,1400
 af_aam,ui\ui_icon_equipment,50,50,150,1400
@@ -260,6 +264,7 @@ bottle_metal,ui\ui_icon_equipment,50,50,350,3050
 bread,ui\ui_icon_equipment,50,50,0,3150
 breadold,ui\ui_icon_equipment,50,50,50,3150
 broken_detector,ui\ui_icon_equipment,50,50,50,2150
+c-more,ui\ui_icon_equipment,50,50,650,1500
 caffeine,ui\ui_icon_equipment,50,50,0,3250
 camelbak_chug,ui\ui_icon_equipment,50,50,0,100
 camelbak_sip,ui\ui_icon_equipment,50,50,0,100
@@ -343,6 +348,7 @@ ecolog_outfit_white,ui\ui_icon_equipment,100,150,5300,300
 ecolog_outfit_yello,ui\ui_icon_equipment,100,150,5300,600
 ecolog_proto_exo_outfit,ui\ui_icon_equipment,100,150,5200,1050
 energy_drink,ui\ui_icon_equipment,50,50,200,3050
+eot,ui\ui_icon_equipment,50,50,350,1450
 equ_military_pack,ui\ui_icon_equipment,100,100,3800,300
 equ_small_military_pack,ui\ui_icon_equipment,100,100,3800,200
 equ_small_pack,ui\ui_icon_equipment,100,100,3800,100
@@ -449,6 +455,7 @@ jar,ui\ui_icon_equipment,50,50,150,2200
 jgut,ui\ui_icon_equipment,50,50,50,3300
 joint,ui\ui_icon_equipment,50,50,0,3000
 kit_hunt,ui\ui_icon_equipment,100,100,3800,500
+kobra,ui\ui_icon_equipment,50,50,200,1450
 kolbasa,ui\ui_icon_equipment,50,50,100,3150
 lead_box,ui\ui_icon_equipment,50,100,0,1350
 letter_ecologist_report_1_of_3,ui\ui_icon_equipment,100,50,100,750
@@ -621,6 +628,8 @@ prt_o_retardant_7,ui\ui_icon_equipment,50,50,3350,2750
 prt_o_retardant_8,ui\ui_icon_equipment,50,50,3400,2750
 prt_o_retardant_9,ui\ui_icon_equipment,50,50,3350,2800
 prt_o_support_1,ui\ui_icon_equipment,100,50,3550,2600
+ps01,ui\ui_icon_equipment,100,50,0,1450
+pso1m21,ui\ui_icon_equipment,100,50,100,1450
 radio,ui\ui_icon_equipment,50,50,250,2100
 radio2,ui\ui_icon_equipment,50,50,300,2100
 raid_injector_1,ui\raid_textures\raid_special_items,50,50,100,0
@@ -756,6 +765,12 @@ wpn_9a91,ui\ui_icon_equipment,200,100,1400,1700
 wpn_abakan,ui\ui_icon_equipment,250,100,1250,0
 wpn_abakan_camo,ui\ui_icon_equipment,250,100,1250,100
 wpn_ace21,ui\ui_icon_equipment,200,100,2000,2500
+wpn_addon_grenade_launcher,ui\ui_icon_equipment,100,50,500,450
+wpn_addon_grenade_launcher_m203,ui\ui_icon_equipment,100,50,600,450
+wpn_addon_scope,ui\ui_icon_equipment,100,50,0,1450
+wpn_addon_scope_g43,ui\ui_icon_equipment,100,50,350,1100
+wpn_addon_scope_susat,ui\ui_icon_equipment,100,50,500,1450
+wpn_addon_silencer,ui\ui_icon_equipment,50,50,950,350
 wpn_aek,ui\ui_icon_equipment,250,100,1000,600
 wpn_aek_camo,ui\ui_icon_equipment,250,100,1000,700
 wpn_aek_duty,ui\ui_icon_equipment,250,100,1750,1100
@@ -950,6 +965,21 @@ wpn_sig550_custom,ui\ui_icon_equipment,250,100,1000,2700
 wpn_sig550_luckygun,ui\ui_icon_equipment,250,100,1750,1300
 wpn_sig550_sniper,ui\ui_icon_equipment,300,100,2200,1700
 wpn_sig552,ui\ui_icon_equipment,200,100,2000,2300
+wpn_sil_45,ui\ui_icon_equipment,50,50,950,400
+wpn_sil_57,ui\ui_icon_equipment,50,50,550,400
+wpn_sil_6p9,ui\ui_icon_equipment,100,50,100,400
+wpn_sil_9a91,ui\ui_icon_equipment,100,50,300,400
+wpn_sil_9mm,ui\ui_icon_equipment,50,50,950,350
+wpn_sil_aps,ui\ui_icon_equipment,50,50,400,400
+wpn_sil_atg,ui\ui_icon_equipment,100,50,0,400
+wpn_sil_gemtech,ui\ui_icon_equipment,100,50,700,700
+wpn_sil_kzrzp,ui\ui_icon_equipment,50,50,900,350
+wpn_sil_nato,ui\ui_icon_equipment,50,50,700,400
+wpn_sil_pbs1,ui\ui_icon_equipment,50,50,900,400
+wpn_sil_pbs4,ui\ui_icon_equipment,100,50,800,400
+wpn_sil_sr25,ui\ui_icon_equipment,100,50,450,400
+wpn_sil_tgp-a,ui\ui_icon_equipment,100,50,600,400
+wpn_sil_vihr,ui\ui_icon_equipment,100,50,200,400
 wpn_sks,ui\ui_icon_equipment,250,50,2250,3800
 wpn_sks_modern,ui\ui_icon_equipment,250,50,2500,3800
 wpn_spas12,ui\ui_icon_equipment,250,100,2000,0
