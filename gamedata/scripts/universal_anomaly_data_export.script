@@ -17,6 +17,8 @@ local cmd_list = {
     { name = "Export mutant parts prices", cmd = "export_mutant_parts_prices", hide_ui = 0 },
     --{ name = "Export mutant profiles", cmd = "export_mutant_profiles", hide_ui = 0 },--TODO: figure out if it's possible to display for vanilla
     -- { name = "Export npc armor profiles", cmd = "export_npc_armor_profiles", hide_ui = 0 },--TODO: figure out if it's possible to display for vanilla
+    { name = "Export weapon addons", cmd = "export_weapon_addons", hide_ui = 0 },
+    { name = "Export weapon addon map", cmd = "export_weapon_addon_map", hide_ui = 0 },
     { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
     { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
     { name = "Export translations", cmd = "export_translations", hide_ui = 0 },
@@ -2828,4 +2830,144 @@ function debug_cmd_list.cmd.export_npc_armor_profiles(_, txt, x)
     f:close()
 
     x:SendOutput("[END] export NPC armor profiles - %s profiles written - see %s", cnt, p_file)
+end
+
+function debug_cmd_list.cmd.export_weapon_addons(_, txt, x)
+    x:SendOutput("[START] export addons")
+
+    local seen_scopes    = {}
+    local seen_silencers = {}
+    local seen_gls       = {}
+
+    ini_sys:section_for_each(function(section)
+        local kind = ini_sys:r_string_ex(section, "kind")
+        local class = ini_sys:r_string_ex(section, "class")
+        if kind == "" then kind = class end
+        if not weapon_kinds[kind] or is_weapon_modification(section) then return end
+
+        local scopes_raw = ini_sys:r_string_ex(section, "scopes") or ""
+        if scopes_raw ~= "" then
+            for _, s in ipairs(str_explode(scopes_raw, ",")) do
+                local id = s:trim()
+                if id ~= "" and not is_multiplayer_item(id) then seen_scopes[id] = true end
+            end
+        end
+        local scope_name = ini_sys:r_string_ex(section, "scope_name")
+        if scope_name and scope_name ~= "" and not is_multiplayer_item(id) then seen_scopes[scope_name] = true end
+
+        local sil = ini_sys:r_string_ex(section, "silencer_name")
+        if sil and sil ~= "" and not is_multiplayer_item(sil) then seen_silencers[sil] = true end
+
+        local gl = ini_sys:r_string_ex(section, "grenade_launcher_name")
+        if gl and gl ~= "" and not is_multiplayer_item(gl) then seen_gls[gl] = true end
+    end)
+
+    local function write_addon_file(filename, seen, include_zoom)
+        local f = io.open(filename, "w+")
+        local header_keys = { "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost" }
+        if include_zoom then
+            table.insert(header_keys, "st_data_export_zoom_factor")
+        end
+        write_csv_header(f, translate_headers(header_keys))
+
+        local sorted = {}
+        for id in pairs(seen) do sorted[#sorted + 1] = id end
+        table.sort(sorted)
+
+        local cnt = 0
+        for _, id in ipairs(sorted) do
+            local name = translate_with_context(ini_sys:r_string_ex(id, "inv_name"), "item name for " .. id)
+            local desc = (translate_with_context(ini_sys:r_string_ex(id, "description"), "description for " .. id) or ""):sanitize()
+            local weight = floor_with_precision(ini_sys:r_float_ex(id, "inv_weight") or 0)
+            local cost = ini_sys:r_float_ex(id, "cost") or 0
+            if include_zoom then
+                local zoom = ini_sys:r_float_ex(id, "scope_zoom_factor") or ""
+                write_csv(f, id, name, desc, weight, cost, zoom)
+            else
+                write_csv(f, id, name, desc, weight, cost)
+            end
+            icon_candidates[id] = true
+            cnt = cnt + 1
+        end
+        f:close()
+        return cnt
+    end
+
+    local scope_cnt = write_addon_file("export_scopes.csv", seen_scopes, true)
+    local silen_cnt = write_addon_file("export_silencers.csv", seen_silencers, false)
+    local gl_cnt    = write_addon_file("export_grenade_launchers.csv", seen_gls, false)
+
+    x:SendOutput("[END] export addons - %s scopes, %s silencers, %s grenade launchers", scope_cnt, silen_cnt, gl_cnt)
+end
+
+function debug_cmd_list.cmd.export_weapon_addon_map(_, txt, x)
+    x:SendOutput("[START] export weapon addon map")
+
+    local f = io.open("export_weapon_addon_map.csv", "w+")
+    local cnt = 0
+    local reverse = {}  -- addon_id -> list of weapon sections
+
+    local sections_queue = {}
+    ini_sys:section_for_each(function(section)
+        local kind = ini_sys:r_string_ex(section, "kind")
+        local class = ini_sys:r_string_ex(section, "class")
+        if kind == "" then kind = class end
+        if weapon_kinds[kind] and not is_weapon_modification(section) and not is_multiplayer_item(section) then
+            table.insert(sections_queue, section)
+        end
+    end)
+    table.sort(sections_queue)
+
+    for _, section in ipairs(sections_queue) do
+        local row = { section }
+        local seen = {}
+
+        local function add_addon(id)
+            if not seen[id] then
+                seen[id] = true
+                table.insert(row, id)
+                if not reverse[id] then reverse[id] = {} end
+                table.insert(reverse[id], section)
+            end
+        end
+
+        local scopes_raw = ini_sys:r_string_ex(section, "scopes") or ""
+        if scopes_raw ~= "" then
+            for _, s in ipairs(str_explode(scopes_raw, ",")) do
+                local id = s:trim()
+                if id ~= "" then add_addon(id) end
+            end
+        end
+        local scope_name = ini_sys:r_string_ex(section, "scope_name")
+        if scope_name and scope_name ~= "" then add_addon(scope_name) end
+
+        local sil = ini_sys:r_string_ex(section, "silencer_name")
+        if sil and sil ~= "" then add_addon(sil) end
+
+        local gl = ini_sys:r_string_ex(section, "grenade_launcher_name")
+        if gl and gl ~= "" then add_addon(gl) end
+
+        if #row > 1 then
+            write_csv(f, unpack(row))
+            cnt = cnt + 1
+        end
+    end
+    f:close()
+
+    -- Reverse map: addon_id, weapon_1, weapon_2, ...
+    local fr = io.open("export_addon_weapon_map.csv", "w+")
+    local addon_ids = {}
+    for id in pairs(reverse) do addon_ids[#addon_ids + 1] = id end
+    table.sort(addon_ids)
+
+    for _, id in ipairs(addon_ids) do
+        local row = { id }
+        for _, weapon in ipairs(reverse[id]) do
+            table.insert(row, weapon)
+        end
+        write_csv(fr, unpack(row))
+    end
+    fr:close()
+
+    x:SendOutput("[END] export weapon addon map - %s weapons, %s addons written", cnt, #addon_ids)
 end
