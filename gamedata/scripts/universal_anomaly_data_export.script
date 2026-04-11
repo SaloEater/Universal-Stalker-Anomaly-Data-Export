@@ -2480,6 +2480,7 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
                         stats  = w.stats,
                         prop   = w.prop,
                         desc   = w.desc,
+                        uname  = w.name or "",
                     }
                     if type then
                         all_stats_sections[type] = all_stats_sections[type] or {}
@@ -2508,7 +2509,7 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
 
     local h1 = "~,Name"
     for i = 1, max_upg do
-        h1 = h1 .. string.format(",Row_%d,Column_%d,Cell_%d,Property_%d,Desc_%d,Section_%d", i, i, i, i, i,i)
+        h1 = h1 .. string.format(",Row_%d,Column_%d,Cell_%d,Property_%d,Value_%d,Name_%d,Desc_%d,Section_%d", i, i, i, i, i, i, i, i)
     end
     f1:write(h1 .. "\n")
 
@@ -2517,6 +2518,7 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
     table.sort(sorted_sections)
 
     local properties = ini_file("items\\weapons\\upgrades_properties.ltx")
+    local char_ini = ini_file("item_upgrades.ltx")
 
     local item_count = 0
     for _, sec in ipairs(sorted_sections) do
@@ -2526,13 +2528,19 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
             local u = item.upgrades[i]
             if u then
                 local property_name = properties:r_string_ex(u.prop[1], "name") or ""
+                local property_value = char_ini:r_string_ex(u.stats, "value") or ""
                 parts[#parts+1] = u.row
                 parts[#parts+1] = u.column
                 parts[#parts+1] = u.cell
                 parts[#parts+1] = translate_with_context(property_name, "upgrade property for " .. u.sec)
+                parts[#parts+1] = property_value
+                parts[#parts+1] = translate_with_context(u.uname, "upgrade name for " .. u.sec)
                 parts[#parts+1] = translate_with_context(u.desc, "upgrade description for " .. u.sec)
                 parts[#parts+1] = u.stats
             else
+                parts[#parts+1] = ""
+                parts[#parts+1] = ""
+                parts[#parts+1] = ""
                 parts[#parts+1] = ""
                 parts[#parts+1] = ""
                 parts[#parts+1] = ""
