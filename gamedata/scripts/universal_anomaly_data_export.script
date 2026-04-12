@@ -3190,7 +3190,8 @@ function debug_cmd_list.cmd.export_weapon_addon_map(_, txt, x)
         if sil and sil ~= "" then add_addon(sil) end
 
         local gl = ini_sys:r_string_ex(section, "grenade_launcher_name")
-        if gl and gl ~= "" then add_addon(gl) end
+        local gl_status = ini_sys:r_float_ex(section, "grenade_launcher_status")
+        if gl and gl ~= "" and gl_status == 2 then add_addon(gl) end
 
         if #row > 1 then
             write_csv(f, unpack(row))
