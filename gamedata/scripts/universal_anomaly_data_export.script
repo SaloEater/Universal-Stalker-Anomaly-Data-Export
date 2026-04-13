@@ -3354,6 +3354,7 @@ function debug_cmd_list.cmd.export_weapon_addons(_, txt, x)
         local header_keys = { "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost" }
         if include_zoom then
             table.insert(header_keys, "st_data_export_zoom_factor")
+            table.insert(header_keys, "st_data_export_magnifications")
         end
         write_csv_header(f, translate_headers(header_keys))
 
@@ -3369,7 +3370,8 @@ function debug_cmd_list.cmd.export_weapon_addons(_, txt, x)
             local cost = ini_sys:r_float_ex(id, "cost") or 0
             if include_zoom then
                 local zoom = ini_sys:r_float_ex(id, "scope_zoom_factor") or ""
-                write_csv(f, id, name, desc, weight, cost, zoom)
+                local magnifications = ini_sys:r_string_ex(id, "magnifications") or ""
+                write_csv(f, id, name, desc, weight, cost, zoom, magnifications)
             else
                 write_csv(f, id, name, desc, weight, cost)
             end
