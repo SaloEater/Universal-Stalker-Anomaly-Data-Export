@@ -4,7 +4,6 @@ local cmd_list = {
     { name = "Export eatable", cmd = "export_eatable", hide_ui = 0 },
     { name = "Export medicine", cmd = "export_medicine", hide_ui = 0 },
     { name = "Export artefacts", cmd = "export_artefacts", hide_ui = 0 },
-    { name = "Export artefact recipes", cmd = "export_artefact_recipes", hide_ui = 0 },
     { name = "Export craft recipes", cmd = "export_craft_recipes", hide_ui = 0 },
     --{ 	name = "Export anomalies spawns" 		, cmd = "export_anomalies spawn"		             , hide_ui = 0 								},
     { name = "Export belt attachments", cmd = "export_belt_attachments", hide_ui = 0 },
@@ -1028,6 +1027,12 @@ function debug_cmd_list.cmd.export_craft_recipes(_, txt, x)
                 recipe.ingr_3_amt = raw_recipe[3] and raw_recipe[3][2] and "x" .. raw_recipe[3][2] or ""
                 recipe.ingr_4_name = raw_recipe[4] and ini_sys:r_string_ex(raw_recipe[4][1], "inv_name") and translate_with_context(ini_sys:r_string_ex(raw_recipe[4][1], "inv_name"), "item name for " .. raw_recipe[4][1]) or ""
                 recipe.ingr_4_amt = raw_recipe[4] and raw_recipe[4][2] and "x" .. raw_recipe[4][2] or ""
+                for i = 1, 4 do
+                    if raw_recipe[i] and raw_recipe[i][1] then
+                        icon_candidates[raw_recipe[i][1]] = true
+                    end
+                end
+
                 tbl[section] = recipe
                 cnt = cnt + 1
             end
@@ -2921,6 +2926,8 @@ function debug_cmd_list.cmd.export_weapon_addons(_, txt, x)
     local seen_gls       = {}
 
     ini_sys:section_for_each(function(section)
+        if is_multiplayer_item(section) then return end
+
         local kind = ini_sys:r_string_ex(section, "kind")
         local class = ini_sys:r_string_ex(section, "class")
         if kind == "" then kind = class end
@@ -2934,7 +2941,7 @@ function debug_cmd_list.cmd.export_weapon_addons(_, txt, x)
             end
         end
         local scope_name = ini_sys:r_string_ex(section, "scope_name")
-        if scope_name and scope_name ~= "" and not is_multiplayer_item(id) then seen_scopes[scope_name] = true end
+        if scope_name and scope_name ~= "" and not is_multiplayer_item(scope_name) then seen_scopes[scope_name] = true end
 
         local sil = ini_sys:r_string_ex(section, "silencer_name")
         if sil and sil ~= "" and not is_multiplayer_item(sil) then seen_silencers[sil] = true end
