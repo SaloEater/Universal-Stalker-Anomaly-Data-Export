@@ -1,7 +1,7 @@
 ~,ui_st_community,pda_encyclopedia_name,st_data_export_description,st_prop_weight,st_upgr_cost,ui_mm_repair,ui_inv_outfit_durability_physical,ui_inv_outfit_durability_anomaly,ui_inv_outfit_fire_wound_protection,ui_inv_outfit_wound_protection,ui_inv_outfit_burn_protection,ui_inv_outfit_shock_protection,ui_inv_outfit_chemical_burn_protection,ui_inv_outfit_radiation_protection,ui_inv_outfit_telepatic_protection,ui_inv_outfit_strike_protection,ui_inv_outfit_explosion_protection,ui_inv_outfit_artefact_count,st_data_export_outfit_artefact_count_max,ui_inv_outfit_additional_weight,ui_inv_outfit_speed
 dolg_pantsir_outfit,dolg,dolg_pantsir_outfit_name,dolg_pantsir_outfit_description,12.22,58350,M,97%,71%,47%,49%,20%,17%,159%,16%,0%,50%,31%,1,2,24,101%
 stalker_outfit,stalker,stalker_outfit_name,stalker_outfit_description,6.20,22950,M,55%,62%,26%,31%,10%,11%,46%,4%,0%,26%,18%,2,3,15,103%
-specops_dolg_outfit,dolg,specops_dolg_outfit_name,specops_dolg_outfit_description,7.43,41500,M,96%,71%,35%,43%,10%,7%,70%,6%,0%,34%,36%,1,1,15,102%
+cs_nbc_outfit,csky,cs_nbc_outfit_name,cs_nbc_outfit_description,8.94,36810,M,74%,62%,36%,31%,27%,34%,138%,47%,0%,27%,20%,1,2,15,103%
 ecolog_outfit_green,ecolog,st_ecologist_outfit_grn_name,st_ecologist_outfit_grn_description,2.72,22980,M,31%,100%,23%,22%,66%,88%,264%,70%,22%,20%,12%,3,5,14,102%
 isg_outfit,isg,isg_outfit_name,isg_outfit_description,5.09,44920,M,86%,59%,36%,34%,17%,21%,90%,12%,0%,28%,20%,2,4,26,103%
 merc_scientific_armored_outfit,killer,merc_scientific_armored_outfit_name,merc_scientific_armored_outfit_description,5.69,59340,M,79%,96%,53%,29%,27%,40%,129%,36%,16%,22%,7%,2,4,20,102%
@@ -26,11 +26,11 @@ renegade_scientific_outfit,renegade,renegade_scientific_outfit_name,renegade_sci
 greh_armored_outfit,greh,greh_armored_outfit_name,greh_armored_outfit_description,8.84,37700,M,80%,62%,36%,29%,5%,5%,59%,8%,0%,34%,27%,1,2,18,103%
 cs_heavy_outfit,csky,csky_heavy_outfit_name,csky_heavy_outfit_description,9.12,63330,M,94%,71%,45%,37%,31%,26%,170%,16%,3%,25%,28%,2,3,20,100%
 military_sky_outfit,csky,military_sky_outfit_name,military_outfit_description,10.12,58350,M,97%,71%,47%,42%,40%,34%,209%,19%,0%,46%,26%,1,2,24,101%
-dolg_heavy_outfit,dolg,dolg_heavy_outfit_name,dolg_heavy_outfit_description,11.52,54350,M,95%,71%,50%,44%,30%,25%,180%,18%,0%,40%,31%,1,2,24,101%
+stalker_tigerstripe_outfit,stalker,stalker_tigerstripe_outfit_name,stalker_tigerstripe_outfit_description,6.44,24110,M,55%,62%,23%,34%,9%,8%,37%,5%,0%,28%,20%,2,3,16,104%
 nomad_outfit,stalker,nomad_outfit_name,nomad_outfit_description,5.20,78150,M,96%,71%,46%,44%,40%,34%,159%,16%,6%,34%,18%,3,4,25,103%
 stalker_predator_outfit,stalker,stalker_predator_outfit_name,stalker_predator_outfit_description,8.37,31640,M,55%,62%,29%,34%,9%,8%,37%,5%,0%,28%,20%,1,2,15,101%
-stalker_tigerstripe_outfit,stalker,stalker_tigerstripe_outfit_name,stalker_tigerstripe_outfit_description,6.44,24110,M,55%,62%,23%,34%,9%,8%,37%,5%,0%,28%,20%,2,3,16,104%
-cs_nbc_outfit,csky,cs_nbc_outfit_name,cs_nbc_outfit_description,8.94,36810,M,74%,62%,36%,31%,27%,34%,138%,47%,0%,27%,20%,1,2,15,103%
+specops_dolg_outfit,dolg,specops_dolg_outfit_name,specops_dolg_outfit_description,7.43,41500,M,96%,71%,35%,43%,10%,7%,70%,6%,0%,34%,36%,1,1,15,102%
+dolg_heavy_outfit,dolg,dolg_heavy_outfit_name,dolg_heavy_outfit_description,11.52,54350,M,95%,71%,50%,44%,30%,25%,180%,18%,0%,40%,31%,1,2,24,101%
 ecolog_guard_outfit,ecolog,ecologist_guard_outfit_name,ecologist_guard_outfit_description,7.84,38300,M,80%,59%,33%,30%,25%,40%,109%,14%,0%,27%,18%,2,3,18,103%
 dolg_specops_red_outfit,dolg,dolg_specops_red_outfit_name,dolg_specops_red_outfit_description,7.66,41500,M,96%,71%,39%,30%,10%,7%,70%,6%,0%,27%,24%,1,3,15,102%
 merc_nighthunter_outfit,killer,merc_nighthunter_outfit_name,merc_nighthunter_outfit_description,9.27,45100,M,86%,59%,43%,32%,11%,10%,59%,11%,0%,31%,23%,1,2,20,100%
