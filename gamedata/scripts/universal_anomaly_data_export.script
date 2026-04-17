@@ -4,7 +4,6 @@ local cmd_list = {
     { name = "Export eatable", cmd = "export_eatable", hide_ui = 0 },
     { name = "Export medicine", cmd = "export_medicine", hide_ui = 0 },
     { name = "Export artefacts", cmd = "export_artefacts", hide_ui = 0 },
-    { name = "Export artefact recipes", cmd = "export_artefact_recipes", hide_ui = 0 },
     { name = "Export craft recipes", cmd = "export_craft_recipes", hide_ui = 0 },
     --{ 	name = "Export anomalies spawns" 		, cmd = "export_anomalies spawn"		             , hide_ui = 0 								},
     { name = "Export belt attachments", cmd = "export_belt_attachments", hide_ui = 0 },
@@ -1043,48 +1042,6 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
     x:SendOutput("[END] export artefacts - %s total artefacts exported - see in Gamma\\Overwrite\\bin\\export_artefacts.csv", cnt)
 end
 
-function debug_cmd_list.cmd.export_artefact_recipes(_, txt, x)
-    x:SendOutput("[START] export artefact recipes")
-
-    local used_in_crafting, craftable = export_artefacts_recipes()
-
-    local tbl = {}
-    local cnt = 0
-    for section, recipes in pairs(craftable) do
-        for i, raw_recipe in ipairs(recipes) do
-            local recipe = {}
-            recipe.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
-            recipe.ingr_1_name = raw_recipe[1] and ini_sys:r_string_ex(raw_recipe[1][1], "inv_name") and translate_with_context(ini_sys:r_string_ex(raw_recipe[1][1], "inv_name"), "item name for " .. raw_recipe[1][1])
-            recipe.ingr_1_amt = raw_recipe[1] and raw_recipe[1][2] and "x" .. raw_recipe[1][2] or ""
-            recipe.ingr_2_name = raw_recipe[2] and ini_sys:r_string_ex(raw_recipe[2][1], "inv_name") and translate_with_context(ini_sys:r_string_ex(raw_recipe[2][1], "inv_name"), "item name for " .. raw_recipe[2][1])
-            recipe.ingr_2_amt = raw_recipe[2] and raw_recipe[2][2] and "x" .. raw_recipe[2][2] or ""
-            recipe.ingr_3_name = raw_recipe[3] and ini_sys:r_string_ex(raw_recipe[3][1], "inv_name") and translate_with_context(ini_sys:r_string_ex(raw_recipe[3][1], "inv_name"), "item name for " .. raw_recipe[3][1])
-            recipe.ingr_3_amt = raw_recipe[3] and raw_recipe[3][2] and "x" .. raw_recipe[3][2] or ""
-            recipe.ingr_4_name = raw_recipe[4] and ini_sys:r_string_ex(raw_recipe[4][1], "inv_name") and translate_with_context(ini_sys:r_string_ex(raw_recipe[4][1], "inv_name"), "item name for " .. raw_recipe[4][1])
-            recipe.ingr_4_amt = raw_recipe[4] and raw_recipe[4][2] and "x" .. raw_recipe[4][2] or ""
-            tbl[section] = recipe
-            cnt = cnt + 1
-        end
-    end
-
-    local p_file = "export_artefact_recipes.csv"
-    local debug_file = io.open(p_file, "w+")
-    local header = translate_headers({
-        "~", "pda_encyclopedia_name", "#1", "st_data_export_disassemble_amount", "#2", "st_data_export_disassemble_amount", "#3", "st_data_export_disassemble_amount", "#4", "st_data_export_disassemble_amount" })
-    write_csv_header(debug_file, header)
-    local sortByName = function(t, a, b)
-        return t[a].name < t[b].name
-    end
-    for section, v in spairs(tbl, sortByName) do
-        write_csv(debug_file,
-                section, v.name, v.ingr_1_name, v.ingr_1_amt, v.ingr_2_name, v.ingr_2_amt, v.ingr_3_name, v.ingr_3_amt, v.ingr_4_name, v.ingr_4_amt
-        )
-    end
-    debug_file:close()
-
-    x:SendOutput("[END] export artefact recipes - %s total recipes exported - see in Gamma\\Overwrite\\bin\\export_artefact_recipes.csv", cnt)
-end
-
 -- Craft category index to filename suffix mapping
 local craft_category_files = {
     [1] = "device",
@@ -1126,6 +1083,12 @@ function debug_cmd_list.cmd.export_craft_recipes(_, txt, x)
                 recipe.ingr_3_amt = raw_recipe[3] and raw_recipe[3][2] and "x" .. raw_recipe[3][2] or ""
                 recipe.ingr_4_name = raw_recipe[4] and ini_sys:r_string_ex(raw_recipe[4][1], "inv_name") and translate_with_context(ini_sys:r_string_ex(raw_recipe[4][1], "inv_name"), "item name for " .. raw_recipe[4][1]) or ""
                 recipe.ingr_4_amt = raw_recipe[4] and raw_recipe[4][2] and "x" .. raw_recipe[4][2] or ""
+                for i = 1, 4 do
+                    if raw_recipe[i] and raw_recipe[i][1] then
+                        icon_candidates[raw_recipe[i][1]] = true
+                    end
+                end
+
                 tbl[section] = recipe
                 cnt = cnt + 1
             end
@@ -3410,6 +3373,8 @@ function debug_cmd_list.cmd.export_weapon_addons(_, txt, x)
     local seen_gls       = {}
 
     ini_sys:section_for_each(function(section)
+        if is_multiplayer_item(section) then return end
+
         local kind = ini_sys:r_string_ex(section, "kind")
         local class = ini_sys:r_string_ex(section, "class")
         if kind == "" then kind = class end
@@ -3423,7 +3388,7 @@ function debug_cmd_list.cmd.export_weapon_addons(_, txt, x)
             end
         end
         local scope_name = ini_sys:r_string_ex(section, "scope_name")
-        if scope_name and scope_name ~= "" and not is_multiplayer_item(id) then seen_scopes[scope_name] = true end
+        if scope_name and scope_name ~= "" and not is_multiplayer_item(scope_name) then seen_scopes[scope_name] = true end
 
         local sil = ini_sys:r_string_ex(section, "silencer_name")
         if sil and sil ~= "" and not is_multiplayer_item(sil) then seen_silencers[sil] = true end
