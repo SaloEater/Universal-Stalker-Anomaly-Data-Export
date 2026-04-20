@@ -249,4 +249,34 @@
     <string id="st_data_export_visual_item_id">
         <text>ID предмета</text>
     </string>
+    <string id="st_data_export_price_multiplier">
+        <text>Множитель цены</text>
+    </string>
+    <string id="st_data_export_quantity">
+        <text>Количество</text>
+    </string>
+    <string id="st_data_export_probability">
+        <text>Вероятность</text>
+    </string>
+    <string id="st_data_export_discount_type">
+        <text>Тип скидки</text>
+    </string>
+    <string id="st_data_export_discount_value">
+        <text>Скидка</text>
+    </string>
+    <string id="st_data_export_condition">
+        <text>Условие</text>
+    </string>
+    <string id="st_data_export_property">
+        <text>Свойство</text>
+    </string>
+    <string id="st_data_export_value">
+        <text>Значение</text>
+    </string>
+    <string id="st_data_export_trader_stalker_flea_market">
+        <text>Торговец на Барахолке</text>
+    </string>
+    <string id="st_data_export_trader_stalker_flea_market_night">
+        <text>Торговец на Барахолке ночью</text>
+    </string>
 </string_table>
