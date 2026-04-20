@@ -21,6 +21,7 @@ local cmd_list = {
     { name = "Export npc armor profiles", cmd = "export_npc_armor_profiles", hide_ui = 0 },
     { name = "Export weapon addons", cmd = "export_weapon_addons", hide_ui = 0 },
     { name = "Export weapon addon map", cmd = "export_weapon_addon_map", hide_ui = 0 },
+    { name = "Export traders", cmd = "export_traders", hide_ui = 0 },
     { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
     { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
     { name = "Export translations", cmd = "export_translations", hide_ui = 0 },
@@ -298,6 +299,58 @@ function translate_headers(headers)
         parts[i] = csv_quote(clean)
     end
     return table.concat(parts, ",")
+end
+
+local data_property_handlers = {
+    ["name"] = function(value)
+        return translate_with_context(value, "trader name") or value
+    end,
+    -- Add more property handlers here as needed.
+}
+
+function format_condition_term(term)
+    local prefix, body = term:match("^([=!+%-])(.*)")
+    if not body then return term end
+    local text = term
+    if prefix == "!" then text = "NOT " .. text end
+    return text
+end
+
+function format_condition_block(block)
+    local content = block:match("^{(.*)}$")
+    if not content then return block end
+    local terms = {}
+    for term in content:gmatch("%S+") do
+        terms[#terms + 1] = format_condition_term(term)
+    end
+    return table.concat(terms, " AND ")
+end
+
+function format_condition_list(condition_blocks)
+    if #condition_blocks == 0 then return "" end
+    local parts = {}
+    for _, block in ipairs(condition_blocks) do
+        parts[#parts + 1] = format_condition_block(block)
+    end
+    return table.concat(parts, " OR ")
+end
+
+function parse_condlist(str)
+    local result = {}
+    if not str or str:trim() == "" then return result end
+    for _, part in ipairs(str_explode(str, ",")) do
+        local token = part:trim()
+        if token ~= "" then
+            local cond, section = token:match("^({[^}]+})%s*(.-)%s*$")
+            if cond and section and section ~= "" then
+                result[#result + 1] = { section = section, condition = cond }
+            else
+                local plain = token:match("^%s*(%S+)%s*$")
+                if plain then result[#result + 1] = { section = plain, condition = nil } end
+            end
+        end
+    end
+    return result
 end
 
 function debug_cmd_list.cmd.export_outfits(_, txt, x)
@@ -3307,4 +3360,188 @@ function debug_cmd_list.cmd.export_weapon_addon_map(_, txt, x)
     fr:close()
 
     x:SendOutput("[END] export weapon addon map - %s weapons, %s addons written", cnt, #addon_ids)
+end
+
+function debug_cmd_list.cmd.export_traders(_, txt, x)
+    x:SendOutput("[START] export traders")
+
+    local traders = {
+        { section = "bandit", config = "items\\trade\\trade_bandit.ltx", data = { name = "val_smart_terrain_7_4_bandit_trader_stalker_name" } },
+        { section = "bandit_basic", config = "items\\trade\\trade_bandit_basic.ltx", data = { name = "jup_cont_trader_bandit_name" } },
+        { section = "csky_spore", config = "items\\trade\\trade_csky_spore.ltx", data = { name = "mar_base_owl_stalker_trader_name" } },
+        { section = "duty", config = "items\\trade\\trade_duty.ltx", data = { name = "bar_petrenko_name" } },
+        { section = "ecolog_hermann", config = "items\\trade\\trade_ecolog_hermann.ltx", data = { name = "jup_b6_scientist_nuclear_physicist" } },
+        { section = "ecolog_sakharov", config = "items\\trade\\trade_ecolog_sakharov.ltx", data = { name = "yan_st_sakharov_name" } },
+        { section = "ecolog_spirit", config = "items\\trade\\trade_ecolog_spirit.ltx", data = { name = "yan_povar_army_mlr_name" } },
+        { section = "freedom", config = "items\\trade\\trade_freedom.ltx", data = { name = "mil_Svoboda_trader_name" } },
+        { section = "generic_barman", config = "items\\trade\\trade_generic_barman.ltx", data = { name = "bar_barmen_name" } },
+        { section = "generic_mechanic", config = "items\\trade\\trade_generic_mechanic.ltx", data = { name = "bar_visitors_stalker_mechanic_name" } },
+        { section = "generic_medic", config = "items\\trade\\trade_generic_medic.ltx", data = { name = "bar_dolg_medic_name" } },
+        { section = "greh", config = "items\\trade\\trade_greh.ltx", data = { name = "red_greh_trader_name" } },
+        { section = "isg", config = "items\\trade\\trade_isg.ltx", data = { name = "jup_depo_isg_tech_name" } },
+        { section = "isg_mission", config = "items\\trade\\trade_isg_mission.ltx", data = { name = "jup_depo_isg_tech_name" } },
+        { section = "mercenary", config = "items\\trade\\trade_mercenary.ltx", data = { name = "cit_killers_merc_trader_stalker_name" } },
+        { section = "mercenary_basic", config = "items\\trade\\trade_mercenary_basic.ltx", data = { name = "zat_stancia_trader_merc_name" } },
+        { section = "mercenary_meeker", config = "items\\trade\\trade_mercenary_meeker.ltx", data = { name = "pri_special_trader_mlr_name" } },
+        { section = "military", config = "items\\trade\\trade_military.ltx", data = { name = "agr_smart_terrain_1_6_army_trader_stalker_name" } },
+        { section = "military_esc", config = "items\\trade\\trade_military_esc.ltx", data = { name = "esc_3_16_military_trader_name" } },
+        { section = "monolith", config = "items\\trade\\trade_monolith.ltx", data = { name = "pri_monolith_monolith_trader_stalker_name" } },
+        { section = "monolith_basic", config = "items\\trade\\trade_monolith_basic.ltx", data = { name = "trader_monolith_kbo_name" } },
+        { section = "stalker_basic", config = "items\\trade\\trade_stalker_basic.ltx", data = { name = "trader_pri_a15_mlr_name" } },
+        { section = "stalker_butcher", config = "items\\trade\\trade_stalker_butcher.ltx", data = { name = "hunter_gar_trader_name" } },
+        { section = "stalker_flea_market", config = "items\\trade\\trade_stalker_flea_market.ltx", data = { name = "st_data_export_trader_stalker_flea_market" } },
+        { section = "stalker_flea_market_night", config = "items\\trade\\trade_stalker_flea_market_night.ltx", data = { name = "st_data_export_trader_stalker_flea_market_night" } },
+        { section = "stalker_loris", config = "items\\trade\\trade_stalker_loris.ltx", data = { name = "esc_main_base_trader_mlr_name" } },
+        { section = "stalker_nimble", config = "items\\trade\\trade_stalker_nimble.ltx", data = { name = "st_zat_a2_stalker_nimble_name" } },
+        { section = "stalker_owl", config = "items\\trade\\trade_stalker_owl.ltx", data = { name = "st_zat_b30_owl_stalker_trader_name" } },
+        { section = "stalker_sidorovich", config = "items\\trade\\trade_stalker_sidorovich.ltx", data = { name = "escape_trader_name" } }
+    }
+
+    local function make_trader_dir(section)
+        --os.execute('mkdir "traders\\' .. section .. '" 2>nul')
+    end
+
+    local function write_condition_file(ini, base, condlist_str, filename)
+        local seen = {}
+        local ordered = {}
+        for _, entry in ipairs(parse_condlist(condlist_str)) do
+            if not seen[entry.section] then
+                seen[entry.section] = true
+                ordered[#ordered + 1] = entry.section
+            end
+        end
+
+        local f = io.open(base .. filename, "w+")
+        if not f then return end
+        write_csv_header(f, translate_headers({ "~", "st_data_export_price_multiplier" }))
+        for _, cond_section in ipairs(ordered) do
+            local n = ini:line_count(cond_section) or 0
+            for i = 0, n - 1 do
+                local _, item_id, mult_str = ini:r_line(cond_section, i, "", "")
+                if item_id and item_id ~= "" then
+                    local mult = ""
+                    if mult_str and mult_str ~= "" then
+                        mult = str_explode(mult_str, ",")[1]:trim()
+                    end
+                    write_csv(f, item_id, mult)
+                end
+            end
+        end
+        f:close()
+    end
+
+    local function write_buy_supplies(base, buy_sup_str)
+        local groups  = {}
+        local ordered = {}
+        for _, entry in ipairs(parse_condlist(buy_sup_str)) do
+            if not groups[entry.section] then
+                groups[entry.section] = {}
+                ordered[#ordered + 1] = entry.section
+            end
+            if entry.condition then
+                groups[entry.section][#groups[entry.section] + 1] = entry.condition
+            end
+        end
+
+        local f = io.open(base .. "buy_supplies.csv", "w+")
+        if not f then return end
+        write_csv_header(f, translate_headers({ "~", "st_data_export_condition" }))
+        for _, sup_section in ipairs(ordered) do
+            write_csv(f, sup_section, format_condition_list(groups[sup_section]))
+        end
+        f:close()
+    end
+
+    local function write_supply_sections(ini, base, buy_sup_str)
+        local seen    = {}
+        local ordered = {}
+        for _, entry in ipairs(parse_condlist(buy_sup_str)) do
+            if not seen[entry.section] then
+                seen[entry.section] = true
+                ordered[#ordered + 1] = entry.section
+            end
+        end
+
+        for _, sup_section in ipairs(ordered) do
+            local f = io.open(base .. sup_section .. ".csv", "w+")
+            if not f then
+                -- continue
+            else
+                write_csv_header(f, translate_headers({
+                    "~", "st_data_export_quantity", "st_data_export_probability"
+                }))
+                local n = ini:line_count(sup_section) or 0
+                for i = 0, n - 1 do
+                    local _, item_id, value = ini:r_line(sup_section, i, "", "")
+                    if item_id and item_id ~= "" then
+                        local parts = str_explode(value or "", ",")
+                        write_csv(f, item_id,
+                            parts[1] and parts[1]:trim() or "",
+                            parts[2] and parts[2]:trim() or "")
+                    end
+                end
+                f:close()
+            end
+        end
+    end
+
+    local function write_discounts(ini, base, discounts_sec)
+        local f = io.open(base .. "discounts.csv", "w+")
+        if not f then return end
+        write_csv_header(f, translate_headers({
+            "st_data_export_discount_type", "st_data_export_discount_value"
+        }))
+        if discounts_sec and discounts_sec ~= "" then
+            local n = ini:line_count(discounts_sec) or 0
+            for i = 0, n - 1 do
+                local _, dtype, dvalue = ini:r_line(discounts_sec, i, "", "")
+                if dtype and dtype ~= "" then
+                    write_csv(f, dtype, dvalue or "")
+                end
+            end
+        end
+        f:close()
+    end
+
+    local function write_trader_data(base, trader_data)
+        if not trader_data then return end
+        local f = io.open(base .. "data.csv", "w+")
+        if not f then return end
+        write_csv_header(f, translate_headers({ "st_data_export_property", "st_data_export_value" }))
+        for prop, value in pairs(trader_data) do
+            local handler = data_property_handlers[prop]
+            local processed = handler and handler(value) or tostring(value)
+            write_csv(f, prop, processed)
+        end
+        f:close()
+    end
+
+    --os.execute('mkdir "traders" 2>nul')
+    local total = 0
+
+    for _, trader in ipairs(traders) do
+        local ini = ini_file(trader.config)
+        if not ini then
+            x:SendOutput("export traders - SKIPPED %s (file not found)", trader.section)
+        else
+            make_trader_dir(trader.section)
+            local base = "traders\\" .. trader.section .. "\\"
+
+            local buy_cond_str  = ini:r_string_ex("trader", "buy_condition")  or ""
+            local sell_cond_str = ini:r_string_ex("trader", "sell_condition") or ""
+            local buy_sup_str   = ini:r_string_ex("trader", "buy_supplies")   or ""
+            local discounts_sec = ini:r_string_ex("trader", "discounts")      or ""
+
+            write_condition_file(ini, base, buy_cond_str,  "buy_condition.csv")
+            write_condition_file(ini, base, sell_cond_str, "sell_condition.csv")
+            write_buy_supplies(base, buy_sup_str)
+            write_supply_sections(ini, base, buy_sup_str)
+            write_discounts(ini, base, discounts_sec)
+            write_trader_data(base, trader.data)
+
+            total = total + 1
+        end
+    end
+
+    x:SendOutput("[END] export traders - %s traders exported - see traders\\", total)
 end
