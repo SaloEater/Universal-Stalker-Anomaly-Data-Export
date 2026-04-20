@@ -252,4 +252,34 @@
     <string id="st_data_export_zoom_factor">
         <text>Zoom Factor</text>
     </string>
+    <string id="st_data_export_price_multiplier">
+        <text>Price Multiplier</text>
+    </string>
+    <string id="st_data_export_quantity">
+        <text>Quantity</text>
+    </string>
+    <string id="st_data_export_probability">
+        <text>Probability</text>
+    </string>
+    <string id="st_data_export_discount_type">
+        <text>Discount Type</text>
+    </string>
+    <string id="st_data_export_discount_value">
+        <text>Discount Value</text>
+    </string>
+    <string id="st_data_export_condition">
+        <text>Condition</text>
+    </string>
+    <string id="st_data_export_property">
+        <text>Property</text>
+    </string>
+    <string id="st_data_export_value">
+        <text>Value</text>
+    </string>
+    <string id="st_data_export_trader_stalker_flea_market">
+        <text>Flea Market Trader</text>
+    </string>
+    <string id="st_data_export_trader_stalker_flea_market_night">
+        <text>Flea Market Trader at night</text>
+    </string>
 </string_table>
