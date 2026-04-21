@@ -282,4 +282,10 @@
     <string id="st_data_export_trader_stalker_flea_market_night">
         <text>Flea Market Trader at night</text>
     </string>
+    <string id="st_class">
+        <text>Class</text>
+    </string>
+    <string id="st_data_export_max_uses">
+        <text>Max Uses</text>
+    </string>
 </string_table>
