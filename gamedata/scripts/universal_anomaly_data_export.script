@@ -3721,7 +3721,9 @@ function debug_cmd_list.cmd.export_traders_mapping(_, txt, x)
     end)
 
     -- Step 2: Walk each smart -> exclusive -> logic files -> logic@ sections with trade
-    local result = {}
+    local result = {
+        ["stalker_sidorovich"] = { "esc_m_trader"}
+    }
     local loaded_logic = {}
     -- pending: { npc_sec, trader_section, story_id, suitable_str }
     -- processed sequentially with NPC spawn + online wait
