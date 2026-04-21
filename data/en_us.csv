@@ -19,6 +19,7 @@ MDR_descr,"The Desert Tech MDR (Micro Dynamic Rifle) in STALKER GAMMA is a versa
 MDR_up_descr,"The Desert Tech MDR (Micro Dynamic Rifle) in STALKER GAMMA is a versatile, bullpup-configured rifle known for its compact design and exceptional modularity. Chambered for various calibers, it excels in both close-quarters and long-range combat. Its ambidextrous controls, lightweight frame, and high accuracy make it a reliable choice for those navigating the unpredictable dangers of the Zone. This version is chambered in 5.56x45 with a tan polymer body and has been permanently upgraded with the Special Upgrade Pack.\n \n %c[pda_white]PROPERTIES:\n %c[d_cyan] • %c[pda_white] Origin: %c[ui_gray_2]United States\n %c[d_cyan] • %c[pda_white] Manufacturer: %c[ui_gray_2]Desert Tech LLC\n"
 ace_outfit_description,"One of the most technologically advanced bodysuits in the Zone. The ACE armor system incorporates a next-generation CBRN and a pocketed Kevlar vest with Class III plate inserts. Using state of the art materials such as selectively-permeable coatings, this suit manages both maximal anomaly protection and wearer comfort. Used by only the wealthiest Mercenaries.\n \n"
 ace_outfit_name,Mercenary ACE Scientific Suit
+agr_smart_terrain_1_6_army_trader_stalker_name,Sergeant Spooner
 ammo-11.43x23-fmj,.45 ACP FMJ rounds
 ammo-11.43x23-fmj_descr,"The .45 calibre full metal jacket round has enjoyed popularity for a hundred years thanks to its ballistic performance and a relatively small propelling charge. As a result, the bullet in this round is relatively slow but highly accurate and provides considerable stopping power.\n \n%c[ui_gray_2] - %c[ui_gray_2] Armor penetration power (AP): %c[ui_gray_1]BR2 (20) \n%c[ui_gray_2] - %c[ui_gray_2] Nominal stopping power (DMG): %c[ui_gray_1]27"
 ammo-11.43x23-hydro,.45 ACP Hydra-shock HP rounds
@@ -150,6 +151,11 @@ bandit_sun_outfit_description,"A Zone-assembled suit, made by local craftsmen. I
 bandit_sun_outfit_name,"""Sunset"" Tactical Suit"
 banditmerc_outfit_description,"A light combat suit obtained to help armor local Bandit gangs. Its design is based on the suit used by the special forces of Western armies. In a twist of dramatic irony, it appears whoever supplied these suits were ripping off their customers as the build quality is significantly worse.\n \n"
 banditmerc_outfit_name,Fenced LC Suit
+bar_barmen_name,Barkeep
+bar_dolg_medic_name,"Lieutenant ""Aspirin"" Sostradov"
+bar_petrenko_name,Colonel Petrenko
+bar_visitors_stalker_mechanic_name,"Senior Sergeant ""Mangun"" Potryko"
+cit_killers_merc_trader_stalker_name,Dushman
 cs_exo_outfit_description,"An experimental version of the army exoskeleton smuggled into the Zone from Ukrainian factories before being refurbished by Clear Sky technicians. Generally, suits like these are held in reserve, to be deployed only in times of true crisis. That said, especially trusted comrades and associates of the faction may eventually receive permission to acquire such a suit for their own personal uses, although not without great cost.\n \n"
 cs_exo_outfit_name,CS-5 Exoskeleton
 cs_exolight_outfit_description,"Also known as the ""Radsuit"", this outfit is essentially a heavy ballistic vest containing Class IV plates reinforced with steel with many of the attachment points needed for a rigid exoskeleton. However, with no powered exoskeleton to ease the load, this armor proves cumbersome to wear for extended periods of time. These outfits are smuggled in from Ukrainian factories near the borders of the Zone.\n \n"
@@ -216,6 +222,9 @@ ecolog_proto_exo_outfit_description,A unique armor system composed of an exoskel
 ecolog_proto_exo_outfit_name,SSP-99M Exoskeleton
 ecologist_guard_outfit_description,"A basic suit originally intended as spare equipment for Professor Hermann's ""Iskra Scientific Research and Investigation Team"", it has since become a relatively cheap protective bodysuit for Ecologist guards working all over the Zone.\n \n"
 ecologist_guard_outfit_name,ISRIT Guard Jumpsuit
+esc_3_16_military_trader_name,Major Zhurov
+esc_main_base_trader_mlr_name,Loris
+escape_trader_name,Sidorovich
 exo_dolg_outfit_description,"Also known as the ""Radsuit"", this outfit is essentially a heavy ballistic vest containing Class IV plates reinforced with steel with many of the attachment points needed for a rigid exoskeleton. However, with no powered exoskeleton to ease the load, this armor proves cumbersome to wear for extended periods of time. This suit is typically found in the hands of elite Duty warriors, especially those assigned to guard VIPs or launch exceedingly dangerous raids.\n \n"
 exo_dolg_outfit_name,PSZ-10d Duty Battlesuit
 exo_dolg_red_outfit_description,"Also known as the ""Radsuit"", this outfit is essentially a heavy ballistic vest containing Class IV plates reinforced with steel with many of the attachment points needed for a rigid exoskeleton. However, with no powered exoskeleton to ease the load, this armor proves cumbersome to wear for extended periods of time. This particular variant is typically found in the hands of elite Duty huntsmen, where its greater defense against mutants is utilized.\n \n"
@@ -274,6 +283,7 @@ helm_ranger,GP-10z Ranger Gas Mask
 helm_ranger_descr,"Using the GP-10 as its model, this gas mask was designed primarily to protect the wearer from Controllers and Poltergeists.\n \n"
 helm_spartan,Cz-M10 Spartan Helmet
 helm_spartan_descr,"A helmet commissioned by extremely influential stalkers, based off the design of the 'Apocalypse' helmet formerly used by the faction, ""Final Day"". In comparison, this helmet is lighter and more protective than its predecessor, comparing favorably to modern combat helmets such as the 'Sphere' series.\n \n"
+hunter_gar_trader_name,Butcher
 hybrid_outfit_description,"A suit created by one of Kiev's defense research institutes for the purpose of guarding researchers in the Zone. However, it is clear the suit was created on a budget. As such, none of these suits were ever officially commissioned by the Ukrainian government, although a few managed to find their way into the Zone.\n \n"
 hybrid_outfit_name,Hybrid Armored Suit
 isg,UNISG
@@ -296,6 +306,9 @@ isg_proto_exo_outfit_description,"A UN-branded special tactical bodysuit, specia
 isg_proto_exo_outfit_name,UNISG Tactical Exoskeleton
 isg_scientific_outfit_description,Originally commissioned by the first iteration of UNISG from one of Kiev's defense research institutes for research in the Zone. The special treatment materials provide enhanced protection and durability against radiation and anomalous effects.\n \n
 isg_scientific_outfit_name,UNISG SEVA Suit
+jup_b6_scientist_nuclear_physicist,Professor Hermann
+jup_cont_trader_bandit_name,Klenov
+jup_depo_isg_tech_name,Lieutenant Maus
 jupiter,Jupiter
 jupiter_underground,Jupiter Underground
 k00_marsh,Great Swamps
@@ -343,6 +356,7 @@ light_voen_outfit_description,"An Interceptor Anomalous Body Armor System that e
 light_voen_outfit_name,Military Stalker IBAz Suit
 lttz_ll_wpn_gauss_quest_descr,"A highly experimental, extremely accurate, artefact-powered weapon made in the Zone. Instead of gunpowder, the gauss rifle utilizes electromagnetic forces to launch projectiles at incredible speeds similar to a railgun. Proportionate to its tremendous firepower, the recoil is surprisingly controllable. Among other weapons of its class, its accuracy and firepower is unmatched.\n \n %c[pda_white]CHARACTERISTICS:\n %c[d_cyan] • %c[pda_white] Origin: %c[ui_gray_2]Russia\n %c[d_cyan] • %c[pda_white] Manufacturer: %c[ui_gray_2]Redacted\n"
 lttz_ll_wpn_gauss_quest_name,"""Item ¹62"""
+mar_base_owl_stalker_trader_name,Spore
 merc_combat_scientific_outfit_description,"As a token of goodwill and to help cover their research costs, Clear Sky occasionally makes coveted ""Pathfinder"" suits on commission for use among the Zone's Mercenaries. Compared to the stock SEVA suit, this model is superior across the board. Comes with a built-in Class IIIA ballistic vest.\n \n"
 merc_combat_scientific_outfit_name,Mercenary Pathfinder
 merc_coyote_outfit_description,"A medium tactical suit, nicknamed the ""Coyote"". Widely considered the successor of the LTS-J body suit. Naturally, its price is higher than that of its predecessor, but this won't stop most Mercs from springing for it when they are able.\n \n"
@@ -372,6 +386,7 @@ merc_sunset_outfit_description,A Mercenary Light Combat Suit modified for use in
 merc_sunset_outfit_name,Mercenary LCz Suit
 merc_wolven_outfit_description,"Sometimes nicknamed the ""Wolven"", this outfit is a comfortable special tactical suit, used by Mercenaries in both exploratory expeditions and stealth operations.\n \n"
 merc_wolven_outfit_name,Mercenary STS-W Body Armor
+mil_Svoboda_trader_name,Skinflint
 military_bandit_outfit_name,Looted Skat-9 Armored Suit
 military_exo_outfit_description,"The official military exoskeleton. Released in limited quantities by special order to Military stalkers who paid for it themselves. Designed to carry heavy weapons, along with enough ammunition, food and meds to keep the unit supplied for long periods of time. Occasionally fielded in lieu of light vehicles.\n \n"
 military_exo_outfit_name,Military Stalker Exoskeleton
@@ -472,7 +487,10 @@ novice_outfit_tourist_description,"A warm leather anorak with an integrated back
 novice_outfit_tourist_name,Tourist’s Jacket
 pda_encyclopedia_name,Name
 pda_encyclopedia_tier,Tier
+pri_monolith_monolith_trader_stalker_name,Krolik
+pri_special_trader_mlr_name,Meeker
 pripyat,Outskirts
+red_greh_trader_name,Stribog
 redline_novice_outfit_description,"A snazzy bright red leather anorak worn over a turtleneck sweater, tucked into jeans and hiking boots. An inadequate choice for the Zone's harsh conditions.\n \n"
 redline_novice_outfit_name,Redline Leather Jacket
 renegade,Renegade
@@ -566,6 +584,7 @@ st_addon_scope_eotech,EOTech 553
 st_addon_scope_eotech_descr,"A holographic weapon sight designed for military and law enforcement, offering rapid target acquisition with a wide field of view. It features night vision compatibility and a durable waterproof construction.\n \n %c[pda_white]PROPERTIES:\n %c[d_cyan] • %c[pda_white] Origin: %c[ui_gray_2]United States\n %c[d_cyan] • %c[pda_white] Manufacturer: %c[ui_gray_2]EOTech\n %c[d_cyan] • %c[pda_white] Magnification: %c[ui_gray_2]1.0x\n \n"
 st_addon_scope_exps3,Eotech EXPS3
 st_addon_scope_exps3_descr,"A compact holographic sight offering a selection of reticles designed for instinctive aiming in fast-paced engagements. The EXPS3 features side-mounted controls, a quick-detach mount, and a protective hood over the viewing window. Its design prioritizes speed and reliability, letting shooters engage targets rapidly without adjusting eye position, while built-in ruggedness ensures consistent performance under field stress.\n \n %c[0,255,255,255]PROPERTIES:\n %c[d_cyan] • %c[0,255,255,255] Origin: %c[ui_gray_2]United States\n %c[d_cyan] • %c[0,255,255,255] Manufacturer: %c[ui_gray_2]EOTech\n %c[d_cyan] • %c[0,255,255,255] Magnification: %c[ui_gray_2]1x\n %c[d_cyan] • %c[0,255,255,255] Reticle switch: %c[ui_gray_2]press Mark Switch key\n \n"
+st_addon_scope_galil,Galil 4.0x SUSAT
 st_addon_scope_galil_descr,"A fixed-power optical sight designed for use on Galil rifles, featuring a tritium-illuminated reticle for improved visibility in low-light conditions. Its prismatic design provides excellent clarity and rugged durability, making it a dependable choice for medium-range combat and precision shooting.\n \n %c[pda_white]PROPERTIES:\n %c[d_cyan] • %c[pda_white] Origin: %c[ui_gray_2]Isreal\n %c[d_cyan] • %c[pda_white] Manufacturer: %c[ui_gray_2]Israel Military Industries\n %c[d_cyan] • %c[pda_white] Magnification: %c[ui_gray_2]4.0x\n \n"
 st_addon_scope_galil_susat,Galil 4.0x SUSAT
 st_addon_scope_gauss_sight,EOTS-62/ThermX Eliminator
@@ -1030,6 +1049,7 @@ st_barrel_7,7.62mm Barrel [A|V] (Barrel)
 st_barrel_8,5.45mm Barrel [À] (Barrel)
 st_barrel_9,5.56mm Barrel [À] (Barrel)
 st_batteries,Battery Pack
+st_batteries_ccell,Military battery unit
 st_bbw_upgrade,Rechamber to 7.62x25
 st_beadspread,Bed Spread
 st_beans,Baked Beans
@@ -1065,10 +1085,12 @@ st_bolt_carrier_6,Sliding Bolt Carrier with Locking Bolt (Carrier)
 st_bolt_carrier_7,Lever-type Bolt Carrier with Locking Wedge (Carrier)
 st_bolt_carrier_8,Choke from Double-barrel Shotgun [R] (Carrier)
 st_bolt_carrier_9,Choke from Double-barrel Shotgun [R] (Carrier)
+st_bolts_pack,Pack of Throwables
 st_bolty,Bolt
 st_boots,Old Leather Boots
 st_bottle_metal,Vodka
 st_bottle_metal_descr,"A metal flask containing a portion of what seems to be Zone-produced vodka. While more affordable, the fumes are strong and the quality and taste is lacking, but it gets the job done.\n \n %c[pda_white]PROPERTIES:\n %c[d_cyan] • %c[pda_white] Drink\n %c[d_cyan] • %c[pda_white] Alcohol\n"
+st_box_matches,Matchbox
 st_bread,Bread Loaf
 st_bread_descr,"A simple loaf of bread, offering a basic yet essential component of a Stalker's diet. Its versatility makes it a common accompaniment to other food items found in the Zone.\n \n %c[pda_white]PROPERTIES:\n %c[d_cyan] • %c[pda_white] Food\n"
 st_breadold,Bread Loaf (Stale)
@@ -1079,6 +1101,7 @@ st_broken_detector,Broken Detector
 st_caffeine,Caffeine Tablets
 st_caffeine_descr,"Caffeine and sodium benzoate which cause central nervous to work with highest effectiveness possible at a given time. Reduce sleepiness to a large degree. Take two tablets at one time.\n \n %c[0,255,255,255]PROPERTIES:\n %c[d_cyan] • %c[ui_gray_2]stimulant\n %c[d_cyan] • %c[ui_gray_2]dizziness removal\n"
 st_cards,Deck of Cards
+st_charcoal,Charcoal
 st_chili,Chili Beans
 st_chili_descr,"Canned chili beans cooked in a spicy chili sauce. Hardy and delicious, it provides a zesty alternative to standard fare. The added heat can be a morale booster in the cold, desolate environments.\n \n %c[pda_white]PROPERTIES:\n %c[d_cyan] • %c[pda_white] Food\n"
 st_chocolate,Chocolate
@@ -1124,11 +1147,14 @@ st_data_export_body_bonearmor,st_data_export_body_bonearmor
 st_data_export_bonus_mutant_part_chance,Bonus mutant part chance
 st_data_export_can_be_cooked,Can be cooked
 st_data_export_can_be_crafted,Can be crafted
+st_data_export_condition,Condition
 st_data_export_cuts_thick_skin,Cuts thick skin
 st_data_export_description,Description
 st_data_export_disassemble_amount,Amount
 st_data_export_disassemble_item,Item
 st_data_export_disassemble_result,Result
+st_data_export_discount_type,Discount Type
+st_data_export_discount_value,Discount Value
 st_data_export_eat_alcohol,Alcohol
 st_data_export_eat_health_change,Health change
 st_data_export_exchange_reward,What you get in exchange >
@@ -1167,7 +1193,11 @@ st_data_export_post_heal_head,Post-Heal Head
 st_data_export_post_heal_leg,Post-Heal Leg
 st_data_export_post_heal_torso,Post-Heal Torso
 st_data_export_power_restore_max,Total stamina recovery
+st_data_export_price_multiplier,Price Multiplier
+st_data_export_probability,Probability
 st_data_export_projectiles,Projectiles
+st_data_export_property,Property
+st_data_export_quantity,Quantity
 st_data_export_recipe_requirement,st_data_export_recipe_requirement
 st_data_export_recipe_requirement_name,st_data_export_recipe_requirement_name
 st_data_export_restore_bleeding_max,Total wound healing
@@ -1186,9 +1216,12 @@ st_data_export_stash_type_common,Common
 st_data_export_stash_type_rare,Rare
 st_data_export_thirst,Thirst
 st_data_export_tool_tier,st_data_export_tool_tier
+st_data_export_trader_stalker_flea_market,Flea Market Trader
+st_data_export_trader_stalker_flea_market_night,Flea Market Trader at night
 st_data_export_unknown,Unknown
 st_data_export_used_in_cooking,Used in cooking
 st_data_export_used_in_crafting,Used in crafting
+st_data_export_value,Value
 st_data_export_visual_item_id,Item ID
 st_data_export_weapon_degradation,W. Degradation
 st_data_export_weapon_kind_explosive,Explosive
@@ -1251,6 +1284,9 @@ st_equ_milpack_name,Combat Backpack
 st_equ_smallpack_name,Camping Backpack
 st_equ_smilpack_name,Travel Backpack
 st_equ_touristpack_name,Tourist Backpack
+st_exo_recipe_1,"Behavior of ""Battery"" artifacts under artificial electromagnetic fields"
+st_exo_recipe_2,"Observations and analysis of ""Full Empty"" artifact projected gravitational shells"
+st_exo_recipe_3,Application of 'Flash' artifact fields to engine power output
 st_exo_repair_kit,Armor Repair Kit (Exoskeleton)
 st_exolight_repair_kit,Armor Repair Kit (Heavy Armor)
 st_fieldcooker,Gas Stove
@@ -1321,6 +1357,7 @@ st_gun_oil_ru_d,"Cleaning Solvent ""Dvojka"""
 st_hand_rolling_tobacco,Hand-rolling Tobacco
 st_hand_rolling_tobacco_descr,"Loose tobacco intended for hand-rolling, offering a customizable smoking experience. Resourceful Stalkers appreciate its versatility, allowing them to roll cigarettes to their preferred size and strength.\n \n %c[pda_white]PROPERTIES:\n %c[d_cyan] • %c[pda_white] Stimulant\n %c[d_green] • %c[pda_white] Alcohol Sobering Effect\n"
 st_hand_watch,Wrist Watch
+st_harmonica_name,Harmonica
 st_headlamp,Broken Head Lamp
 st_heavy_sewing_thread,Field Armor Toolkit
 st_helm_bandana,Bandana
@@ -1349,6 +1386,7 @@ st_helm_rp_bala,Balaclava
 st_helm_rp_bala_descr,"A regular black fabric balaclava. Stalkers will often drape it around their mouth and nose to avoid breathing in toxic or radioactive particles, but this protection is unreliable at best.\n \n"
 st_helm_tactic,Sphere-08 Helmet
 st_helm_tactic_descr,"A modern, high-quality helmet with a built-in air filtration system based on Western models. The design consists of several layers of Kevlar and composite dielectric materials. Most commonly used by the Zone's Spetsnaz operators, especially in conjunction with the PS5 body armor series.\n \n"
+st_helmet_repair_kit,Repair Kit (Headgear)
 st_hide_bloodsucker_name,Bloodsucker Skin
 st_hide_boar_name,Boar Pelt
 st_hide_burer_name,Burer Skin
@@ -1364,6 +1402,7 @@ st_ied,IED (Chemical)
 st_ied_descr,"An improvised explosive device designed to disperse hazardous chemical agents upon detonation, creating an area of toxic contamination. Its use poses both immediate and long-term threats, making it a highly dangerous weapon in unconventional warfare.\n \n %c[pda_white]PROPERTIES:\n %c[d_cyan] • %c[pda_white] Explosive\n %c[d_cyan] • %c[pda_white] Triggering Mechanism: %c[ui_gray_2]Proximity\n"
 st_ied_rpg,IED (OG-7V Warhead)
 st_ied_rpg_descr,"An improvised explosive device utilizing an OG-7V warhead, repurposed to deliver devastating fragmentation effects against personnel and light vehicles. Its makeshift nature allows for concealed placement or remote detonation, making it a dangerous and unpredictable battlefield threat.\n \n %c[pda_white]PROPERTIES:\n %c[d_cyan] • %c[pda_white] Explosive\n %c[d_cyan] • %c[pda_white] Triggering Mechanism: %c[ui_gray_2]Proximity\n"
+st_itm_actor_backpack_name,Quick Release System
 st_itm_advancedkit_name,Advanced Tools
 st_itm_ammokit,Gunsmithing Tools
 st_itm_artefact_container_name,Artefact Container
@@ -1442,12 +1481,16 @@ st_meat_tushkano,Rat Skewers
 st_meat_tushkano_descr,"Skewers of grilled Tushkano meat, often heavily seasoned to disguise the flavor. Cheap, common, and just filling enough to keep a hungry stalker moving.\n \n %c[pda_white]NOTE: %c[ui_gray_2]The quality and healthiness of a meal is determined by how it is prepared.\n %c[d_orange] • %c[pda_white] Zone-produced meals%c[ui_gray_2], while less contaminated, are still unhealthy.\n %c[pda_yellow] • %c[pda_white] Stewed meals %c[ui_gray_2]require the addition of clean water and are significantly less contaminated.\n %c[d_green] • %c[pda_white] Purified meals %c[ui_gray_2]required the addition of vodka and are not only radiation-free but provide revitalizing effects.\n \n %c[pda_white]PROPERTIES:\n %c[d_cyan] • %c[pda_white] Cooked Meal\n"
 st_medium_repair_kit,Armor Repair Kit (Medium Armor)
 st_medkit,AI-2 Medkit
+st_medkit_ai1,Basic Medical Package
+st_medkit_ai2,Army Medical Package
+st_medkit_ai3,Scientific Medical Package
 st_medkit_army,Army Medkit
 st_medkit_army_descr,"A specialized medical kit for providing first aid to combat casualties. The kit includes blood coagulants based on menadione, painkillers, antibiotics and immunostimulants, as well as a kit for removing bullets and fragments from the body. This medkit is issued primarily to army personnel such as Spetsnaz units venturing deep into the Zone and is popular among Duty forces.\n \n %c[0,255,255,255]PROPERTIES:\n %c[d_green] • %c[pda_white]first aid %c[pda_white]H%c[d_orange]••••••• %c[pda_white]T%c[d_orange]••••••• %c[pda_white]A%c[d_orange]••• %c[pda_white]L%c[d_orange]•••\n"
 st_medkit_descr,"The AI-2 medkit was developed as a standard service first aid kit for various defence and law enforcement agencies and civil defense forces of the USSR. Handy for treating injuries, wounds, chemical and thermal burns and various types of poison.\n \n %c[0,255,255,255]PROPERTIES:\n %c[d_green] • %c[pda_white]first aid %c[pda_white]H%c[d_orange]••••• %c[pda_white]T%c[d_orange]••••• %c[pda_white]A%c[d_orange]•• %c[pda_white]L%c[d_orange]••\n"
 st_medkit_science,Scientific Medkit
 st_medkit_science_descr,"A medical kit designed specifically for use in the Zone. The kit contains products for handling wounds, as well as preventing the development of radiation poisoning and reducing accumulated radiation in the body. Contains Vikasolum, Batilolum and Naphazoline, unlike other medkits.\n \n %c[0,255,255,255]PROPERTIES:\n %c[d_green] • %c[pda_white]first aid %c[pda_white]H%c[d_orange]••••••••• %c[pda_white]T%c[d_orange]••••••••• %c[pda_white]A%c[d_orange]•••• %c[pda_white]L%c[d_orange]••••\n"
 st_meinkampf,Mein Kampf
+st_melter,Artefact Melter
 st_memoirs_1_of_2_name,A Stalker's Journal (Part 1 of 2)
 st_memoirs_2_of_2_name,A Stalker's Journal (Part 2 of 2)
 st_metalcan_powder,Powder Can
@@ -3082,6 +3125,8 @@ st_wpn_xm8,XM8
 st_wpn_xm8_descr,"A lightweight assault rifle system sharing design and engineering with the G36 rifle originally part of the Objective Individual Combat Weapon program for development of a ""smart"" grenade launcher system with an underslung carbine rifle. Unable to meet performance and weight requirements, the program was eventually canceled and separated, resulting in the XM8 project.\n \n %c[0,255,255,255]PROPERTIES:\n %c[d_cyan] • %c[0,255,255,255] origin: %c[ui_gray_2]Germany, United States\n %c[d_cyan] • %c[0,255,255,255] manufacturer: %c[ui_gray_2]Heckler & Koch, Alliant Technosystems\n"
 st_yadylin,Yadulin
 st_yadylin_descr,"A semi-drug based on morphine. It allows the user to quickly dull pain and increase production of adrenaline, aiding the user in withstanding even the most intense battles. It is popular among stalkers, often used as a recreation drug among criminal groups, and is allegedly being supplied to the Monolith.\n \n %c[0,255,255,255]PROPERTIES:\n %c[d_red] • %c[ui_gray_2]causes severe dizziness\n %c[d_green] • %c[pda_white]post-heals %c[pda_white]H%c[0,255,255,255]•••• %c[pda_white]T%c[0,255,255,255]•••• %c[pda_white]A%c[0,255,255,255]•• %c[pda_white]L%c[0,255,255,255]••\n"
+st_zat_a2_stalker_nimble_name,Nimble
+st_zat_b30_owl_stalker_trader_name,Owl
 stalker,Free Stalkers
 stalker_autumn_outfit_description,"A Zone-assembled suit, handmade by local craftsmen. Favored among newer artefact hunters and creative hit men, the ""Autumn"" allows easier traversal of chemical anomalous fields.\n \n"
 stalker_autumn_outfit_name,"""Autumn"" Stalker Suit"
@@ -3117,6 +3162,8 @@ svoboda_novice_outfit_description,"A camouflaged leather anorak worn over a turt
 svoboda_novice_outfit_name,Freedom Leather Jacket
 svoboda_scientific_outfit_description,"A suit of ""Sentinel"" body armor specially produced by Freedom craftsmen for observing anomalous phenomena in the Zone. The specially treated materials provide good protection and suit durability during prolonged exploration of anomalous fields.\n \n"
 svoboda_scientific_outfit_name,Watchman of Freedom
+trader_monolith_kbo_name,Olivar
+trader_pri_a15_mlr_name,Cashier
 travel_outfit_description,"A Zone-assembled suit, handmade by local craftsmen. This particular outfit is of high quality and is intended for extended exploration within the Zone. A suit of choice for many artefact and mutant hunters.\n \n"
 travel_outfit_name,"""Voyager"" Stalker Suit"
 trenchcoat_brown_outfit_description,"A long, thick overcoat worn over a butchered scientist suit. Although the closed-cycle system and several other features seem to have been stripped off, the end result still compares favorably to many basic stalker suits.\n \n"
@@ -3158,10 +3205,14 @@ ui_mcm_menu_exo,Powered Exos
 ui_mm_repair,Repair
 ui_st_community,Faction
 ui_st_rank,Rank
+val_smart_terrain_7_4_bandit_trader_stalker_name,Olivius
 wastelander_outfit_description,"A Zone-assembled suit, handmade by local craftsmen. This particular outfit is unusually light compared to average stalker suits but possesses a spacious Class IIIA vest and lightweight inserts. It's essentially a nimbler, stalker-made Berill-5M suit.\n \n"
 wastelander_outfit_name,"""Wastelander"" Stalker Suit"
 wpn_tt33_descr,"A Soviet, semi-automatic pistol developed as a service pistol for the Soviet military to replace the Nagant M1895 revolver. During its lifetime, many communist or Soviet bloc countries made variations of the TT-33 pistol until it was eventually replaced by the Makarov PM in 1952.\n \n %c[0,255,255,255]PROPERTIES:\n %c[d_cyan] • %c[0,255,255,255] origin: %c[ui_gray_2]Soviet Union\n %c[d_cyan] • %c[0,255,255,255] manufacturer: %c[ui_gray_2]Tula Arms Plant\n"
 y04_pole,Meadow
+yan_povar_army_mlr_name,Spirit
+yan_st_sakharov_name,Professor Sakharov
+zat_stancia_trader_merc_name,Vector
 zaton,Zaton
 zombied,Zombified
 ~,~
