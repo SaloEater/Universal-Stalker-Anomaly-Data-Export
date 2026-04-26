@@ -24,6 +24,7 @@ local cmd_list = {
     { name = "Export traders", cmd = "export_traders", hide_ui = 0 },
     { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
     { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
+    { name = "Export items common data", cmd = "export_items_common_data", hide_ui = 0 },
     {name = "Export translation keys", cmd = "export_translation_keys", hide_ui = 0},
     {name = "Export translations", cmd = "export_translations", hide_ui = 0},
     {name = "Export all", cmd = "export_all", hide_ui = 0},
@@ -3203,7 +3204,7 @@ function debug_cmd_list.cmd.export_item_drop_locations(_, txt, x)
 
     -- Open output file and write header
     local p_file = "export_item_drop_locations.csv"
-    local out = io.open(p_file, "w+")
+    local out = file_for_write(p_file)
 
     local header = translate_headers({
         "~",
