@@ -1,3 +1,4 @@
+
 "Og-7b"
 "VOG-25"
 "tch_upgr"
@@ -20,6 +21,7 @@ af_dummy_spring
 af_rusty_kristall
 af_rusty_sea_urchin
 af_rusty_thorn
+agr_smart_terrain_1_6_army_trader_stalker_name
 ammo-11.43x23-fmj
 ammo-11.43x23-fmj_descr
 ammo-11.43x23-hydro
@@ -141,6 +143,10 @@ bandit_sun_outfit_description
 bandit_sun_outfit_name
 banditmerc_outfit_description
 banditmerc_outfit_name
+bar_barmen_name
+bar_dolg_medic_name
+bar_petrenko_name
+bar_visitors_stalker_mechanic_name
 blackbox_mlr
 blackbox_mlr_descr
 chernobog_notes_desc
@@ -151,6 +157,7 @@ cit_doctors_key_desc
 cit_doctors_key_name
 cit_doctors_pda_desc
 cit_doctors_pda_name
+cit_killers_merc_trader_stalker_name
 contact_lost_pda_desc
 contact_lost_pda_name
 cs_exo_outfit_description
@@ -241,6 +248,9 @@ ecolog_proto_exo_outfit_description
 ecolog_proto_exo_outfit_name
 ecologist_guard_outfit_description
 ecologist_guard_outfit_name
+esc_3_16_military_trader_name
+esc_main_base_trader_mlr_name
+escape_trader_name
 exo_dolg_outfit_description
 exo_dolg_outfit_name
 exo_dolg_red_outfit_description
@@ -294,6 +304,7 @@ helm_ranger
 helm_ranger_descr
 helm_spartan
 helm_spartan_descr
+hunter_gar_trader_name
 hybrid_outfit_description
 hybrid_outfit_name
 isg
@@ -371,8 +382,11 @@ jup_b47_jupiter_products_info
 jup_b47_jupiter_products_info_descr
 jup_b47_merc_pda
 jup_b47_merc_pda_desc
+jup_b6_scientist_nuclear_physicist
 jup_b9_blackbox
 jup_b9_blackbox_descr
+jup_cont_trader_bandit_name
+jup_depo_isg_tech_name
 jupiter_documents_desc
 jupiter_documents_name
 killer
@@ -398,6 +412,7 @@ lx8_history_3_documents_desc
 lx8_history_3_documents_name
 lx8_history_documents_desc
 lx8_history_documents_name
+mar_base_owl_stalker_trader_name
 merc_combat_scientific_outfit_description
 merc_combat_scientific_outfit_name
 merc_coyote_outfit_description
@@ -427,6 +442,7 @@ merc_sunset_outfit_description
 merc_sunset_outfit_name
 merc_wolven_outfit_description
 merc_wolven_outfit_name
+mil_Svoboda_trader_name
 military_bandit_outfit_name
 military_exo_outfit_description
 military_exo_outfit_name
@@ -570,10 +586,13 @@ pda_encyclopedia_tier
 pri_a25_explosive_charge_descr
 pri_a25_explosive_name
 pri_decoder_docs_conclusion_txt
+pri_monolith_monolith_trader_stalker_name
+pri_special_trader_mlr_name
 quest_package_desc
 quest_package_name
 recover_mutant_data_device_desc
 recover_mutant_data_device_name
+red_greh_trader_name
 redline_novice_outfit_description
 redline_novice_outfit_name
 renegade
@@ -1358,10 +1377,13 @@ st_data_export_blast_power
 st_data_export_bonus_mutant_part_chance
 st_data_export_can_be_cooked
 st_data_export_can_be_crafted
+st_data_export_condition
 st_data_export_description
 st_data_export_disassemble_amount
 st_data_export_disassemble_item
 st_data_export_disassemble_result
+st_data_export_discount_type
+st_data_export_discount_value
 st_data_export_eat_alcohol
 st_data_export_eat_health_change
 st_data_export_falloff
@@ -1381,7 +1403,11 @@ st_data_export_magnifications
 st_data_export_max_uses
 st_data_export_outfit_artefact_count_max
 st_data_export_power_restore_max
+st_data_export_price_multiplier
+st_data_export_probability
 st_data_export_projectiles
+st_data_export_property
+st_data_export_quantity
 st_data_export_recipe_requirement
 st_data_export_recipe_requirement_name
 st_data_export_restore_bleeding_max
@@ -1397,9 +1423,12 @@ st_data_export_stash_type_common
 st_data_export_stash_type_rare
 st_data_export_thirst
 st_data_export_tool_tier
+st_data_export_trader_stalker_flea_market
+st_data_export_trader_stalker_flea_market_night
 st_data_export_unknown
 st_data_export_used_in_cooking
 st_data_export_used_in_crafting
+st_data_export_value
 st_data_export_weapon_degradation
 st_data_export_weapon_kind_explosive
 st_data_export_weapon_kind_pistol
@@ -3226,6 +3255,7 @@ st_zat_a23_gauss_rifle_docs
 st_zat_a23_gauss_rifle_docs_descr
 st_zat_a23_labx8_key_descr
 st_zat_a23_labx8_key_name
+st_zat_a2_stalker_nimble_name
 st_zat_b12_documents_1
 st_zat_b12_documents_1_descr
 st_zat_b12_documents_2
@@ -3236,6 +3266,7 @@ st_zat_b12_key_2
 st_zat_b12_key_2_descr
 st_zat_b20_noah_pda_desc
 st_zat_b20_noah_pda_name
+st_zat_b30_owl_stalker_trader_name
 st_zat_b40_notebook_desc
 st_zat_b40_notebook_name
 st_zat_b40_pda_1_desc
@@ -3285,6 +3316,8 @@ svoboda_novice_outfit_description
 svoboda_novice_outfit_name
 svoboda_scientific_outfit_description
 svoboda_scientific_outfit_name
+trader_monolith_kbo_name
+trader_pri_a15_mlr_name
 travel_outfit_description
 travel_outfit_name
 trenchcoat_brown_outfit_description
@@ -3321,11 +3354,14 @@ ui_inv_wrange
 ui_mm_repair
 ui_st_community
 ui_st_rank
+val_smart_terrain_7_4_bandit_trader_stalker_name
 vodnik_notes_desc
 vodnik_notes_name
 wastelander_outfit_description
 wastelander_outfit_name
 wpn_tt33_descr
+yan_povar_army_mlr_name
+yan_st_sakharov_name
 zat_b22_medic_pda
 zat_b22_medic_pda_desc
 zat_b33_safe_container_desc
@@ -3334,5 +3370,6 @@ zat_b39_joker_pda_description
 zat_b39_joker_pda_name
 zat_b44_barge_pda_desc
 zat_b44_barge_pda_name
+zat_stancia_trader_merc_name
 zombied
 ~

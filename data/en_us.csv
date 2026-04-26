@@ -21,6 +21,7 @@ af_dummy_spring,af_dummy_spring
 af_rusty_kristall,af_rusty_kristall
 af_rusty_sea_urchin,af_rusty_sea_urchin
 af_rusty_thorn,af_rusty_thorn
+agr_smart_terrain_1_6_army_trader_stalker_name,Sergeant Spooner
 ammo-11.43x23-fmj,.45 ACP rounds
 ammo-11.43x23-fmj_descr,"The .45 calibre full metal jacket round has enjoyed popularity for a hundred years thanks to its ballistic performance and a relatively small propelling charge. As a result, the bullet in this round is relatively slow but highly accurate and provides considerable stopping power.\n \n%c[d_purple] • %c[ui_gray_2] Highest pierced armour class: %c[ui_gray_1]none\n%c[d_purple] • %c[ui_gray_2] Tissue damage rating: %c[ui_gray_1]medium"
 ammo-11.43x23-hydro,.45 ACP Hydra-shock rounds
@@ -142,6 +143,10 @@ bandit_sun_outfit_description,"%c[ui_gray_1]A Zone-assembled suit, made by local
 bandit_sun_outfit_name,"""Sunset"" tactical suit"
 banditmerc_outfit_description,"%c[ui_gray_1]A light combat suit obtained through shady means to help armour local Bandit gangs. Its design is based on the suit used by the special forces of Western armies. In a twist of dramatic irony, however, it appears whoever supplied these suits was ripping his customers off. This outfit's overall protection is extremely poor for the Zone's conditions and is significantly worse than the Light Combat suits used by the Zone's Mercenaries. Still, it is at least comfortable to wear, and arguably better than what Ukraine's conscripts get. Arguably.\n \n"
 banditmerc_outfit_name,Fenced LC suit
+bar_barmen_name,Barkeep
+bar_dolg_medic_name,"Lieutenant ""Aspirin"" Sostradov"
+bar_petrenko_name,Colonel Petrenko
+bar_visitors_stalker_mechanic_name,"Senior Sergeant ""Mangun"" Potryko"
 blackbox_mlr,Flight recorder
 blackbox_mlr_descr,"A flight data recorder, or a ""black box"". Flight recorders are used to record the status of internal systems and crew conversations, and can provide vital information in the event of an accident. In the Zone, stalker and military personnel alike are interested in these devices."
 chernobog_notes_desc,"""The Zone is a miracle. The Masters cleansed us. Soon, we thought, the Zone would cleanse the world. But no. Our small paradise was soon trespassed upon by the flawed people of a sinful world. And, in an act of unthinkable atrocity, the beast named Strelok crippled the valiant Monolith, and entered the Masters' chambers to slay their mortal forms. However, I shall not despair. I cannot let this miracle be consumed by the vice and filth of the unworthy. So we, Sin, must embark upon a quest to fulfil the Masters' wish. We shall wage war upon the violent to bring about eternal peace."""
@@ -152,6 +157,7 @@ cit_doctors_key_desc,A key with 'Hotel Polissya – Room 26' engraved on side.
 cit_doctors_key_name,Doctor's key
 cit_doctors_pda_desc,"'Just some notes about old men's conspiracy theories'.\n\nThere are rumours that the Agroprom Institute was used as a front for an unofficial lab in the years preceding the 2006 year accident. This lab hosted a number of very unusual experiments. The traders have dug up a lot of information about these laboratories. I met with the Barkeep, he says he sent Duty scouts to get into the underground vaults of the Dark Valley, called X-18, but they disappeared. There are another rumours regarding a 'psi-brain' mechanism. The whole neighbourhood in Yantar is under the influence of that piece of trash: it zombified everyone who came within range. There is another mechanism in the Red Forest radar underground, called lab X19, and that is what is likely to be the Brain Scorcher. There is evidence to suggest that the presence of the Brain Scorcher intentionally blocks the road to the North, but no one knows exactly what it is. The Barkeep believes that the Brain Scorcher is man-made, and these mechanisms are not always operating at full strength. He thinks there are periods when their power is lowered to cool down the apparatus. It's time to visit all the underground laboratories in the Zone and find out what kind of secrets they are hiding. Too bad, that I'm too old for this shit. I wish Strelok would be still around, but damn, he disappeared years ago."
 cit_doctors_pda_name,Doctor's notes
+cit_killers_merc_trader_stalker_name,Dushman
 contact_lost_pda_desc,This PDA used to belong to the leader of the scout team. He had managed to record some information about the enemy forces before his untimely demise.
 contact_lost_pda_name,Scout team leader's PDA
 cs_exo_outfit_description,"%c[ui_gray_1]An experimental version of the army exoskeleton smuggled into the Zone from Ukrainian factories before being refurbished by Clear Sky technicians. Generally, suits like these are held in reserve, to be deployed only in times of true crisis. That said, especially trusted comrades and associates of the faction may eventually receive permission to acquire such a suit for their own personal uses, although not without great cost.\n \n"
@@ -242,6 +248,9 @@ ecolog_proto_exo_outfit_description,"%c[ui_gray_1]An Ecologist armoured bodysuit
 ecolog_proto_exo_outfit_name,Ecologist guard proto-exoskeleton
 ecologist_guard_outfit_description,"%c[ui_gray_1]A basic suit originally intended as spare equipment for Professor Hermann's ""Iskra Scientific Research and Investigation Team"", it has since become a relatively cheap protective bodysuit for Ecologist guards working all over the Zone. Boasts more than adequate anomaly protection for its price, but will generally struggle to stop more than a pistol bullet. Most guards will spring for a SEVA or SSP-99M when they can. Those who expect to take part in serious combat actions will rather stick to proper Military combat suits.\n \n"
 ecologist_guard_outfit_name,ISRIT guard jumpsuit
+esc_3_16_military_trader_name,Major Zhurov
+esc_main_base_trader_mlr_name,Loris
+escape_trader_name,Sidorovich
 exo_dolg_outfit_description,"The ""underwear"" of an exoskeleton, sometimes mistakenly known as the ""Radsuit"". This outfit provides almost all the protection one can expect from a full exoskeleton, but due to being stripped of its servos and batteries, it provides none of the strength enhancement. On the positive side, this means the suit is now easier to maintain and, unlike a full exoskeleton, does not prevent the wearer from sprinting. This suit is typically found in the hands of elite Duty warriors, especially those assigned to guard VIPs or launch exceedingly dangerous raids.\n \n"
 exo_dolg_outfit_name,PSZ-10d Duty battlesuit
 exo_dolg_red_outfit_description,"The ""underwear"" of an exoskeleton, sometimes mistakenly known as the ""Radsuit"". This outfit provides almost all the protection one can expect from a full exoskeleton, but due to being stripped of its servos and batteries, it provides none of the strength enhancement. On the positive side, this means the suit is now easier to maintain and, unlike a full exoskeleton, does not prevent the wearer from sprinting. This suit is typically found in the hands of elite Duty huntsmen, who give up anomalous protection in exchange for greater defence against the most dangerous game.\n \n"
@@ -295,6 +304,7 @@ helm_ranger,GP-10z ranger gas mask
 helm_ranger_descr,"%c[ui_gray_1]Using the GP-10 as its model, this gas mask was designed primarily to protect the wearer from controllers and poltergeists. The success rate is somewhat mixed, but this model remains an excellent option for those who need protection from psychic, thermal, and shrapnel attacks.\n \n"
 helm_spartan,Cz-M10 Spartan helmet
 helm_spartan_descr,"%c[ui_gray_1]A helmet commissioned by extremely influential stalkers, based off the Apocalypse helm designs formerly used by ""Final Day"". Compared to the Apocalypse, however, this helmet is not only lighter, but more protective across the board. It compares highly favourably to modern combat helmets such as the ""sphere"" series in addition to boasting amazing protection against anomalies. A popular choice among stalkers who can get hold of it.\n \n"
+hunter_gar_trader_name,Butcher
 hybrid_outfit_description,"%c[ui_gray_1]A bit of an awkward duckling, this outfit was created by one of Kiev's defence research institutes for the purpose of guarding researchers in the Zone. It is clear the suit was created on a budget, however, as the ballistic armour woven into the outfit simultaneously makes it weaker against anomalous phenomena, while still providing less protection in a firefight than a Beryllium vest. As such, none of these suits were ever officially commissioned by the Ukrainian government, although a few nonetheless managed to find their way into the Zone through shady means. A popular choice for stalkers who want decent general protection yet cannot spring for something better.\n \n"
 hybrid_outfit_name,Hybrid armoured suit
 isg,UNISG
@@ -372,8 +382,11 @@ jup_b47_jupiter_products_info,jup_b47_jupiter_products_info
 jup_b47_jupiter_products_info_descr,jup_b47_jupiter_products_info_descr
 jup_b47_merc_pda,jup_b47_merc_pda
 jup_b47_merc_pda_desc,jup_b47_merc_pda_desc
+jup_b6_scientist_nuclear_physicist,Professor Hermann
 jup_b9_blackbox,jup_b9_blackbox
 jup_b9_blackbox_descr,jup_b9_blackbox_descr
+jup_cont_trader_bandit_name,Klenov
+jup_depo_isg_tech_name,Lieutenant Maus
 jupiter_documents_desc,Presumably the last documents which contain secret information left in the factory. Better not let them fall into the hands of foreign agents.
 jupiter_documents_name,Jupiter factory documents
 killer,Mercenary
@@ -399,6 +412,7 @@ lx8_history_3_documents_desc,This log documents the results of a biological expe
 lx8_history_3_documents_name,Experimentation (02.05.2006)
 lx8_history_documents_desc,This log documents the results of an experiment happened long years ago regarding new types of psy-emitters.
 lx8_history_documents_name,Experimentation (11.04.2005)
+mar_base_owl_stalker_trader_name,Spore
 merc_combat_scientific_outfit_description,"%c[ui_gray_1]As a token of goodwill (and to help cover their research costs), Clear Sky occasionally makes coveted ""pathfinder"" suits on commission for use among the Zone's Mercenaries. Compared to the average SEVA suit, this model is superior across the board. Compared to the CS-4a pathfinder, this suit has poorer protection against radiation, psy-fields and blunt trauma, but is lighter with generally better protection overall.\n \n"
 merc_combat_scientific_outfit_name,Mercenary pathfinder
 merc_coyote_outfit_description,"%c[ui_gray_1]A medium tactical suit, nicknamed the ""Coyote"". Widely considered the successor of the LTS-J body suit, this outfit boasts better physical protection on top of an even better weight distribution system. Naturally, its price is higher than that of its predecessor, but this won't stop most Mercs from springing for it when they are able.\n \n"
@@ -428,6 +442,7 @@ merc_sunset_outfit_description,"%c[ui_gray_1]A Mercenary Light Combat Suit modif
 merc_sunset_outfit_name,Mercenary LCz suit
 merc_wolven_outfit_description,"%c[ui_gray_1]Sometimes nicknamed the ""Wolven"", this outfit is a comfortable special tactical suit, used by Mercenaries in both exploratory expeditions and stealth operations. This suit possesses good anomaly protection for its class, allowing the wearer to move through - or hide in - dangerous anomalous fields in relative safety. Naturally useful for artefact hunting, this protection also allows large teams of Mercenaries to set up ambushes in unexpected locations, allowing them to take down targets considered too tough for more orthodox methods.\n \n"
 merc_wolven_outfit_name,Mercenary STS-W body armour
+mil_Svoboda_trader_name,Skinflint
 military_bandit_outfit_name,Looted Skat-9 armoured suit
 military_exo_outfit_description,"%c[ui_gray_1]The official version of a military exoskeleton. Released in limited quantities by special order to the Military Stalkers, who must pay for it themselves. Designed to carry heavy weapons like grenade launchers and machine guns, along with enough ammunition, food and meds to keep the unit supplied for long periods of time. Occasionally fielded in lieu of light vehicles.\n \n"
 military_exo_outfit_name,Military stalker exoskeleton
@@ -571,10 +586,13 @@ pda_encyclopedia_tier,Tier
 pri_a25_explosive_charge_descr,pri_a25_explosive_charge_descr
 pri_a25_explosive_name,pri_a25_explosive_name
 pri_decoder_docs_conclusion_txt,"The manuscript contains a short report on how Fang and Strelok infiltrated a hidden laboratory and their journey there. It makes mention of large Monolith presence in and around the Chernobyl NPP. More specifically under the concrete sarcophagus, also suggesting it may be their base of operations but with the intent to hide something. Reading further it states that they discovered laboratory hidden further in the north under the generators, however they were unable to gain access at the time of writing as they required the use of a decoder."
+pri_monolith_monolith_trader_stalker_name,Krolik
+pri_special_trader_mlr_name,Meeker
 quest_package_desc,The content of this package is unknown.\n \n %c[ui_gray_3]PROPERTIES:\n %c[d_blue] • %c[ui_gray_2] personal belongings\n %c[d_blue] • %c[ui_gray_2] valuable\n
 quest_package_name,Package
 recover_mutant_data_device_desc,"A sturdy device that was planted on a mutant to monitor its movements, habits and vital signs. Shows signs of corrosion, and is covered in numerous bite and scratch marks."
 recover_mutant_data_device_name,Tracking device
+red_greh_trader_name,Stribog
 redline_novice_outfit_description,"%c[ui_gray_1]A snazzy bright red leather anorak worn over a cosy turtleneck sweater, tucked into sturdy jeans and hiking boots. The colour alone should be reason enough to avoid use in the Zone.\n \n"
 redline_novice_outfit_name,Redline leather jacket
 renegade,Renegade
@@ -1326,7 +1344,7 @@ st_cigarettes_lucky,Lucky Strike cigarettes
 st_cigarettes_lucky_descr,Cigarettes imported from the West. Some stalkers trade them for a few rounds of ammo within their faction.\n \n %c[ui_gray_3]PROPERTIES:\n %c[d_blue] • %c[ui_gray_2] stimulant\n %c[d_blue] • %c[ui_gray_2] high quality\n %c[d_blue] • %c[ui_gray_2] mild alcohol sobering effect\n
 st_cigarettes_russian,Russian brand of cigarettes
 st_cigarettes_russian_descr,The cheapest pack of cigarettes in the Zone. Russian budget brand.\n \n %c[ui_gray_3]PROPERTIES:\n %c[d_blue] • %c[ui_gray_2] stimulant\n %c[d_red] • %c[ui_gray_2] low quality\n %c[d_blue] • %c[ui_gray_2] mild alcohol sobering effect\n
-st_class,st_class
+st_class,Class
 st_cleaning_kit_p,"""Progress"" handgun cleaning kit"
 st_cleaning_kit_p_descr,"\n \n %c[ui_gray_2]COMPATIBILITY:\n \n %c[d_orange] • %c[ui_gray_2] 9mm, .45 and .357 caliber weapons\n \n %c[ui_gray_1]A set of specialized brushes which can be used to clean the barrel and other parts of a firearm from dirt, sand, moisture, lubricant residues and other foreign materials that have accumulated during use. Such sets are quite commonly used in the Zone in order to keep firearms in a good shape at all times. It is possible to utilize common tools to have a better access to inner mechanisms of a gun or alcohol to more easily dissolve oil residue. Can also be used to better spread gun oil, however a more cost-efficient method used by most experienced stalkers entails the application of animal fat on the brushes as an alternative lubricant. This particular set fits typical handgun calibers.\n \n %c[ui_gray_3]PROPERTIES:\n %c[d_blue] • %c[ui_gray_2] technological item\n %c[d_blue] • %c[ui_gray_2] high quality\n %c[d_orange] • %c[ui_gray_2] usable for repairing equipment\n"
 st_cleaning_kit_r5,"""ValuPro III"" smallbore rifle cleaning kit"
@@ -1359,10 +1377,13 @@ st_data_export_blast_power,st_data_export_blast_power
 st_data_export_bonus_mutant_part_chance,Bonus mutant part chance
 st_data_export_can_be_cooked,Can be cooked
 st_data_export_can_be_crafted,Can be crafted
+st_data_export_condition,Condition
 st_data_export_description,Description
 st_data_export_disassemble_amount,Amount
 st_data_export_disassemble_item,Item
 st_data_export_disassemble_result,Result
+st_data_export_discount_type,Discount Type
+st_data_export_discount_value,Discount Value
 st_data_export_eat_alcohol,Alcohol
 st_data_export_eat_health_change,Health change
 st_data_export_falloff,Falloff
@@ -1379,10 +1400,14 @@ st_data_export_k_ap,K AP
 st_data_export_k_hit,K Hit
 st_data_export_light_attack_power,Light Attack Power
 st_data_export_magnifications,st_data_export_magnifications
-st_data_export_max_uses,st_data_export_max_uses
+st_data_export_max_uses,Max Uses
 st_data_export_outfit_artefact_count_max,Maximum belt slots
 st_data_export_power_restore_max,Total stamina recovery
+st_data_export_price_multiplier,Price Multiplier
+st_data_export_probability,Probability
 st_data_export_projectiles,Projectiles
+st_data_export_property,Property
+st_data_export_quantity,Quantity
 st_data_export_recipe_requirement,st_data_export_recipe_requirement
 st_data_export_recipe_requirement_name,st_data_export_recipe_requirement_name
 st_data_export_restore_bleeding_max,Total wound healing
@@ -1398,9 +1423,12 @@ st_data_export_stash_type_common,Common
 st_data_export_stash_type_rare,Rare
 st_data_export_thirst,Thirst
 st_data_export_tool_tier,st_data_export_tool_tier
+st_data_export_trader_stalker_flea_market,Flea Market Trader
+st_data_export_trader_stalker_flea_market_night,Flea Market Trader at night
 st_data_export_unknown,Unknown
 st_data_export_used_in_cooking,Used in cooking
 st_data_export_used_in_crafting,Used in crafting
+st_data_export_value,Value
 st_data_export_weapon_degradation,W. Degradation
 st_data_export_weapon_kind_explosive,Explosive
 st_data_export_weapon_kind_pistol,Pistol
@@ -3227,6 +3255,7 @@ st_zat_a23_gauss_rifle_docs,st_zat_a23_gauss_rifle_docs
 st_zat_a23_gauss_rifle_docs_descr,st_zat_a23_gauss_rifle_docs_descr
 st_zat_a23_labx8_key_descr,st_zat_a23_labx8_key_descr
 st_zat_a23_labx8_key_name,st_zat_a23_labx8_key_name
+st_zat_a2_stalker_nimble_name,Nimble
 st_zat_b12_documents_1,st_zat_b12_documents_1
 st_zat_b12_documents_1_descr,st_zat_b12_documents_1_descr
 st_zat_b12_documents_2,st_zat_b12_documents_2
@@ -3237,6 +3266,7 @@ st_zat_b12_key_2,st_zat_b12_key_2
 st_zat_b12_key_2_descr,st_zat_b12_key_2_descr
 st_zat_b20_noah_pda_desc,st_zat_b20_noah_pda_desc
 st_zat_b20_noah_pda_name,st_zat_b20_noah_pda_name
+st_zat_b30_owl_stalker_trader_name,Owl
 st_zat_b40_notebook_desc,st_zat_b40_notebook_desc
 st_zat_b40_notebook_name,st_zat_b40_notebook_name
 st_zat_b40_pda_1_desc,st_zat_b40_pda_1_desc
@@ -3286,6 +3316,8 @@ svoboda_novice_outfit_description,"%c[ui_gray_1]A camouflaged leather anorak wor
 svoboda_novice_outfit_name,Freedom leather jacket
 svoboda_scientific_outfit_description,"%c[ui_gray_1]Produced by Freedom craftsmen especially for observing anomalous phenomena in the Zone. The closed system of breathing and special treatment materials provide excellent protection against harmful radiation and anomalous effects. However, the built-in ""Sentinel"" body armour isn’t the best and can break somewhat easily, so is not suitable for active hostilities.\n \n"
 svoboda_scientific_outfit_name,Watchman of Freedom
+trader_monolith_kbo_name,Olivar
+trader_pri_a15_mlr_name,Cashier
 travel_outfit_description,"%c[ui_gray_1]A Zone-assembled suit that has been handmade by local craftsmen as a matter of survival. This particular outfit is of high quality and intended for extended exploration - it boasts a surprisingly sophisticated weight distribution system along with more than ample protection against the Zone's environmental factors, particularly radiological and chemical threats. A suit of choice for many artefact hunters and even some mutant hunters, its most notable downside - aside from its high price compared to other stalker suits - is its sheer hopelessness in a firefight. It's unlikely its previous owner parted with it willingly. \n \n"
 travel_outfit_name,"""Voyager"" stalker suit"
 trenchcoat_brown_outfit_description,"%c[ui_gray_1]A long, thick overcoat worn over a butchered scientist suit. Although the closed cycle system and several other features seem to have been stripped off for whatever reason, the end result still compares favourably to many basic stalker suits.\n \n"
@@ -3322,11 +3354,14 @@ ui_inv_wrange,ui_inv_wrange
 ui_mm_repair,Repair
 ui_st_community,Faction
 ui_st_rank,Rank
+val_smart_terrain_7_4_bandit_trader_stalker_name,Olivius
 vodnik_notes_desc,"""Many have joined our cause, whether they understood the magnificence of the Zone from the beginning, or required some explanation. I envy the Founders; they were created by the Masters themselves, they could witness the birth of Vyraj! But they cleansed us, judging us worthy, and they'll cleanse our new brothers. Together, we'll spread the word across the whole world."""
 vodnik_notes_name,Vodnik's notes
 wastelander_outfit_description,"%c[ui_gray_1]A Zone-assembled suit that has been handmade by local craftsmen as a matter of survival. This particular outfit is of high quality, and comes with an integrated Czech-M10 gas mask. It compares favourably to many other locally made suits, but is often held back by its incompatability with other helmets, a trait which cuts down on how useful or adaptable the suit can be. \n \n"
 wastelander_outfit_name,"""Wastelander"" stalker suit"
 wpn_tt33_descr,"The TT-33 is a Russian 7.62x25mm pistol. It was developed in the early 1930s by Fedor Tokarev as a service pistol for the Soviet military to replace the Nagant M1895 revolver. Many communist or Soviet bloc countries made a variation of the TT-33 pistol, until it was eventually replaced by 9x18mm Makarov PM in 1952. Production of the TT-33 in the USSR ended in 1954."
+yan_povar_army_mlr_name,Spirit
+yan_st_sakharov_name,Professor Sakharov
 zat_b22_medic_pda,zat_b22_medic_pda
 zat_b22_medic_pda_desc,zat_b22_medic_pda_desc
 zat_b33_safe_container_desc,zat_b33_safe_container_desc
@@ -3335,5 +3370,6 @@ zat_b39_joker_pda_description,zat_b39_joker_pda_description
 zat_b39_joker_pda_name,zat_b39_joker_pda_name
 zat_b44_barge_pda_desc,zat_b44_barge_pda_desc
 zat_b44_barge_pda_name,zat_b44_barge_pda_name
+zat_stancia_trader_merc_name,Vector
 zombied,Zombified
 ~,~
