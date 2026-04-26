@@ -271,11 +271,16 @@ function debug_cmd_list.cmd.export_translations(_, txt, x)
     end
     write_csv_header(debug_file, "Translation Key,Translated Value")
     local cnt = 0
+    local sorted_keys = {}
     for key, _ in pairs(translated_keys) do
         if key ~= "" then
-            write_csv(debug_file, key, game.translate_string(key) or "")
-            cnt = cnt + 1
+            sorted_keys[#sorted_keys + 1] = key
         end
+    end
+    table.sort(sorted_keys)
+    for _, key in ipairs(sorted_keys) do
+        write_csv(debug_file, key, game.translate_string(key) or "")
+        cnt = cnt + 1
     end
     debug_file:close()
     x:SendOutput("[END] export translations - %s total keys exported - see in Gamma\\Overwrite\\bin\\%s", cnt, p_file)
@@ -1032,6 +1037,7 @@ function debug_cmd_list.cmd.export_craft_recipes(_, txt, x)
                         icon_candidates[raw_recipe[i][1]] = true
                     end
                 end
+                icon_candidates[section] = true
 
                 tbl[section] = recipe
                 cnt = cnt + 1
