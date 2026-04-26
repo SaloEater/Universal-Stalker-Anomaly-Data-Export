@@ -24,6 +24,7 @@ local cmd_list = {
     { name = "Export traders mapping", cmd = "export_traders_mapping", hide_ui = 0 },
     { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
     { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
+    { name = "Export items common data", cmd = "export_items_common_data", hide_ui = 0 },
     {name = "Export translation keys", cmd = "export_translation_keys", hide_ui = 0},
     {name = "Export translations", cmd = "export_translations", hide_ui = 0},
     {name = "Export all", cmd = "export_all", hide_ui = 0},
@@ -40,6 +41,8 @@ function debug_cmd_list.cmd.export_all(_, txt, x)
         ["export_item_list"] = true,
         ["export_item_icons"] = true,
         ["export_traders_mapping"] = true,
+        ["export_outfits"] = true,
+        ["export_weapons"] = true,
     }
 
     for i, cmd in ipairs(cmd_list) do
@@ -47,6 +50,9 @@ function debug_cmd_list.cmd.export_all(_, txt, x)
             debug_cmd_list.cmd[cmd.cmd](nil, nil, x)
         end
     end
+
+    debug_cmd_list.cmd.export_outfits(nil, nil, x)
+    debug_cmd_list.cmd.export_weapons(nil, nil, x)
 end
 
 -- 0 - translated values, 1 - translation keys
@@ -2473,6 +2479,50 @@ function debug_cmd_list.cmd.export_item_list(_, txt, x)
     debug_file:close()
 
     x:SendOutput("[END] export items - %s total items exported - see in Gamma\\Overwrite\\bin\\export_items_list.csv", cnt)
+end
+
+function debug_cmd_list.cmd.export_items_common_data(_, txt, x)
+    x:SendOutput("[START] export items common data")
+
+    local tbl = {}
+    local cnt = 0
+    ini_sys:section_for_each(function(section)
+        if is_multiplayer_item(section) then return end
+
+        local kind = ini_sys:r_string_ex(section, "kind") or ""
+        if kind == "" then return end
+
+        local item = {}
+        item.class       = ini_sys:r_string_ex(section, "class") or ""
+        item.kind        = kind
+        item.name        = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
+        item.description = (translate_with_context(ini_sys:r_string_ex(section, "description"), "description for " .. section) or ""):sanitize()
+        item.weight      = floor_with_precision(ini_sys:r_float_ex(section, "inv_weight") or 0)
+        item.cost        = ini_sys:r_float_ex(section, "cost") or 0
+        item.max_uses    = ini_sys:r_float_ex(section, "max_uses") or ""
+        icon_candidates[section] = true
+
+        tbl[section] = item
+        cnt = cnt + 1
+    end)
+
+    local p_file = "export_items_common_data.csv"
+    local f = io.open(p_file, "w+")
+    local header = translate_headers({
+        "~", "st_class", "st_ui_dbg_spawn_type", "pda_encyclopedia_name",
+        "st_data_export_description", "st_prop_weight", "st_upgr_cost", "st_data_export_max_uses"
+    })
+    write_csv_header(f, header)
+    local sorted_ids = {}
+    for section in pairs(tbl) do sorted_ids[#sorted_ids + 1] = section end
+    table.sort(sorted_ids)
+    for _, section in ipairs(sorted_ids) do
+        local v = tbl[section]
+        write_csv(f, section, v.class, v.kind, v.name, v.description, v.weight, v.cost, v.max_uses)
+    end
+    f:close()
+
+    x:SendOutput("[END] export items common data - %s items exported - see export_items_common_data.csv", cnt)
 end
 
 function debug_cmd_list.cmd.export_item_chance_in_stash(_, txt, x)
