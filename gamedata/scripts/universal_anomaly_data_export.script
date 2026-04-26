@@ -22,7 +22,6 @@ local cmd_list = {
     { name = "Export weapon addons", cmd = "export_weapon_addons", hide_ui = 0 },
     { name = "Export weapon addon map", cmd = "export_weapon_addon_map", hide_ui = 0 },
     { name = "Export traders", cmd = "export_traders", hide_ui = 0 },
-    { name = "Export traders mapping", cmd = "export_traders_mapping", hide_ui = 0 },
     { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
     { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
     {name = "Export translation keys", cmd = "export_translation_keys", hide_ui = 0},
@@ -41,7 +40,7 @@ function debug_cmd_list.cmd.export_all(_, txt, x)
         ["export_item_list"] = true,
         ["export_mutant_parts_prices"] = true,
         ["export_item_icons"] = true,
-        ["export_traders_mapping"] = true,
+        ["export_translation_keys"] = true,
     }
 
     for i, cmd in ipairs(cmd_list) do
@@ -263,6 +262,27 @@ end
 
 function translate_with_context(name, context)
     return translate(name, nil, context)
+end
+
+function debug_cmd_list.cmd.export_translation_keys(_, txt, x)
+    x:SendOutput("[START] export translation keys")
+    local f = io.open("translation_keys.csv", "w+")
+    if not f then
+        x:SendOutput("Failed to create translation_keys.csv")
+        return
+    end
+    local sorted_keys = {}
+    for key, _ in pairs(translated_keys) do
+        if key ~= "" then
+            sorted_keys[#sorted_keys + 1] = key
+        end
+    end
+    table.sort(sorted_keys)
+    for _, key in ipairs(sorted_keys) do
+        f:write(key .. "\n")
+    end
+    f:close()
+    x:SendOutput("[END] export translation keys - %s keys written - see translation_keys.csv", #sorted_keys)
 end
 
 function debug_cmd_list.cmd.export_translations(_, txt, x)
@@ -3436,34 +3456,15 @@ function build_character_blacklist()
 end
 
 local traders = {
-    { section = "bandit", config = "items\\trade\\trade_bandit.ltx", data = { name = "val_smart_terrain_7_4_bandit_trader_stalker_name" } },
-    { section = "bandit_basic", config = "items\\trade\\trade_bandit_basic.ltx", data = { name = "jup_cont_trader_bandit_name" } },
-    { section = "csky_spore", config = "items\\trade\\trade_csky_spore.ltx", data = { name = "mar_base_owl_stalker_trader_name" } },
-    { section = "duty", config = "items\\trade\\trade_duty.ltx", data = { name = "bar_petrenko_name" } },
-    { section = "ecolog_hermann", config = "items\\trade\\trade_ecolog_hermann.ltx", data = { name = "jup_b6_scientist_nuclear_physicist" } },
-    { section = "ecolog_sakharov", config = "items\\trade\\trade_ecolog_sakharov.ltx", data = { name = "yan_st_sakharov_name" } },
-    { section = "ecolog_spirit", config = "items\\trade\\trade_ecolog_spirit.ltx", data = { name = "yan_povar_army_mlr_name" } },
+    { section = "duty", config = "items\\trade\\trade_duty.ltx", data = { name = "bar_barmen_name" } },
     { section = "freedom", config = "items\\trade\\trade_freedom.ltx", data = { name = "mil_Svoboda_trader_name" } },
-    { section = "generic_barman", config = "items\\trade\\trade_generic_barman.ltx", data = { name = "bar_barmen_name" } },
-    { section = "generic_mechanic", config = "items\\trade\\trade_generic_mechanic.ltx", data = { name = "bar_visitors_stalker_mechanic_name" } },
-    { section = "generic_medic", config = "items\\trade\\trade_generic_medic.ltx", data = { name = "bar_dolg_medic_name" } },
-    { section = "greh", config = "items\\trade\\trade_greh.ltx", data = { name = "red_greh_trader_name" } },
-    { section = "isg", config = "items\\trade\\trade_isg.ltx", data = { name = "jup_depo_isg_tech_name" } },
-    { section = "isg_mission", config = "items\\trade\\trade_isg_mission.ltx", data = { name = "jup_depo_isg_tech_name" } },
-    { section = "mercenary", config = "items\\trade\\trade_mercenary.ltx", data = { name = "cit_killers_merc_trader_stalker_name" } },
-    { section = "mercenary_basic", config = "items\\trade\\trade_mercenary_basic.ltx", data = { name = "zat_stancia_trader_merc_name" } },
-    { section = "mercenary_meeker", config = "items\\trade\\trade_mercenary_meeker.ltx", data = { name = "pri_special_trader_mlr_name" } },
-    { section = "military", config = "items\\trade\\trade_military.ltx", data = { name = "agr_smart_terrain_1_6_army_trader_stalker_name" } },
-    { section = "military_esc", config = "items\\trade\\trade_military_esc.ltx", data = { name = "esc_3_16_military_trader_name" } },
-    { section = "monolith", config = "items\\trade\\trade_monolith.ltx", data = { name = "pri_monolith_monolith_trader_stalker_name" } },
-    { section = "monolith_basic", config = "items\\trade\\trade_monolith_basic.ltx", data = { name = "trader_monolith_kbo_name" } },
-    { section = "stalker_basic", config = "items\\trade\\trade_stalker_basic.ltx", data = { name = "trader_pri_a15_mlr_name" } },
-    { section = "stalker_butcher", config = "items\\trade\\trade_stalker_butcher.ltx", data = { name = "hunter_gar_trader_name" } },
-    { section = "stalker_flea_market", config = "items\\trade\\trade_stalker_flea_market.ltx", data = { name = "st_data_export_trader_stalker_flea_market" } },
-    { section = "stalker_flea_market_night", config = "items\\trade\\trade_stalker_flea_market_night.ltx", data = { name = "st_data_export_trader_stalker_flea_market_night" } },
-    { section = "stalker_loris", config = "items\\trade\\trade_stalker_loris.ltx", data = { name = "esc_main_base_trader_mlr_name" } },
+    { section = "generic_mechanic", config = "items\\trade\\trade_generic_mechanic.ltx", data = { name = "st_raid_mechanic_name" } },
+    { section = "generic_medic", config = "items\\trade\\trade_generic_medic.ltx", data = { name = "st_raid_medic_name" } },
+
+    { section = "ecolog_sakharov", config = "items\\trade\\trade_ecolog_sakharov.ltx", data = { name = "yan_st_sakharov_name" } },
+    --{ section = "csky_spore", config = "items\\trade\\trade_csky_spore.ltx", data = { name = "mar_base_owl_stalker_trader_name" } }, --TODO: list only furniture for him
+    { section = "stalker_butcher", config = "items\\trade\\trade_stalker_butcher.ltx", data = { name = "st_raid_butcher_name" } },
     { section = "stalker_nimble", config = "items\\trade\\trade_stalker_nimble.ltx", data = { name = "st_zat_a2_stalker_nimble_name" } },
-    { section = "stalker_owl", config = "items\\trade\\trade_stalker_owl.ltx", data = { name = "st_zat_b30_owl_stalker_trader_name" } },
     { section = "stalker_sidorovich", config = "items\\trade\\trade_stalker_sidorovich.ltx", data = { name = "escape_trader_name" } }
 }
 
@@ -3621,321 +3622,4 @@ end
 
 function clear_stalkers()
     for i=1,65534 do local npc = alife_object(i) if npc and IsStalker(npc) then safe_release_manager.release(npc)  end end
-end
-
-function debug_cmd_list.cmd.export_traders_mapping(_, txt, x)
-    x:SendOutput("[START] export traders mapping")
-
-    local smart_location_prefix = {
-        ["agr"] = "agroprom",
-        ["bar"] = "bar",
-        ["bun"] = "bunker",
-        ["ds2"] = "darkscape",
-        ["val"] = "darkvalley",
-        ["cit"] = "dead_city",
-        ["dead"] = "dead_city",
-        ["esc"] = "escape",
-        ["gar"] = "garbage",
-        ["gen"] = "generators",
-        ["jup"] = "jupiter",
-        ["katacomb"] = "katacomb_hospital",
-        ["x162"] = "labx16",
-        ["dar"] = "labx18",
-        ["lim"] = "limansk",
-        ["lx8"] = "lx8",
-        ["mar"] = "marsh",
-        ["mil"] = "military",
-        ["mlr"] = "mlr",
-        ["pol"] = "pole",
-        ["kbo"] = "pripyat",
-        ["pri"] = "pripyat",
-        ["rad"] = "radar",
-        ["red"] = "red_forest",
-        ["ros"] = "rostok",
-        ["sar"] = "sarcofag",
-        ["aes"] = "stancia_1",
-        ["aes2"] = "stancia_2",
-        ["trc"] = "trucks_cemetery",
-        ["pas"] = "underpass",
-        ["warlab"] = "warlab",
-        ["yan"] = "yantar",
-        ["zat"] = "zaton",
-        --["lain"] = "lain" -- unknown level
-    }
-
-    -- Reverse map: normalized trade config path -> traders.section
-    local config_to_section = {}
-    for _, t in ipairs(traders) do
-        config_to_section[t.config:lower():gsub("/", "\\")] = t.section
-    end
-
-    -- Step 1: Load squad_descr and build smart_name -> { {story_id, npc} } map
-    local squad_ini = ini_file("misc\\squad_descr\\squad_descr.ltx")
-    if not squad_ini then
-        x:SendOutput("export traders mapping - ERROR: squad_descr.ltx not found")
-        return
-    end
-
-    local smart_stories = {}
-    build_character_blacklist()
-    printf("export traders mapping - loading squad_descr.ltx")
-    squad_ini:section_for_each(function(section)
-        local squad_story_id = squad_ini:r_string_ex(section, "story_id")
-
-        local npc_list = squad_ini:r_string_ex(section, "npc") or ""
-        local npc_array = str_explode(npc_list, ",")
-        for _, npc in ipairs(npc_array) do
-            local character_profile = ini_sys:r_string_ex(npc, "character_profile") or ""
-            if character_blacklist[character_profile] then
-                printf("export traders mapping - skipping squad [%s] because it references blacklisted character [%s]", section, npc:trim())
-                return
-            end
-        end
-
-        local npc_sections_str = squad_ini:r_string_ex(section, "npc") or ""
-        local npc_sections = str_explode(npc_sections_str, ",")
-        local target_str = squad_ini:r_string_ex(section, "target_smart") or ""
-        printf("export traders mapping - processing squad section [%s] story_id=%s target_smart=%s npc_sections=[%s]", section, squad_story_id or "", target_str, npc_sections_str)
-
-        for _, npc_section in pairs(npc_sections) do
-            local story_id = squad_story_id or ini_sys:r_string_ex(npc_section, "story_id") or ""
-            if story_id == "" then
-                printf("export traders mapping - WARNING: no story_id found for npc section [%s], skipping", npc_section)
-                return
-            end
-            for _, entry in ipairs(parse_condlist(target_str)) do
-            local smart = entry.section
-            if smart and smart ~= "" and smart ~= "nil" then
-                printf("export traders mapping - squad section [%s] story_id=%s target_smart=%s", section, story_id, smart)
-                if not smart_stories[smart] then smart_stories[smart] = {} end
-                local dupe = false
-                for _, e in ipairs(smart_stories[smart]) do
-                    if e.story_id == story_id then dupe = true; break end
-                end
-                if not dupe then
-                    smart_stories[smart][#smart_stories[smart] + 1] = { story_id = story_id, npc = npc_section }
-                end
-            end
-        end
-        end
-    end)
-
-    -- Step 2: Walk each smart -> exclusive -> logic files -> logic@ sections with trade
-    local result = {
-        ["stalker_sidorovich"] = { "esc_m_trader"}
-    }
-    local loaded_logic = {}
-    -- pending: { npc_sec, trader_section, story_id, suitable_str }
-    -- processed sequentially with NPC spawn + online wait
-    local pending = {}
-
-    local actor_pos = db.actor:position()
-    local actor_lvid = db.actor:level_vertex_id()
-    local actor_gvid = db.actor:game_vertex_id()
-
-    local function add_story_id(trader_section, story_id)
-        if not result[trader_section] then result[trader_section] = {} end
-        for _, s in ipairs(result[trader_section]) do
-            if s == story_id then return end
-        end
-        result[trader_section][#result[trader_section] + 1] = story_id
-    end
-
-    local function process_logic_file(logic_path, squad_entries)
-        local norm = logic_path:gsub("/", "\\"):lower()
-        if loaded_logic[norm] == nil then
-            loaded_logic[norm] = ini_file("scripts\\" .. logic_path:gsub("/", "\\")) or false
-        end
-        local logic_ini = loaded_logic[norm]
-        if not logic_ini then return end
-
-        logic_ini:section_for_each(function(sec)
-            if not sec:find("^logic@") then return end
-            local trade = logic_ini:r_string_ex(sec, "trade")
-            if not trade or trade == "" then return end
-
-            local trader_section = config_to_section[trade:lower():gsub("/", "\\")]
-            if not trader_section then return end
-
-            local suitable_str = logic_ini:r_string_ex(sec, "suitable")
-            if suitable_str and suitable_str ~= "" then
-                for _, entry in ipairs(squad_entries) do
-                    if entry.npc and entry.npc ~= "" then
-                        local npc_sections = str_explode(entry.npc, ",")
-                        for _, v in pairs(npc_sections) do
-                            pending[#pending + 1] = {
-                                npc_sec       = v,
-                                trader_section = trader_section,
-                                story_id      = entry.story_id,
-                                suitable_str  = suitable_str,
-                            }
-                        end
-                    end
-                end
-            else
-                for _, entry in ipairs(squad_entries) do
-                    add_story_id(trader_section, entry.story_id)
-                end
-            end
-        end)
-    end
-
-    local missing_prefixes = {}
-    for smart_name, squad_entries in pairs(smart_stories) do
-        local prefix = smart_name:match("^([a-z0-9]+)_")
-        if not prefix then
-            printf("export traders mapping - WARNING: cannot extract location prefix from smart [%s], skipping", smart_name)
-            missing_prefixes["nil"] = true
-            goto continue
-        end
-
-        local location = prefix and smart_location_prefix[prefix]
-        if location then
-            local path = "scripts\\" .. location .. "\\smart\\" .. smart_name .. ".ltx"
-            local smart_ini = ini_file(path)
-            printf("Processing ini %s", path)
-            if smart_ini and smart_ini:section_exist("exclusive") then
-                local n = smart_ini:line_count("exclusive") or 0
-                local seen_paths = {}
-                for i = 0, n - 1 do
-                    local _, _, logic_path = smart_ini:r_line("exclusive", i, "", "")
-                    if logic_path and logic_path ~= "" and not seen_paths[logic_path] then
-                        seen_paths[logic_path] = true
-                        process_logic_file(logic_path, squad_entries)
-                    end
-                end
-            end
-        else
-            missing_prefixes[prefix] = true
-        end
-        ::continue::
-    end
-
-    local missing_str = ""
-    for prefix in pairs(missing_prefixes) do
-        missing_str = missing_str .. (prefix or "nil") .. " "
-    end
-    if missing_str ~= "" then
-        printf("export traders mapping - WARNING: missing location prefixes for: %s", missing_str)
-    end
-
-    -- Step 3: Write output (called after all pending suitable checks finish)
-    local function write_output()
-        local f = io.open("export_traders_mapping.csv", "w+")
-        local sorted = {}
-        for section in pairs(result) do sorted[#sorted + 1] = section end
-        table.sort(sorted)
-        for _, section in ipairs(sorted) do
-            local ids = result[section]
-            table.sort(ids)
-            local row = { section }
-            for _, id in ipairs(ids) do row[#row + 1] = id end
-            write_csv(f, unpack(row))
-        end
-        f:close()
-        x:SendOutput("[END] export traders mapping - %s trader sections mapped - see export_traders_mapping.csv", #sorted)
-    end
-
-    if #pending == 0 then
-        write_output()
-        return
-    end
-
-    -- Step 4: Process pending suitable checks in batches of 50.
-    -- Each batch: spawn all uncached NPCs, wait 1s for online, evaluate suitable,
-    -- then wait 1s and release all before starting the next batch.
-    -- suitable_cache avoids re-spawning the same (npc_sec, condlist) pair twice.
-    local suitable_cache = {}
-    local pending_idx = 1
-    local BATCH_SIZE = 20
-
-    local function process_batch()
-        if pending_idx > #pending then
-            printf("export traders mapping - all pending suitable checks done, writing output")
-            write_output()
-            return
-        end
-
-        -- Consume up to BATCH_SIZE items; resolve cached ones immediately
-        local batch_end = math.min(pending_idx + BATCH_SIZE - 1, #pending)
-        local spawned = {}  -- { se_id, cache_key, suitable_str, p }
-
-        printf("export traders mapping - batch [%s-%s / %s]", pending_idx, batch_end, #pending)
-
-        while pending_idx <= batch_end do
-            local p = pending[pending_idx]
-            pending_idx = pending_idx + 1
-            local remaining = #pending - (pending_idx - 1)
-            local cache_key = p.npc_sec .. "||" .. p.suitable_str
-
-            if suitable_cache[cache_key] ~= nil then
-                printf("export traders mapping -   [%s remaining] cache hit %s: passed=%s", remaining, p.npc_sec, tostring(suitable_cache[cache_key]))
-                if suitable_cache[cache_key] then
-                    add_story_id(p.trader_section, p.story_id)
-                end
-            else
-                local se_obj = alife_create(p.npc_sec, actor_pos, actor_lvid, actor_gvid)
-                if not se_obj then
-                    printf("export traders mapping -   [%s remaining] alife_create failed for %s, skipping", remaining, p.npc_sec)
-                    suitable_cache[cache_key] = false
-                else
-                    printf("export traders mapping -   [%s remaining] spawned %s id=%s", remaining, p.npc_sec, se_obj.id)
-                    spawned[#spawned + 1] = { se_id = se_obj.id, cache_key = cache_key, suitable_str = p.suitable_str, p = p }
-                    -- Mark cache_key as in-progress so duplicate npc_sec in same batch don't re-spawn
-                    suitable_cache[cache_key] = false
-                end
-            end
-        end
-
-        if #spawned == 0 then
-            process_batch()
-            return
-        end
-
-        -- Wait 1s for all spawned NPCs to come online, then evaluate suitable
-        local function wait_for_batch_online()
-            CreateTimeEvent("tmap_batch_online_" .. pending_idx, "delay_func", 1, function()
-                local all_online = true
-                for _, entry in ipairs(spawned) do
-                    if not level.object_by_id(entry.se_id) then
-                        all_online = false
-                        break
-                    end
-                end
-                if not all_online then
-                    printf("export traders mapping -   batch not all online yet, retrying")
-                    wait_for_batch_online()
-                    return true
-                end
-
-                printf("export traders mapping -   batch online, evaluating %s NPCs", #spawned)
-                for _, entry in ipairs(spawned) do
-                    local obj = level.object_by_id(entry.se_id)
-                    local cond = xr_logic.parse_condlist(obj, "suitable", "suitable", entry.suitable_str)
-                    local passed = cond and xr_logic.pick_section_from_condlist(db.actor, obj, cond) == "true" or false
-                    printf("export traders mapping -   id=%s npc=%s suitable=%s", entry.se_id, entry.p.npc_sec, tostring(passed))
-                    suitable_cache[entry.cache_key] = passed
-                    if passed then
-                        add_story_id(entry.p.trader_section, entry.p.story_id)
-                    end
-                end
-
-                -- Wait 1s then release all and start next batch
-                printf("export traders mapping -   batch done, scheduling release of %s NPCs", #spawned)
-                CreateTimeEvent("tmap_batch_release_" .. pending_idx, "delay_func", 1, function()
-                    for _, entry in ipairs(spawned) do
-                        printf("export traders mapping -   releasing id=%s", entry.se_id)
-                        safe_release_manager.release(alife_object(entry.se_id))
-                    end
-                    process_batch()
-                    return true
-                end)
-                return true
-            end)
-        end
-
-        wait_for_batch_online()
-    end
-
-    process_batch()
 end
