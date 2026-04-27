@@ -15,7 +15,6 @@ local cmd_list = {
     { name = "Export upgrades", cmd = "export_upgrades", hide_ui = 0 },
     { name = "Export item icons", cmd = "export_item_icons", hide_ui = 0 },
     { name = "Export disassemble table", cmd = "export_disassemble_table", hide_ui = 0 },
-    { name = "Export mutant parts prices", cmd = "export_mutant_parts_prices", hide_ui = 0 },
     --{ name = "Export mutant profiles", cmd = "export_mutant_profiles", hide_ui = 0 },--TODO: figure out if it's possible to display for vanilla
     -- { name = "Export npc armor profiles", cmd = "export_npc_armor_profiles", hide_ui = 0 },--TODO: figure out if it's possible to display for vanilla
     { name = "Export weapon addons", cmd = "export_weapon_addons", hide_ui = 0 },
@@ -2069,259 +2068,6 @@ function debug_cmd_list.cmd.export_disassemble_table(_, txt, x)
     x:SendOutput("[END] export materials - %s total materials exported", materials_count)
 end
 
-function debug_cmd_list.cmd.export_outfit_exchange(_, txt, x)
-    x:SendOutput("[START] export outfit exchange")
-
-    local outfit_map = {}
-    for variable, value in pairs(grok_armor_convert) do
-        if not string.find(variable, "all_") then
-            local reward
-            local source_outfits = {}
-            for prop, propValue in pairs(value) do
-                if prop == "reward" then
-                    reward = propValue
-                elseif prop ~= "cost" then
-                    source_outfits[prop] = true
-                end
-            end
-
-            if reward and source_outfits then
-                for outfit, _ in pairs(source_outfits) do
-                    if not outfit_map[outfit] then
-                        outfit_map[outfit] = {}
-                    end
-                    if not outfit_map[outfit]["rewards"] then
-                        outfit_map[outfit]["rewards"] = {}
-                        outfit_map[outfit]["community"] = ini_sys:r_string_ex(outfit, "community") or ""
-                        outfit_map[outfit]["name"] = translate_with_context(ini_sys:r_string_ex(outfit, "inv_name"), "item name for " .. outfit)
-                    end
-
-                    table.insert(outfit_map[outfit]["rewards"], {
-                        ["community"] = ini_sys:r_string_ex(reward, "community") or "",
-                        ["reward"] = reward,
-                        ["name"] = translate_with_context(ini_sys:r_string_ex(reward, "inv_name"), "item name for " .. reward)
-                    })
-                end
-            end
-        end
-    end
-
-    local communities = game_relations.factions_table
-    table.sort(communities)
-
-    local cnt = 0
-
-    local file_name = "export_outfit_exchange.csv"
-    local file = file_for_write(file_name)
-
-    local community_map = {}
-    for i, community in ipairs(communities) do
-        community_map[community] = ""
-    end
-
-    local sortByFactionAndName = function(t, a, b)
-        local faction_a = t[a]["community"]
-        local faction_b = t[b]["community"]
-        if faction_a == faction_b then
-            return t[a]["name"] < t[b]["name"]
-        else
-            return faction_a < faction_b
-        end
-    end
-    local headers = { "~", "pda_encyclopedia_name", "st_data_export_exchange_reward" }
-    for i, community in ipairs(communities) do
-        table.insert(headers, community)
-    end
-    local header = translate_headers(headers)
-    write_csv_header(file, header)
-    local unknown_str = translate("st_data_export_unknown")
-    local sorted_keys = sort_keys(outfit_map)
-    for _, section in ipairs(sorted_keys) do
-        local data = outfit_map[section]
-        local parts = { translate(data["community"], unknown_str, "translating community " .. data["community"] .. " for exchanges of " .. section), data["name"], "" }
-        for i, reward in spairs(data["rewards"], sortByFactionAndName) do
-            community_map[reward.community] = reward.name
-            cnt = cnt + 1
-        end
-        for i, community in ipairs(communities) do
-            parts[#parts + 1] = community_map[community] or "N/A"
-        end
-        write_csv(file, unpack(parts))
-        for i, community in ipairs(communities) do
-            community_map[community] = ""
-        end
-    end
-    file:close()
-
-    x:SendOutput("[END] outfit exchange - %s total exchanges exported", cnt)
-end
-
-function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
-    x:SendOutput("[START] export mutant parts prices")
-
-    local fake_butcher
-    local fake_sakharov
-
-    local sim = alife()
-    for i = 1, 65534 do
-        local se_obj = sim:object(i)
-        if (se_obj and se_obj.group_id ~= 65535) then
-            if IsStalker(nil, se_obj:clsid()) then
-                local npc = level.object_by_id(i)
-                if npc then
-                    if not fake_butcher then
-                        fake_butcher = npc
-                    elseif not fake_sakharov then
-                        fake_sakharov = npc
-                    end
-                end
-            end
-        end
-    end
-
-    if not fake_butcher then
-        x:SendOutput("Unable to find any NPCs on level for faking Butcher")
-        return
-    end
-
-    if not fake_sakharov then
-        x:SendOutput("Unable to find any NPCs on level for faking Sakharov")
-        return
-    end
-
-    trade_manager.trade_init(fake_butcher, "items\\trade\\trade_stalker_butcher.ltx")
-    trade_manager.update(fake_butcher)
-    trade_manager.trade_init(fake_sakharov, "items\\trade\\trade_ecolog_sakharov.ltx")
-    trade_manager.update(fake_sakharov)
-
-    local GUI = ui_inventory.GUI
-
-    GUI:TMode_InitProfile(fake_butcher)
-    local butcher_profile = GUI.CC["actor_trade"].trade_profile
-    printf("%s, %s, %s, %s, %s", butcher_profile.cfg, butcher_profile.list, butcher_profile.cond_factor, butcher_profile.cond_exponent, butcher_profile.discount)
-    GUI:TMode_InitProfile(fake_sakharov)
-    local sakharov_profile = GUI.CC["actor_trade"].trade_profile
-    printf("%s, %s, %s, %s, %s", sakharov_profile.cfg, sakharov_profile.list, sakharov_profile.cond_factor, sakharov_profile.cond_exponent, sakharov_profile.discount)
-
-    local cnt = 0
-    local parts = {}
-    local processing_counter = 0
-
-    local pos = db.actor:position()
-    local lvid = db.actor:level_vertex_id()
-    local gvid = db.actor:game_vertex_id()
-    local actor_id = AC_ID
-
-    ini_sys:section_for_each(function(section)
-        local type
-        if string.find(section, "mutant_part") then
-            type = 1
-        end
-        if string.find(section, "^hide") and not string.find(section, "absorbation") then
-            type = 2
-        end
-        local has_cost = ini_sys:line_exist(section, "cost")
-        if not type or not has_cost or section == "mutant_part_general_meat" then
-            --printf("%s is not mutant part", section)
-            return
-        end
-
-        local se_obj
-        se_obj = alife_create_item(section, { pos, lvid, gvid, actor_id })
-
-        if not se_obj then
-            printf("No server object made for [%s]", section)
-            x:SendOutput("No server object made for [%s]", section)
-            return
-        end
-        cnt = cnt + 1
-        processing_counter = processing_counter + 1
-        local id = se_obj.id
-
-        x:SendOutput("export mutant part price - %s, start", section)
-        local function createInterval(section, id, callback, idx)
-            CreateTimeEvent("export_mutant_part_price_" .. section .. "_" .. idx, "delay_func", 2, function(section, id)
-                local success = callback(section, id)
-                if not success then
-                    createInterval(section, id, callback, idx + 1)
-                end
-                return true
-            end, section, id)
-        end
-
-        createInterval(section, id, function(section, id)
-            local obj = level.object_by_id(id)
-            if not obj then
-                x:SendOutput("export part - %s, still online", section)
-                return false
-            end
-            if not obj.section then
-                x:SendOutput("export mutant part price - %s, failed", section)
-                processing_counter = processing_counter - 1
-                --x:SendOutput("export weapon - %s, still online", section)
-                alife_release(se_obj)
-                return true
-            end
-
-            local part = {}
-            part = {}
-            part.type = type
-            part.name = translate_with_context(ini_sys:r_string_ex(section, "inv_name"), "item name for " .. section)
-            part.sakharov_price = math.floor(utils_item.get_item_cost(obj, sakharov_profile))
-            part.butcher_price = math.floor(utils_item.get_item_cost(obj, butcher_profile))
-
-            parts[section] = part
-            alife_release(se_obj)
-            x:SendOutput("export mutant part price - %s, done", section)
-            processing_counter = processing_counter - 1
-            return true
-        end, 0)
-    end)
-
-    local function createTotalInterval(callback, idx)
-        CreateTimeEvent("export_mutant_part_price__total_" .. idx, "delay_func", 5, function()
-            local success = callback()
-            if not success then
-                createTotalInterval(callback, idx + 1)
-            end
-            return true
-        end)
-    end
-
-    createTotalInterval(function()
-        if processing_counter > 0 then
-            x:SendOutput("export mutant parts prices - %s parts still to do", processing_counter)
-            return false
-        end
-
-        local p_file = "export_mutant_parts_prices.csv"
-        local file = file_for_write(p_file)
-
-        if (file == nil) then
-            x:SendOutput("Failed to create/open file %s", p_file)
-            return true
-        end
-
-        local sortByType = function(t, a, b)
-            if t[a].type == t[b].type then
-                return t[a].name < t[b].name
-            end
-
-            return t[a].type < t[b].type
-        end
-        local header = translate_headers({
-            "~", "pda_encyclopedia_name", "yan_st_sakharov_name", "hunter_gar_trader_name" })
-        write_csv_header(file, header)
-        for section, part in spairs(parts, sortByType) do
-            write_csv(file,
-                    section, part.name, part.sakharov_price, part.butcher_price)
-        end
-        file:close()
-        x:SendOutput("[END] mutant parts prices - %s total parts exported", cnt)
-        return true
-    end, 0)
-end
-
 function debug_cmd_list.cmd.export_mutant_profiles(_, txt, x)
     x:SendOutput("[START] export mutant profiles")
 
@@ -3396,10 +3142,10 @@ local traders = {
     { section = "ecolog_spirit", config = "items\\trade\\trade_ecolog_spirit.ltx", data = { name = "yan_povar_army_mlr_name" } },
     { section = "freedom", config = "items\\trade\\trade_freedom.ltx", data = { name = "mil_Svoboda_trader_name" } },
     { section = "generic_barman", config = "items\\trade\\trade_generic_barman.ltx", data = { name = "bar_barmen_name" } },
-    { section = "generic_mechanic", config = "items\\trade\\trade_generic_mechanic.ltx", data = { name = "bar_visitors_stalker_mechanic_name" } },
-    { section = "generic_medic", config = "items\\trade\\trade_generic_medic.ltx", data = { name = "bar_dolg_medic_name" } },
+    { section = "generic_mechanic", config = "items\\trade\\trade_generic_mechanic.ltx", data = { name = "st_data_export_trader_mechanic" } },
+    { section = "generic_medic", config = "items\\trade\\trade_generic_medic.ltx", data = { name = "st_data_export_trader_medic" } },
     { section = "greh", config = "items\\trade\\trade_greh.ltx", data = { name = "red_greh_trader_name" } },
-    { section = "isg", config = "items\\trade\\trade_isg.ltx", data = { name = "jup_depo_isg_tech_name" } },
+    { section = "isg", config = "items\\trade\\trade_isg.ltx", data = { name = "ds_domik_isg_leader_name" } },
     { section = "isg_mission", config = "items\\trade\\trade_isg_mission.ltx", data = { name = "jup_depo_isg_tech_name" } },
     { section = "mercenary", config = "items\\trade\\trade_mercenary.ltx", data = { name = "cit_killers_merc_trader_stalker_name" } },
     { section = "mercenary_basic", config = "items\\trade\\trade_mercenary_basic.ltx", data = { name = "zat_stancia_trader_merc_name" } },
@@ -3421,9 +3167,34 @@ local traders = {
 function debug_cmd_list.cmd.export_traders(_, txt, x)
     x:SendOutput("[START] export traders")
 
-    local function make_trader_dir(section)
-        --os.execute('mkdir "traders\\' .. section .. '" 2>nul')
-    end
+    local kind_t = {
+        i_arty_junk = true, i_arty = true, i_food = true, i_drink = true, i_misc = true,
+        i_medical = true, i_kit = true, i_repair = true, i_upgrade = true,
+        o_helmet = true, i_attach = true, i_backpack = true, i_mutant_belt = true,
+        i_mutant_part = true, i_mutant_cooked = true, i_mutant_raw = true,
+        o_light = true, o_medium = true, o_sci = true, o_heavy = true,
+        w_ammo = true, w_melee = true, w_pistol = true, w_shotgun = true,
+        w_smg = true, w_rifle = true, w_sniper = true, w_explosive = true,
+    }
+
+    local items = {}
+    local ltx = ini_file("plugins\\spawner_blacklist.ltx")
+    ini_sys:section_for_each(function(sec)
+        if
+            (not ltx:line_exist("ignore_sections", sec))
+            and (not string.find(sec, "tch_"))
+            and (not string.find(sec, "mp_"))
+            and (not string.find(sec, "_base"))
+            and (not string.find(sec, "pn23"))
+            and (ini_sys:r_string_ex(sec, "inv_name_short") and ini_sys:r_string_ex(sec, "inv_name"))
+            and (not is_weapon_modification(sec))
+        then
+            local kind = ini_sys:r_string_ex(sec, "kind")
+            if kind and kind_t[kind] then
+                items[sec] = true
+            end
+        end
+    end)
 
     local function write_sell_condition_file(ini, base, condlist_str, trader_config)
         local seen = {}
@@ -3435,6 +3206,7 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
             end
         end
 
+        local discounts = {}
         local no_value_items = {}
         for _, cond_section in ipairs(ordered) do
             local n = ini:line_count(cond_section) or 0
@@ -3442,33 +3214,20 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
                 local _, item_id, mult_str = ini:r_line(cond_section, i, "", "")
                 if item_id and item_id ~= "" and (not mult_str or mult_str == "") then
                     no_value_items[item_id] = true
+                elseif item_id then
+                    local str = ini:r_string_ex(cond_section, item_id) or ""
+                    local split = str_explode(str, ",")
+                    discounts[item_id] = split[1]
                 end
             end
         end
 
-        local trader_name = nil
-        if raid_tables and trader_config then
-            for name in pairs(raid_tables.trader_group_discount_sell) do
-                if trader_config:find(name) then trader_name = name; break end
+        local tbl = {}
+        for section, _  in pairs(items) do
+            if not no_value_items[section] then
+                tbl[section] = discounts[section] or 1
             end
         end
-
-        local tbl = {}
-        ini_sys:section_for_each(function(section)
-            if is_weapon_modification(section) or is_blacklisted_ammo(section) then return end
-            local group = (raid_utils and raid_utils.get_item_group(section)) or ""
-            if group == "" then return end
-            if no_value_items[section] then return end
-
-            local discount_pct = 0
-            if raid_tables and trader_name then
-                local dt = raid_tables.trader_group_discount_sell
-                discount_pct = (dt[trader_name] and dt[trader_name][group]) or 0
-            end
-            tbl[section] = raid_tables
-                and raid_tables.trade_mult_general_sell * (1 + discount_pct / 100)
-                or 1
-        end)
 
         local f = file_for_write(base .. "sell_condition.csv")
         if not f then return end
@@ -3490,6 +3249,7 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
             end
         end
 
+        local discounts = {}
         local no_value_items = {}
         for _, cond_section in ipairs(ordered) do
             local n = ini:line_count(cond_section) or 0
@@ -3497,33 +3257,20 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
                 local _, item_id, mult_str = ini:r_line(cond_section, i, "", "")
                 if item_id and item_id ~= "" and (not mult_str or mult_str == "") then
                     no_value_items[item_id] = true
+                elseif item_id then
+                    local str = ini:r_string_ex(cond_section, item_id) or ""
+                    local split = str_explode(str, ",")
+                    discounts[item_id] = split[1]
                 end
             end
         end
 
-        local trader_name = nil
-        if raid_tables and trader_config then
-            for name in pairs(raid_tables.trader_group_discount_buy) do
-                if trader_config:find(name) then trader_name = name; break end
+        local tbl = {}
+        for section, _  in pairs(items) do
+            if not no_value_items[section] then
+                tbl[section] = discounts[section] or 1
             end
         end
-
-        local tbl = {}
-        ini_sys:section_for_each(function(section)
-            if is_weapon_modification(section) or is_blacklisted_ammo(section) then return end
-            local group = (raid_utils and raid_utils.get_item_group(section)) or ""
-            if group == "" then return end
-            if no_value_items[section] then return end
-
-            local discount_pct = 0
-            if raid_tables and trader_name then
-                local dt = raid_tables.trader_group_discount_buy
-                discount_pct = (dt[trader_name] and dt[trader_name][group]) or 0
-            end
-            local cost = ini_sys:r_float_ex(section, "cost") or 0
-            cost = cost == 0 and 0 or (cost * raid_tables.trade_mult_general_buy * (1 - discount_pct / 100))^ 1.045 / cost
-            tbl[section] = cost
-        end)
 
         local f = file_for_write(base .. "buy_condition.csv")
         if not f then return end
@@ -3630,7 +3377,6 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
         if not ini then
             x:SendOutput("export traders - SKIPPED %s (file not found)", trader.section)
         else
-            make_trader_dir(trader.section)
             local base = "traders\\" .. trader.section .. "\\"
 
             local buy_cond_str  = ini:r_string_ex("trader", "buy_condition")  or ""
