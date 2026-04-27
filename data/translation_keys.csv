@@ -144,9 +144,9 @@ bandit_sun_outfit_name
 banditmerc_outfit_description
 banditmerc_outfit_name
 bar_barmen_name
-bar_dolg_medic_name
+st_data_export_trader_medic
 bar_petrenko_name
-bar_visitors_stalker_mechanic_name
+st_data_export_trader_mechanic
 blackbox_mlr
 blackbox_mlr_descr
 chernobog_notes_desc
