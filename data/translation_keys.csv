@@ -176,9 +176,7 @@ banditmerc_outfit_name
 bar_barmen_name
 bar_case_desc
 bar_case_name
-bar_dolg_medic_name
 bar_petrenko_name
-bar_visitors_stalker_mechanic_name
 blackbox_mlr
 blackbox_mlr_descr
 chernobog_notes_desc
@@ -282,6 +280,7 @@ drx_x19_documents_desc
 drx_x19_documents_name
 drx_x8_documents_desc
 drx_x8_documents_name
+ds_domik_isg_leader_name
 ecolog
 ecolog_exo_outfit_description
 ecolog_exo_outfit_name
@@ -1854,6 +1853,8 @@ st_data_export_stash_type_common
 st_data_export_stash_type_rare
 st_data_export_thirst
 st_data_export_tool_tier
+st_data_export_trader_mechanic
+st_data_export_trader_medic
 st_data_export_trader_stalker_flea_market
 st_data_export_trader_stalker_flea_market_night
 st_data_export_unknown

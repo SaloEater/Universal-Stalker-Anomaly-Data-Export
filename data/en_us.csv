@@ -176,9 +176,7 @@ banditmerc_outfit_name,Fenced LC Suit
 bar_barmen_name,Barkeep
 bar_case_desc,A special case with loot for the Bartender.\n \n %c[pda_white]PROPERTIES:\n %c[d_orange] • %c[pda_white] Quest Item\n
 bar_case_name,Heavy Briefcase
-bar_dolg_medic_name,"Lieutenant ""Aspirin"" Sostradov"
 bar_petrenko_name,Colonel Petrenko
-bar_visitors_stalker_mechanic_name,"Senior Sergeant ""Mangun"" Potryko"
 blackbox_mlr,Flight Recorder
 blackbox_mlr_descr,"A flight data recorder, or ""black box"". Flight recorders are used to record the status of internal systems and crew conversations and can provide vital information in the event of an accident. In the Zone, stalker and military personnel alike are interested in these devices.\n \n %c[pda_white]PROPERTIES:\n %c[d_orange] • %c[pda_white] Quest Item\n"
 chernobog_notes_desc,"""The Zone is a miracle. The Masters cleansed us. Soon, we thought, the Zone would cleanse the world. But no. Our small paradise was soon trespassed upon by the flawed people of a sinful world. And, in an act of unthinkable atrocity, the beast named Strelok crippled the valiant Monolith, and entered the Masters' chambers to slay their mortal forms. However, I shall not despair. I cannot let this miracle be consumed by the vice and filth of the unworthy. So we, Sin, must embark upon a quest to fulfil the Masters' wish. We shall wage war upon the violent to bring about eternal peace.""\n \n %c[pda_white]PROPERTIES:\n %c[d_orange] • %c[pda_white] Quest Item\n"
@@ -282,6 +280,7 @@ drx_x19_documents_desc,A printed transcription of a radio transmission between s
 drx_x19_documents_name,Communication Log / 21.03.2006
 drx_x8_documents_desc,The documents refer to what seems to be a massive radar installation. Most likely the structure holding the Brain Scorcher.\n \n %c[pda_white]PROPERTIES:\n %c[d_orange] • %c[pda_white] Quest Item\n
 drx_x8_documents_name,Antenna Installation Documents
+ds_domik_isg_leader_name,Major Hernandez
 ecolog,Ecologist
 ecolog_exo_outfit_description,"An official version of the military exoskeleton, intended for use by the Ecologists' guards. The suit feels almost impervious to small arms, and its advanced servomotors make it an excellent choice for those in entrenched defensive positions, as it greatly aids in the use of heavy defensive weaponry. When out in the field, wearers of this suit are more commonly used to carrying ludicrous amounts of batteries, LLMCs, AAMs and other supplies an accompanying scientist might need when exploring the Zone.\n \n"
 ecolog_exo_outfit_name,Scientific Exoskeleton
@@ -1854,6 +1853,8 @@ st_data_export_stash_type_common,Common
 st_data_export_stash_type_rare,Rare
 st_data_export_thirst,Thirst
 st_data_export_tool_tier,st_data_export_tool_tier
+st_data_export_trader_mechanic,Mechanic
+st_data_export_trader_medic,Medic
 st_data_export_trader_stalker_flea_market,Flea Market Trader
 st_data_export_trader_stalker_flea_market_night,Flea Market Trader at night
 st_data_export_unknown,Unknown
