@@ -279,4 +279,10 @@
     <string id="st_data_export_trader_stalker_flea_market_night">
         <text>Торговец на Барахолке ночью</text>
     </string>
+    <string id="st_data_export_trader_mechanic">
+        <text>Механик</text>
+    </string>
+    <string id="st_data_export_trader_medic">
+        <text>Медик</text>
+    </string>
 </string_table>

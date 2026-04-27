@@ -3758,10 +3758,10 @@ local traders = {
     { section = "ecolog_spirit", config = "items\\trade\\trade_ecolog_spirit.ltx", data = { name = "yan_povar_army_mlr_name" } },
     { section = "freedom", config = "items\\trade\\trade_freedom.ltx", data = { name = "mil_Svoboda_trader_name" } },
     { section = "generic_barman", config = "items\\trade\\trade_generic_barman.ltx", data = { name = "bar_barmen_name" } },
-    { section = "generic_mechanic", config = "items\\trade\\trade_generic_mechanic.ltx", data = { name = "bar_visitors_stalker_mechanic_name" } },
-    { section = "generic_medic", config = "items\\trade\\trade_generic_medic.ltx", data = { name = "bar_dolg_medic_name" } },
+    { section = "generic_mechanic", config = "items\\trade\\trade_generic_mechanic.ltx", data = { name = "st_data_export_trader_mechanic" } },
+    { section = "generic_medic", config = "items\\trade\\trade_generic_medic.ltx", data = { name = "st_data_export_trader_medic" } },
     { section = "greh", config = "items\\trade\\trade_greh.ltx", data = { name = "red_greh_trader_name" } },
-    { section = "isg", config = "items\\trade\\trade_isg.ltx", data = { name = "jup_depo_isg_tech_name" } },
+    { section = "isg", config = "items\\trade\\trade_isg.ltx", data = { name = "ds_domik_isg_leader_name" } },
     { section = "isg_mission", config = "items\\trade\\trade_isg_mission.ltx", data = { name = "jup_depo_isg_tech_name" } },
     { section = "mercenary", config = "items\\trade\\trade_mercenary.ltx", data = { name = "cit_killers_merc_trader_stalker_name" } },
     { section = "mercenary_basic", config = "items\\trade\\trade_mercenary_basic.ltx", data = { name = "zat_stancia_trader_merc_name" } },
@@ -3783,9 +3783,34 @@ local traders = {
 function debug_cmd_list.cmd.export_traders(_, txt, x)
     x:SendOutput("[START] export traders")
 
-    local function make_trader_dir(section)
-        --os.execute('mkdir "traders\\' .. section .. '" 2>nul')
-    end
+    local kind_t = {
+        i_arty_junk = true, i_arty = true, i_food = true, i_drink = true, i_misc = true,
+        i_medical = true, i_kit = true, i_repair = true, i_upgrade = true,
+        o_helmet = true, i_attach = true, i_backpack = true, i_mutant_belt = true,
+        i_mutant_part = true, i_mutant_cooked = true, i_mutant_raw = true,
+        o_light = true, o_medium = true, o_sci = true, o_heavy = true,
+        w_ammo = true, w_melee = true, w_pistol = true, w_shotgun = true,
+        w_smg = true, w_rifle = true, w_sniper = true, w_explosive = true,
+    }
+
+    local items = {}
+    local ltx = ini_file("plugins\\spawner_blacklist.ltx")
+    ini_sys:section_for_each(function(sec)
+        if
+            (not ltx:line_exist("ignore_sections", sec))
+            and (not string.find(sec, "tch_"))
+            and (not string.find(sec, "mp_"))
+            and (not string.find(sec, "_base"))
+            and (not string.find(sec, "pn23"))
+            and (ini_sys:r_string_ex(sec, "inv_name_short") and ini_sys:r_string_ex(sec, "inv_name"))
+            and (not is_weapon_modification(sec))
+        then
+            local kind = ini_sys:r_string_ex(sec, "kind")
+            if kind and kind_t[kind] then
+                items[sec] = true
+            end
+        end
+    end)
 
     local function write_sell_condition_file(ini, base, condlist_str, trader_config)
         local seen = {}
@@ -3797,6 +3822,7 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
             end
         end
 
+        local discounts = {}
         local no_value_items = {}
         for _, cond_section in ipairs(ordered) do
             local n = ini:line_count(cond_section) or 0
@@ -3804,33 +3830,20 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
                 local _, item_id, mult_str = ini:r_line(cond_section, i, "", "")
                 if item_id and item_id ~= "" and (not mult_str or mult_str == "") then
                     no_value_items[item_id] = true
+                elseif item_id then
+                    local str = ini:r_string_ex(cond_section, item_id) or ""
+                    local split = str_explode(str, ",")
+                    discounts[item_id] = split[1]
                 end
             end
         end
 
-        local trader_name = nil
-        if raid_tables and trader_config then
-            for name in pairs(raid_tables.trader_group_discount_sell) do
-                if trader_config:find(name) then trader_name = name; break end
+        local tbl = {}
+        for section, _  in pairs(items) do
+            if not no_value_items[section] then
+                tbl[section] = discounts[section] or 1
             end
         end
-
-        local tbl = {}
-        ini_sys:section_for_each(function(section)
-            if is_weapon_modification(section) or is_blacklisted_ammo(section) then return end
-            local group = (raid_utils and raid_utils.get_item_group(section)) or ""
-            if group == "" then return end
-            if no_value_items[section] then return end
-
-            local discount_pct = 0
-            if raid_tables and trader_name then
-                local dt = raid_tables.trader_group_discount_sell
-                discount_pct = (dt[trader_name] and dt[trader_name][group]) or 0
-            end
-            tbl[section] = raid_tables
-                and raid_tables.trade_mult_general_sell * (1 + discount_pct / 100)
-                or 1
-        end)
 
         local f = file_for_write(base .. "sell_condition.csv")
         if not f then return end
@@ -3852,6 +3865,7 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
             end
         end
 
+        local discounts = {}
         local no_value_items = {}
         for _, cond_section in ipairs(ordered) do
             local n = ini:line_count(cond_section) or 0
@@ -3859,33 +3873,20 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
                 local _, item_id, mult_str = ini:r_line(cond_section, i, "", "")
                 if item_id and item_id ~= "" and (not mult_str or mult_str == "") then
                     no_value_items[item_id] = true
+                elseif item_id then
+                    local str = ini:r_string_ex(cond_section, item_id) or ""
+                    local split = str_explode(str, ",")
+                    discounts[item_id] = split[1]
                 end
             end
         end
 
-        local trader_name = nil
-        if raid_tables and trader_config then
-            for name in pairs(raid_tables.trader_group_discount_buy) do
-                if trader_config:find(name) then trader_name = name; break end
+        local tbl = {}
+        for section, _  in pairs(items) do
+            if not no_value_items[section] then
+                tbl[section] = discounts[section] or 1
             end
         end
-
-        local tbl = {}
-        ini_sys:section_for_each(function(section)
-            if is_weapon_modification(section) or is_blacklisted_ammo(section) then return end
-            local group = (raid_utils and raid_utils.get_item_group(section)) or ""
-            if group == "" then return end
-            if no_value_items[section] then return end
-
-            local discount_pct = 0
-            if raid_tables and trader_name then
-                local dt = raid_tables.trader_group_discount_buy
-                discount_pct = (dt[trader_name] and dt[trader_name][group]) or 0
-            end
-            local cost = ini_sys:r_float_ex(section, "cost") or 0
-            cost = cost == 0 and 0 or (cost * raid_tables.trade_mult_general_buy * (1 - discount_pct / 100))^ 1.045 / cost
-            tbl[section] = cost
-        end)
 
         local f = file_for_write(base .. "buy_condition.csv")
         if not f then return end
@@ -3992,7 +3993,6 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
         if not ini then
             x:SendOutput("export traders - SKIPPED %s (file not found)", trader.section)
         else
-            make_trader_dir(trader.section)
             local base = "traders\\" .. trader.section .. "\\"
 
             local buy_cond_str  = ini:r_string_ex("trader", "buy_condition")  or ""
