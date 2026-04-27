@@ -3423,7 +3423,7 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
         --os.execute('mkdir "traders\\' .. section .. '" 2>nul')
     end
 
-    local function write_condition_file(ini, base, condlist_str, filename)
+    local function write_sell_condition_file(ini, base, condlist_str, trader_config)
         local seen = {}
         local ordered = {}
         for _, entry in ipairs(parse_condlist(condlist_str)) do
@@ -3433,7 +3433,14 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
             end
         end
 
-        local f = file_for_write(base .. filename)
+        local trader_name = nil
+        if raid_tables and trader_config then
+            for name in pairs(raid_tables.trader_group_discount_sell) do
+                if trader_config:find(name) then trader_name = name; break end
+            end
+        end
+
+        local f = file_for_write(base .. "sell_condition.csv")
         if not f then return end
         write_csv_header(f, translate_headers({ "~", "st_data_export_price_multiplier" }))
         for _, cond_section in ipairs(ordered) do
@@ -3441,13 +3448,75 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
             for i = 0, n - 1 do
                 local _, item_id, mult_str = ini:r_line(cond_section, i, "", "")
                 if item_id and item_id ~= "" then
-                    local mult = ""
-                    if mult_str and mult_str ~= "" then
-                        mult = str_explode(mult_str, ",")[1]:trim()
+                    local config_mult_num = tonumber(mult_str and str_explode(mult_str, ",")[1]:trim()) or 1
+                    local effective_mult = config_mult_num
+                    if raid_tables then
+                        local group = (raid_utils and raid_utils.get_item_group(item_id)) or ""
+                        local discount_pct = 0
+                        if trader_name and group ~= "" then
+                            local dt = raid_tables.trader_group_discount_sell
+                            discount_pct = (dt[trader_name] and dt[trader_name][group]) or 0
+                        end
+                        effective_mult = floor_with_precision(
+                            config_mult_num * raid_tables.trade_mult_general_sell * (1 + discount_pct / 100))
                     end
-                    write_csv(f, item_id, mult)
+                    write_csv(f, item_id, effective_mult)
                 end
             end
+        end
+        f:close()
+    end
+
+    local function write_buy_condition_file(ini, base, condlist_str, trader_config)
+        local seen = {}
+        local ordered = {}
+        for _, entry in ipairs(parse_condlist(condlist_str)) do
+            if not seen[entry.section] then
+                seen[entry.section] = true
+                ordered[#ordered + 1] = entry.section
+            end
+        end
+
+        local no_value_items = {}
+        for _, cond_section in ipairs(ordered) do
+            local n = ini:line_count(cond_section) or 0
+            for i = 0, n - 1 do
+                local _, item_id, mult_str = ini:r_line(cond_section, i, "", "")
+                if item_id and item_id ~= "" and (not mult_str or mult_str == "") then
+                    no_value_items[item_id] = true
+                end
+            end
+        end
+
+        local trader_name = nil
+        if raid_tables and trader_config then
+            for name in pairs(raid_tables.trader_group_discount_buy) do
+                if trader_config:find(name) then trader_name = name; break end
+            end
+        end
+
+        local tbl = {}
+        ini_sys:section_for_each(function(section)
+            local group = (raid_utils and raid_utils.get_item_group(section)) or ""
+            if group == "" then return end
+            if no_value_items[section] then return end
+
+            local discount_pct = 0
+            if raid_tables and trader_name then
+                local dt = raid_tables.trader_group_discount_buy
+                discount_pct = (dt[trader_name] and dt[trader_name][group]) or 0
+            end
+            local cost = ini_sys:r_float_ex(section, "cost") or 0
+            cost = cost == 0 and 0 or (cost * raid_tables.trade_mult_general_buy * (1 - discount_pct / 100))^ 1.045 / cost
+            tbl[section] = cost
+        end)
+
+        local f = file_for_write(base .. "buy_condition.csv")
+        if not f then return end
+        write_csv_header(f, translate_headers({ "~", "st_data_export_price_multiplier" }))
+        local sorted = sort_keys(tbl)
+        for _, section in ipairs(sorted) do
+            write_csv(f, section, tbl[section])
         end
         f:close()
     end
@@ -3555,8 +3624,8 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
             local buy_sup_str   = ini:r_string_ex("trader", "buy_supplies")   or ""
             local discounts_sec = ini:r_string_ex("trader", "discounts")      or ""
 
-            write_condition_file(ini, base, buy_cond_str,  "buy_condition.csv")
-            write_condition_file(ini, base, sell_cond_str, "sell_condition.csv")
+            write_buy_condition_file(ini, base, buy_cond_str, trader.config)
+            write_sell_condition_file(ini, base, sell_cond_str, trader.config)
             write_buy_supplies(base, buy_sup_str)
             write_supply_sections(ini, base, buy_sup_str)
             write_discounts(ini, base, discounts_sec)
