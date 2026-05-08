@@ -3,6 +3,8 @@
 5c_tik,1,1
 ac10632,1,0.88
 acog,1,1
+acog2k,1,1
+admin,1,0.5
 ado,1,0.75
 af_camelbak,1,1
 af_cooler,1,1
@@ -11,6 +13,7 @@ af_freon,1,1
 af_grid,1,1
 af_kevlar,1,1
 af_surge,1,1
+aim_2k,1,1
 aim_acro,1,1
 aim_low,1,1
 aimpoint,1,1
@@ -52,6 +55,7 @@ archangel,1,1
 bandage,4,1
 batteries_dead,6,1
 batteries_exo,4,1
+bd,1,0.5
 beadspread,1,1
 beans,2,1
 beer,3,1
@@ -68,6 +72,7 @@ caffeine,3,1
 charcoal,2,1
 chili,2,1
 chocolate,2,1
+chs,1,1
 cigar,1,1
 cigar1,2,1
 cigar2,2,1
@@ -100,8 +105,6 @@ drug_sleepingpills,1,1
 e0t2,1,1
 e0t2_magd,1,0.75
 echo1,1,0.2
-ekp8_02,1,1
-ekp8_18,1,1
 energy_drink,3,1
 eot,1,0.88
 explo_balon_gas,1,1
@@ -134,8 +137,11 @@ kit_hunt,1,1
 kit_sa5x_spec,1,1
 kobra,1,0.88
 kolbasa,3,1
+kurtz,1,0.8
 lco1,1,1
 leupold,1,1
+mag_grot,2,1
+mag_lancer,2,1
 magnifier,1,0.9
 magpul_pro,1,1
 march_f_shorty,1,0.75
@@ -186,14 +192,13 @@ sausage,2,1
 shovel_mili,1,1
 side,1,1
 silen98,1,1
-skeet,1,0.3
+skeet,1,1
 spec_alt,1,1
 specter,1,1
 spectre_tactical_kit,1,0.85
 stimpack,2,1
 stimpack_army,2,1
 stimpack_scientic,2,1
-susat,1,1
 synthrope,1,1
 t12,1,1
 tac30,1,0.75
@@ -235,6 +240,7 @@ wpn_sil_black_box,1,1
 wpn_sil_daniel,1,1
 wpn_sil_forester,1,1
 wpn_sil_gemtech,1,1
+wpn_sil_grot,1,1
 wpn_sil_kac4,1,1
 wpn_sil_kek12,1,1
 wpn_sil_lapu7,1,1

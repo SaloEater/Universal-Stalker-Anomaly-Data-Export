@@ -1,5 +1,6 @@
 ~,st_data_export_quantity,st_data_export_probability
 0kp2,1,1
+1p63,1,1
 af_camelbak,1,1
 af_cooler,1,1
 af_frames,1,1
@@ -93,7 +94,12 @@ mirror,2,1
 mre,1,1
 nuts,2,1
 okp,1,1
+p1x42,1,1
+pb_upgr_kit,1,0.85
+pk6,1,1
+pka,1,1
 pl15_scolaz,1,1
+pm_upgr_kit,1,0.85
 porn,1,1
 porn2,1,1
 protein,2,1
@@ -117,6 +123,7 @@ tomato,2,1
 tushonka,4,1
 underwear,1,1
 usp1,1,1
+vitup,1,1
 vodka,1,1
 vodka2,1,1
 vodka_quality,1,1
@@ -130,6 +137,7 @@ wpn_fort17,1,0.88
 wpn_knife,1,1
 wpn_knife2,1,1
 wpn_knife3,1,1
+wpn_sil_9mm,1,1
 wpn_sil_aps,1,1
 wpn_sil_pbs1,1,1
 wpn_sil_sr1m,1,1

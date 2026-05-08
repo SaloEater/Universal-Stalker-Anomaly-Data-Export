@@ -1,5 +1,5 @@
 ~,st_data_export_stash_map,st_itm_basickit_name,st_itm_advancedkit_name,st_itm_expertkit_name,st_itm_drugkit,st_itm_ammokit
-jupiter,jupiter,18%,47%,20%,7%,7%
+jupiter,jupiter,9%,54%,30%,4%,4%
 jupiter_underground,jupiter_underground,0%,80%,20%,0%,0%
 k00_marsh,k00_marsh,40%,0%,0%,30%,30%
 k01_darkscape,k01_darkscape,48%,6%,0%,23%,23%
@@ -21,14 +21,14 @@ l10_radar,l10_radar,5%,91%,0%,2%,2%
 l10_red_forest,l10_red_forest,5%,82%,10%,2%,2%
 l10u_bunker,l10u_bunker,0%,50%,50%,0%,0%
 l11_hospital,l11_hospital,0%,50%,50%,0%,0%
-l11_pripyat,l11_pripyat,0%,50%,50%,0%,0%
-l12_stancia,l12_stancia,0%,38%,63%,0%,0%
-l12_stancia_2,l12_stancia_2,0%,43%,57%,0%,0%
+l11_pripyat,l11_pripyat,6%,31%,57%,3%,3%
+l12_stancia,l12_stancia,0%,29%,71%,0%,0%
+l12_stancia_2,l12_stancia_2,0%,33%,67%,0%,0%
 l12u_control_monolith,l12u_control_monolith,0%,20%,80%,0%,0%
 l12u_sarcofag,l12u_sarcofag,0%,20%,80%,0%,0%
-l13_generators,l13_generators,0%,30%,70%,0%,0%
+l13_generators,l13_generators,0%,22%,78%,0%,0%
 l13u_warlab,l13u_warlab,0%,20%,80%,0%,0%
 labx8,labx8,15%,39%,33%,6%,6%
-pripyat,pripyat,6%,40%,50%,2%,2%
+pripyat,pripyat,6%,31%,57%,3%,3%
 y04_pole,y04_pole,25%,0%,0%,38%,38%
-zaton,zaton,18%,47%,20%,7%,7%
+zaton,zaton,9%,54%,30%,4%,4%

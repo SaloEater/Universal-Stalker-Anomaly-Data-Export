@@ -260,7 +260,7 @@ mar_smart_terrain_doc_dog,0.2,0.7,0.8,2.15,0.7,0.5,1.15
 mon_m_poltergeist_normal_flame_1,0.1,0.55,0.84,1,1,1.2,1
 mon_m_poltergeist_normal_flame_2,0.1,0.55,0.84,1,1,1.2,1
 mon_m_poltergeist_normal_flame_3,0.1,0.55,0.84,1,1,1.2,1
-nta_tough_zombie_ghost,0,0,0.12,2,0.5,1,0.5
+nta_tough_zombie_ghost,0,0,0.6,2,0.5,1,0.5
 pas_b400_tushkano_smart,0.1,0.9,10,1.2,0.7,0.95,1.1
 poltergeist_fake,0.1,0.55,0.9,1,1,1.2,1
 pri_a25_poltergeist,0.1,0.55,0.9,1,1,1.2,1

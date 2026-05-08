@@ -71,7 +71,9 @@ mineral_water,2,1
 mirror,2,1
 mre,1,1
 nuts,2,1
+pb_upgr_kit,1,0.85
 pl15_scolaz,1,1
+pm_upgr_kit,1,0.85
 porn,1,1
 porn2,1,1
 protein,2,1
@@ -102,5 +104,6 @@ welding_goggles,1,1
 wpn_binoc_inv,1,1
 wpn_knife,1,1
 wpn_knife2,1,1
+wpn_sil_9mm,1,1
 wpn_sil_aps,1,1
 wpn_sil_sr1m,1,1

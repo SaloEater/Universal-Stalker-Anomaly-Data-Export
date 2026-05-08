@@ -35,9 +35,6 @@ itm_artefactskit,1,1
 itm_backpack,1,1
 jgut,2,1
 medkit,3,1
-medkit_ai1,2,1
-medkit_ai2,2,1
-medkit_ai3,2,1
 medkit_scientic,2,1
 morphine,2,1
 recipe_basic_4,1,1
@@ -45,4 +42,5 @@ salicidic_acid,2,1
 stimpack_army,3,1
 stimpack_scientic,2,1
 tetanus,3,1
+trading_computer,1,1
 yadylin,3,1

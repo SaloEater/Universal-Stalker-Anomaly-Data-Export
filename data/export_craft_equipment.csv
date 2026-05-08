@@ -14,6 +14,7 @@ af_plates,st_af_plates_name,2,recipe_advanced_1,st_gamma_recipe_advanced_1,st_af
 af_plates_up,st_af_plates_up_name,3,recipe_expert_1,st_gamma_recipe_expert_1,st_af_plates_name,x1,st_prt_o_ballistic_15,x10,st_prt_o_ballistic_16,x10,st_prt_o_ballistic_5,x6
 af_surge,st_af_surge_name,1,recipe_basic_1,st_gamma_recipe_basic_1,st_prt_i_resistors,x6,st_prt_i_scrap,x4,st_prt_i_fasteners,x4,st_prt_o_retardant_17,x3
 af_surge_up,st_af_surge_up_name,2,recipe_advanced_1,st_gamma_recipe_advanced_1,st_af_surge_name,x1,st_prt_i_resistors,x8,st_prt_i_scrap,x8,st_prt_o_retardant_18,x4
+batteries_exo,st_batteries_ccell,1,recipe_expert_1,st_gamma_recipe_expert_1,ammo-gauss,x2,,,st_prt_i_fasteners,x2,st_prt_i_scrap,x2
 compression_bag,st_compression_bag,1,recipe_basic_1,st_gamma_recipe_basic_1,st_sewing_thread,x3,st_prt_o_fabrics_4,x2,st_prt_o_fabrics_3,x2,,
 cooking,st_cooking,1,recipe_basic_1,st_gamma_recipe_basic_1,st_cutlery,x2,st_prt_i_scrap,x2,,,,
 device_metal_torch,st_placeable_metal_torch,1,recipe_basic_0,,st_lead_box_name,x1,st_device_flashlight,x1,st_prt_i_capacitors,x2,st_prt_i_scrap,x2

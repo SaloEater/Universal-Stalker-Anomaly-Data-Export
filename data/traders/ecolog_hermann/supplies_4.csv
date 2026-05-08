@@ -7,6 +7,7 @@ af_freon,1,1
 af_grid,1,1
 af_surge,1,1
 akvatab,2,1
+ammo_gauss,3,1
 analgetic,2,1
 antibio_chlor,2,1
 antibio_sulfad,2,1
@@ -52,9 +53,6 @@ itm_artefactskit,1,1
 itm_backpack,1,1
 jgut,2,1
 medkit,3,1
-medkit_ai1,2,1
-medkit_ai2,2,1
-medkit_ai3,2,1
 medkit_scientic,2,1
 morphine,2,1
 recipe_advanced_4,1,1
@@ -64,4 +62,5 @@ scientific_outfit,1,1
 stimpack_army,3,1
 stimpack_scientic,2,1
 tetanus,3,1
+trading_computer,1,1
 yadylin,2,1

@@ -34,7 +34,7 @@ ammo_9x19_fmj,ammo-9x19-fmj,5,recipe_ammo_0,,ammo-9x19-fmj,x1,st_prt_i_ammo,x3,,
 ammo_9x19_pbp,ammo-9x19-pbp,5,recipe_ammo_0,,ammo-9x19-pbp,x1,st_prt_i_ammo,x3,,,,
 ammo_9x39_ap,ammo-9x39-ap,5,recipe_ammo_0,,ammo-9x39-ap,x2,st_prt_i_ammo,x4,,,,
 ammo_9x39_pab9,ammo-9x39-pab9,5,recipe_ammo_0,,ammo-9x39-pab9,x2,st_prt_i_ammo,x4,,,,
-ammo_gauss,ammo-gauss,5,recipe_expert_0,,st_af_electra_flash_name,x1,st_batteries,x3,,,,
+ammo_gauss,ammo-gauss,5,recipe_expert_0,,st_af_electra_sparkler_name,x2,,,st_prt_i_scrap,x2,st_batteries,x3
 ammo_m209,ammo-m209,5,recipe_advanced_0,,ammo_vog_30,x1,st_prt_i_scrap,x2,st_powder_mag,x1,,
 ammo_magnum_300,ammo-338-lapua,5,recipe_ammo_0,,ammo-338-lapua,x2,st_prt_i_ammo,x7,,,,
 ammo_og-7b,ammo-og-7b,5,recipe_expert_0,,st_prt_i_scrap,x3,st_ied_rpg,x2,,,,

@@ -8,6 +8,7 @@ af_freon,1,1
 af_grid,1,1
 af_kevlar,1,1
 af_surge,1,1
+aim_2k,1,1
 ammo_11.43x23_fmj,8,1
 ammo_11.43x23_hydro,8,1
 ammo_12.7x55_fmj,4,1
@@ -84,8 +85,14 @@ lazup_pl15,1,1
 medkit,2,1
 mirror,2,1
 okp,1,1
+ots2_upgr_kit,1,0.85
+p1x42,1,1
+pb_upgr_kit,1,0.85
 pk1,1,1
+pk6,1,1
+pka,1,1
 pl15_scolaz,1,1
+pm_upgr_kit,1,0.85
 porn,1,1
 porn2,1,1
 radio,1,1
@@ -100,6 +107,7 @@ synthrope,2,1
 tarpaulin,1,1
 underwear,1,1
 usp1,1,1
+vitup,1,1
 walkie,2,1
 welding_goggles,1,1
 wpn_addon_scope_pu,1,1
@@ -109,6 +117,7 @@ wpn_fort17,1,0.75
 wpn_knife,1,1
 wpn_knife2,1,1
 wpn_knife3,1,1
+wpn_sil_9mm,1,1
 wpn_sil_aps,1,1
 wpn_sil_pbs1,1,1
 wpn_sil_sr1m,1,1

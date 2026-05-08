@@ -3,6 +3,8 @@
 5c_tik,1,1
 ac10632,1,1
 acog,1,1
+acog2k,1,1
+admin,1,0.5
 af_camelbak,1,1
 af_cooler,1,1
 af_frames,1,1
@@ -10,6 +12,7 @@ af_freon,1,1
 af_grid,1,1
 af_kevlar,1,1
 af_surge,1,1
+aim_2k,1,1
 aim_acro,1,1
 aim_low,1,1
 aimpoint,1,1
@@ -36,12 +39,14 @@ ammo_9x19_ap,8,1
 ammo_9x19_fmj,8,1
 ammo_9x19_pbp,8,1
 batteries_dead,5,1
+bd,1,0.5
 bolts_pack,2,1
 bossxe,1,1
 broken_detector,1,1
 c-more,1,1
 c79,1,1
 charcoal,2,1
+chs,1,1
 compm4s,1,1
 compression_bag,1,1
 cooking,1,1
@@ -54,8 +59,6 @@ device_flashlight,1,1
 device_pda_1,1,1
 device_torch_dummy,1,1
 e0t2,1,1
-ekp8_02,1,1
-ekp8_18,1,1
 eot,1,1
 explo_jerrycan_fuel,1,1
 exps3,1,1
@@ -73,7 +76,10 @@ itm_sleepbag,1,1
 itm_tent,1,1
 kerosene,2,1
 kit_hunt,1,1
+kurtz,1,0.8
 lco1,1,1
+mag_grot,2,1
+mag_lancer,2,1
 mauser_kit,1,1
 mepro,1,1
 mine _new,1,1
@@ -89,7 +95,6 @@ silen98,1,1
 spec_alt,1,1
 specter,1,1
 spectre_tactical_kit,1,0.85
-susat,1,1
 trihawk,1,1
 u2p2g0r,1,1
 uh2,1,1
@@ -110,6 +115,7 @@ wpn_sil_atg,1,1
 wpn_sil_black_box,1,1
 wpn_sil_forester,1,1
 wpn_sil_gemtech,1,1
+wpn_sil_grot,1,1
 wpn_sil_kac4,1,1
 wpn_sil_kek12,1,1
 wpn_sil_m42k,1,1

@@ -11,6 +11,7 @@ af_freon,1,1
 af_grid,1,1
 af_kevlar,1,1
 af_surge,1,1
+aim_2k,1,1
 aim_low,1,1
 aimpoint,1,1
 akvatab,2,1
@@ -103,6 +104,7 @@ glucose,2,1
 glucose_s,2,1
 gurza_up,1,1
 hand_rolling_tobacco,2,1
+he510,1,1
 itm_actor_backpack,1,1
 itm_backpack,1,1
 itm_sleepbag,1,1
@@ -112,7 +114,10 @@ kerosene,2,1
 kit_hunt,1,1
 kobra,1,1
 kolbasa,4,1
+kurtz,1,1
 lazup_pl15,1,1
+lco1,1,1
+mag_grot,1,1
 medkit,3,1
 medkit_ai1,3,1
 medkit_ai2,2,1
@@ -125,8 +130,14 @@ morphine,2,1
 mre,1,1
 nuts,2,1
 okp,1,1
+ots2_upgr_kit,1,0.85
+p1x42,1,1
+pb_upgr_kit,1,0.85
 pk1,1,1
+pk6,1,1
+pka,1,1
 pl15_scolaz,1,1
+pm_upgr_kit,1,0.85
 protein,2,1
 raisins,2,1
 rakurs,1,1
@@ -149,6 +160,7 @@ tushonka,4,1
 u2p2g0r,1,1
 upg220,1,1
 usp1,1,1
+vitup,1,1
 vodka,1,1
 vodka2,1,1
 vodka_quality,1,1

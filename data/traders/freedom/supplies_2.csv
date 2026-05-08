@@ -9,6 +9,7 @@ af_freon,1,1
 af_grid,1,1
 af_kevlar,1,1
 af_surge,1,1
+aim_2k,1,1
 aim_acro,1,1
 aim_low,1,1
 aimpoint,1,1
@@ -80,8 +81,6 @@ drug_psy_blockade,1,1
 drug_radioprotector,1,1
 drug_sleepingpills,1,1
 e0t2,1,1
-ekp8_02,1,1
-ekp8_18,1,1
 energy_drink,3,1
 eot,1,0.88
 explo_balon_gas,1,1
@@ -93,6 +92,7 @@ gee36,1,1
 grooming,1,1
 hand_rolling_tobacco,3,1
 hco,1,1
+he510,1,1
 ied_new,5,1
 ied_rpg_new,5,1
 itm_actor_backpack,1,1
@@ -105,6 +105,9 @@ kerosene,2,1
 kit_hunt,1,1
 kobra,1,0.88
 kolbasa,3,1
+kurtz,1,1
+lco1,1,1
+mag_grot,1,1
 marijuana,2,1
 meat_bloodsucker,2,1
 meat_boar,3,1

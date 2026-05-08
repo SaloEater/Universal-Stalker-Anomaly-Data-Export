@@ -221,7 +221,7 @@ army_bowler,1
 army_patch,1
 ball_hammer,1
 bandage,1
-bandit_patch,1
+bandit_patch,1.5
 beadspread,1
 beans,1
 beer,1
@@ -453,7 +453,7 @@ rasp_tool,1
 ration_ru,1
 ration_ukr,1
 rebirth,1
-renegade_patch,1
+renegade_patch,1.5
 rope,1
 salicidic_acid,1
 salmon,1
@@ -598,6 +598,10 @@ welding_goggles,1
 wpn_axe,1
 wpn_axe2,1
 wpn_axe3,1
+wpn_grot,1
+wpn_grot_short,1
+wpn_grot_short_tan,1
+wpn_grot_tan,1
 wpn_knife,1
 wpn_knife2,1
 wpn_knife3,1
@@ -607,4 +611,5 @@ wpn_knife6,1
 wpn_knife7,1
 wpn_knife8,1
 wpn_knife9,1
+wpn_mk47_sup,1
 yadylin,1

@@ -1,5 +1,6 @@
 ~,st_data_export_quantity,st_data_export_probability
 adrenalin,2,0.7
+aim_2k,1,1
 aim_acro,1,1
 akvatab,2,0.7
 analgetic,2,0.7
@@ -45,6 +46,7 @@ kerosene,1,1
 kit_hunt,1,1
 leatherman_tool,1,0.7
 light_repair_kit,1,0.7
+mag_grot,1,1
 medkit,2,0.7
 medkit_ai1,1,0.7
 medkit_army,1,0.7

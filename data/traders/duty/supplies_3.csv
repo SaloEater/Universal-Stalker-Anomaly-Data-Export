@@ -7,6 +7,7 @@
 1pn93,1,1
 1pn93n2_1gs,1,1
 23_up,1,1
+acog2k,1,1
 af_camelbak,1,1
 af_cooler,1,1
 af_frames,1,1
@@ -14,6 +15,7 @@ af_freon,1,1
 af_grid,1,1
 af_kevlar,1,1
 af_surge,1,1
+aim_2k,1,1
 ammo_11.43x23_fmj,8,1
 ammo_11.43x23_hydro,8,1
 ammo_12.7x55_fmj,6,1
@@ -43,6 +45,7 @@ bolts_pack,2,1
 broken_detector,1,1
 c79,1,1
 charcoal,2,1
+chs,1,1
 compression_bag,1,1
 cooking,1,1
 detector_geiger,2,1
@@ -70,13 +73,19 @@ kerosene,2,1
 kit_hunt,1,1
 kobra,1,1
 kp_sr2,1,1
+kurtz,1,0.6
 lazup_pl15,1,1
 okp,1,1
+ots2_upgr_kit,1,0.85
 p1x42,1,1
+pb_upgr_kit,1,0.85
 pgo7gs,1,1
 pk1,1,1
 pk6,1,1
+pka,1,1
 pl15_scolaz,1,1
+pm_upgr_kit,1,0.85
+pn23,1,1
 ps01,1,1
 pso1m21,1,1
 pso2,1,1
@@ -85,7 +94,10 @@ side,1,1
 sr1upgr1,1,1
 sr2_upkit,1,1
 sup,1,1
+susat,1,1
 usp1,1,1
+vitup,1,1
+vorkuta,1,0.75
 vulcan,1,1
 wpn_addon_scope_po4x34,1,1
 wpn_addon_scope_pu,1,1
@@ -97,6 +109,7 @@ wpn_knife2,1,1
 wpn_knife3,1,1
 wpn_knife4,1,1
 wpn_sil_9a91,1,1
+wpn_sil_9mm,1,1
 wpn_sil_aps,1,1
 wpn_sil_ash12,1,1
 wpn_sil_atg,1,1

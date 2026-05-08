@@ -268,7 +268,7 @@ cooking,1
 corn,1
 csky_patch,1
 cutlery,1
-dolg_patch,1
+dolg_patch,1.5
 drink_crow,1
 drug_anabiotic,1
 drug_antidot,1
@@ -598,6 +598,10 @@ welding_goggles,1
 wpn_axe,1
 wpn_axe2,1
 wpn_axe3,1
+wpn_grot,1
+wpn_grot_short,1
+wpn_grot_short_tan,1
+wpn_grot_tan,1
 wpn_knife,1
 wpn_knife2,1
 wpn_knife3,1
@@ -607,4 +611,5 @@ wpn_knife6,1
 wpn_knife7,1
 wpn_knife8,1
 wpn_knife9,1
+wpn_mk47_sup,1
 yadylin,1

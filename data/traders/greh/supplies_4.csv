@@ -8,6 +8,7 @@
 1pn93,1,1
 1pn93n2_1gs,1,1
 23_up,1,1
+acog2k,1,1
 ado,1,0.75
 adrenalin,2,1
 af_camelbak,1,1
@@ -17,6 +18,7 @@ af_freon,1,1
 af_grid,1,1
 af_kevlar,1,1
 af_surge,1,1
+aim_2k,1,1
 akvatab,2,1
 ammo_11.43x23_fmj,8,1
 ammo_11.43x23_hydro,8,1
@@ -71,6 +73,7 @@ caffeine,2,1
 charcoal,2,1
 chili,2,1
 chocolate,2,1
+chs,1,1
 cigar,2,1
 cigar1,2,1
 cigar2,2,1
@@ -126,6 +129,7 @@ kit_hunt,1,1
 kobra,1,1
 kolbasa,4,1
 kp_sr2,1,1
+kurtz,1,0.6
 lazup_pl15,1,1
 magnifier,1,0.9
 medkit,3,1
@@ -139,11 +143,16 @@ morphine,2,1
 mre,1,1
 nuts,2,1
 okp,1,1
+ots2_upgr_kit,1,0.85
 p1x42,1,1
+pb_upgr_kit,1,0.85
 pgo7gs,1,1
 pk1,1,1
 pk6,1,1
+pka,1,1
 pl15_scolaz,1,1
+pm_upgr_kit,1,0.85
+pn23,1,1
 pritseldob,1,1
 protein,2,1
 ps01,1,1
@@ -165,6 +174,7 @@ stimpack,3,1
 stimpack_army,2,1
 stimpack_scientic,1,1
 sup,1,1
+susat,1,1
 t12,1,0.15
 tac30,1,0.75
 tea,2,1
@@ -173,9 +183,11 @@ tobacco,2,1
 tomato,2,1
 tushonka,4,1
 usp1,1,1
+vitup,1,1
 vodka,1,1
 vodka2,1,1
 vodka_quality,1,1
+vorkuta,1,0.75
 vulcan,1,1
 water_drink,2,1
 wpn_addon_grenade_launcher,1,1
@@ -190,6 +202,7 @@ wpn_knife2,1,1
 wpn_knife3,1,1
 wpn_knife5,1,1
 wpn_sil_9a91,1,1
+wpn_sil_9mm,1,1
 wpn_sil_aps,1,1
 wpn_sil_ash12,1,1
 wpn_sil_atg,1,1

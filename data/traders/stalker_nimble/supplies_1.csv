@@ -11,7 +11,6 @@
 226sig_kit,1,1
 23_up,1,1
 ac10632,1,1
-ac11090,1,1
 acog,1,1
 ado,1,1
 aim_acro,1,1
@@ -58,7 +57,6 @@ mark8_rmr,1,1
 mepro,1,1
 mod9,1,1
 mod_x_gen3,1,1
-mono_kit,1,1
 monstrum,1,1
 okp,1,1
 p1x42,1,1
@@ -89,7 +87,6 @@ sr1upgr1,1,1
 sr2_upkit,1,1
 sup,1,1
 susat,1,1
-susatov,1,1
 swamp,1,1
 t12,1,1
 tac30,1,1
@@ -102,25 +99,19 @@ upg220,1,1
 usp1,1,1
 vulcan,1,1
 wpn_addon_grenade_launcher,1,1
-wpn_addon_grenade_launcher_l85,1,1
 wpn_addon_grenade_launcher_m203,1,1
 wpn_addon_grenade_launcher_monolit,1,1
 wpn_addon_grenade_launcher_scar,1,1
-wpn_addon_scope,1,1
 wpn_addon_scope_pu,1,1
 wpn_addon_scope_zf4,1,1
-wpn_addon_silencer,1,1
 wpn_sil_45,1,1
 wpn_sil_57,1,1
-wpn_sil_6p9,1,1
 wpn_sil_9a91,1,1
 wpn_sil_9mm,1,1
 wpn_sil_aac762,1,1
-wpn_sil_apb,1,1
 wpn_sil_aps,1,1
 wpn_sil_ash12,1,1
 wpn_sil_atg,1,1
-wpn_sil_auga,1,1
 wpn_sil_black_box,1,1
 wpn_sil_daniel,1,1
 wpn_sil_forester,1,1
@@ -138,7 +129,6 @@ wpn_sil_osp9,1,1
 wpn_sil_pbs1,1,1
 wpn_sil_pbs4,1,1
 wpn_sil_pl15,1,1
-wpn_sil_pmm,1,1
 wpn_sil_rotor,1,1
 wpn_sil_salvo,1,1
 wpn_sil_spec_isg,1,1
