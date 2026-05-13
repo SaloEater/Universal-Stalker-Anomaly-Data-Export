@@ -1057,12 +1057,42 @@ function get_perk_artifacts_list()
     for i, v in pairs(perk_based_artefacts) do
         if type(v) == "table" and string.find(i, "artefact_on_") then
             for j, k in pairs(v) do
-                perk_artefacts[j] = true
+                perk_artefacts[j] = "st_pba_" .. j .. "_perk"
             end
         end
     end
 
     return perk_artefacts
+end
+
+function sanitize_perk_description(s)
+    -- Strip STALKER color markup non-greedily so multi-segment perk text survives.
+    s = s:gsub("%%c%[[^%]]*%]", "")
+    -- Collapse runs of whitespace (perk XML has heavy indentation) and trim.
+    s = s:gsub("[ \t]+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+    return s
+end
+
+function get_perk_description(section, perk_key)
+    if not perk_key then
+        return ""
+    end
+    -- game.translate_string returns the input unchanged when the key is missing,
+    -- so use it to detect whether the perk has localized text at all (e.g. af_lucifer
+    -- is registered as a perk artefact but has no st_pba_*_perk string).
+    local resolved = game.translate_string(perk_key)
+    if not resolved or resolved == "" or resolved == perk_key then
+        return ""
+    end
+    -- Register the key via the standard helper so it lands in translation_keys.csv
+    -- and en_us.csv, then emit a value consistent with the current export mode:
+    -- in headers_mode=1 the helper returns the key (the downstream pipeline joins
+    -- it against translations.json); in headers_mode=0 it returns the actual text.
+    local via_helper = translate_with_context(perk_key, "perk for " .. section) or ""
+    if via_helper == perk_key then
+        return perk_key
+    end
+    return sanitize_perk_description(via_helper)
 end
 
 function debug_cmd_list.cmd.export_artefacts(_, txt, x)
@@ -1114,6 +1144,7 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
             artefact.rank = ini_sys:r_float_ex(section, "af_rank") or 0
             artefact.is_junk = kind == "i_arty_junk" and "Y" or "N"
             artefact.has_perk = perk_artefacts[section] and "Y" or "N"
+            artefact.perk_description = get_perk_description(section, perk_artefacts[section])
             artefact.jump_height = ini_sys:r_float_ex(section, "jump_height") or 0
 
             artefact.health_restore = get_artefact_stat_value(nil, section, "health_restore_speed")
@@ -1158,13 +1189,13 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
     local debug_file = file_for_write(p_file)
 
     local header = translate_headers({
-        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "ui_st_rank", "st_data_export_jump_height", "st_data_export_is_junk", "st_data_export_has_perk", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "gamma_fire_wound_cap", "gamma_wound_cap", "gamma_burn_cap", "gamma_shock_cap", "gamma_chemical_burn_cap", "gamma_telepatic_cap", "gamma_strike_cap", "gamma_explosion_cap", "ui_inv_outfit_additional_weight", "st_data_export_used_in_crafting", "st_data_export_can_be_crafted" })
+        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "ui_st_rank", "st_data_export_jump_height", "st_data_export_is_junk", "st_data_export_has_perk", "st_data_export_perk_description", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "gamma_fire_wound_cap", "gamma_wound_cap", "gamma_burn_cap", "gamma_shock_cap", "gamma_chemical_burn_cap", "gamma_telepatic_cap", "gamma_strike_cap", "gamma_explosion_cap", "ui_inv_outfit_additional_weight", "st_data_export_used_in_crafting", "st_data_export_can_be_crafted" })
     write_csv_header(debug_file, header)
     local sorted_keys = sort_keys(tbl)
     for _, section in ipairs(sorted_keys) do
         local v = tbl[section]
         write_csv(debug_file,
-                section, v.name, v.description, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.has_perk, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.ballistic_cap, v.rupture_cap, v.burn_cap, v.shock_cap, v.chemical_burn_cap, v.telepatic_cap, v.impact_cap, v.explosion_cap, v.weight_carried, v.used_in_crafting, v.craftable
+                section, v.name, v.description, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.has_perk, v.perk_description, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.ballistic_cap, v.rupture_cap, v.burn_cap, v.shock_cap, v.chemical_burn_cap, v.telepatic_cap, v.impact_cap, v.explosion_cap, v.weight_carried, v.used_in_crafting, v.craftable
         )
     end
     debug_file:close()
