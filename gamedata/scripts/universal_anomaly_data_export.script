@@ -1260,7 +1260,7 @@ function get_perk_artifacts_list()
     local perk_artefacts = {}
 
     for i, v in pairs(perk_based_artefacts or {}) do
-        if type(v) == "table" and string.find(i, "artefact_on_") then
+        if type(v) == "table" and string.find(i, "artefact_on_", 1, true) then
             for j, k in pairs(v) do
                 perk_artefacts[j] = "st_pba_" .. j .. "_perk"
             end
@@ -1599,7 +1599,7 @@ function get_weapon_caliber(ammo_class)
     if #ammo_tbl == 0 then
         return ""
     end
-    local ammo_list = ""
+    local ammo_parts = {}
 
     for i, ammo in ipairs(ammo_tbl) do
         --printf("ammo: %s", ammo)
@@ -1608,16 +1608,12 @@ function get_weapon_caliber(ammo_class)
         end
 
         local ammo_name = sanitize_ammo_name(translate_with_context(ini_sys:r_string_ex(ammo, "inv_name"), "item name for " .. ammo))
-        if ammo_list == "" then
-            ammo_list = ammo_name
-        else
-            local space = headers_mode == 0 and " " or ""
-            ammo_list = ammo_list .. ";" .. space .. ammo_name
-        end
+        ammo_parts[#ammo_parts + 1] = ammo_name
         ::continue::
     end
 
-    return ammo_list
+    local space = headers_mode == 0 and " " or ""
+    return table.concat(ammo_parts, ";" .. space)
 end
 
 function armor_to_class(val)
@@ -1873,14 +1869,7 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
                 end
             end
 
-            local alt_calibers_str = ""
-            for i, v in ipairs(alt_calibers) do
-                if alt_calibers_str == "" then
-                    alt_calibers_str = v
-                else
-                    alt_calibers_str = alt_calibers_str .. "; " .. v
-                end
-            end
+            local alt_calibers_str = table.concat(alt_calibers, "; ")
 
             weapon.alt_caliber = alt_calibers_str
             weapon.hit_power = ui_wpn_params.read_float(section, "", "hit_power")
@@ -1993,7 +1982,7 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
     local cnt = 0
     local counter = 0
     ini_sys:section_for_each(function(section)
-        if blacklist[section] or is_multiplayer_item(section) or string.find(section, "animation") then
+        if blacklist[section] or is_multiplayer_item(section) or string.find(section, "animation", 1, true) then
             return
         end
 
@@ -2043,7 +2032,7 @@ function debug_cmd_list.cmd.export_melee(_, txt, x)
                 local knifesm = zz_item_artefact and zz_item_artefact.knifesm and zz_item_artefact.knifesm[section]
                 weapon.pelts_quality_min = knifesm and to_percent_string(knifesm.min) or ""
                 weapon.pelts_quality_max = knifesm and to_percent_string(knifesm.max) or ""
-                weapon.cuts_thick_skin = (section:match('wpn_knife$') or section:match('wpn_knife2$') or not string.find(section, "knife")) and "N" or "Y"
+                weapon.cuts_thick_skin = (section:match('wpn_knife$') or section:match('wpn_knife2$') or not string.find(section, "knife", 1, true)) and "N" or "Y"
                 weapon.light_attack_power = prop_damage(obj, section, "hit_power")
                 weapon.heavy_attack_power = prop_damage(obj, section, "hit_power_2")
 
@@ -2118,7 +2107,7 @@ function debug_cmd_list.cmd.export_explosives(_, txt, x)
     local tbl = {}
     local cnt = 0
     ini_sys:section_for_each(function(section)
-        if blacklist[section] or is_multiplayer_item(section) or string.find(section, "bad") or string.find(section, "helicopter_strong") or string.find(section, "helicopter_weak") then
+        if blacklist[section] or is_multiplayer_item(section) or string.find(section, "bad", 1, true) or string.find(section, "helicopter_strong", 1, true) or string.find(section, "helicopter_weak", 1, true) then
             return
         end
 
@@ -2574,7 +2563,7 @@ function debug_cmd_list.cmd.export_outfit_exchange(_, txt, x)
 
     local outfit_map = {}
     for variable, value in pairs(grok_armor_convert) do
-        if not string.find(variable, "all_") then
+        if not string.find(variable, "all_", 1, true) then
             local reward
             local source_outfits = {}
             for prop, propValue in pairs(value) do
@@ -2714,10 +2703,10 @@ function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
 
     ini_sys:section_for_each(function(section)
         local type
-        if string.find(section, "mutant_part") then
+        if string.find(section, "mutant_part", 1, true) then
             type = 1
         end
-        if string.find(section, "^hide") and not string.find(section, "absorbation") then
+        if string.find(section, "^hide") and not string.find(section, "absorbation", 1, true) then
             type = 2
         end
         local has_cost = ini_sys:line_exist(section, "cost")
@@ -3211,7 +3200,7 @@ function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
     local header = translate_headers(headers)
     write_csv_header(file, header)
     local value = ""
-    local gun_name, kind, ranks
+    local gun_name, kind
     local sorted_keys = sort_keys(sources)
     for _, gun in ipairs(sorted_keys) do
         local gun_factions = sources[gun]
@@ -3220,12 +3209,11 @@ function debug_cmd_list.cmd.export_weapon_drop_sources(_, txt, x)
         local parts = { gun, kind, gun_name }
         for i, faction in pairs(factions_sorted) do
             if gun_factions[faction] and gun_factions[faction]["ranks"] then
-                ranks = ""
+                local rank_parts = {}
                 for rank, _ in spairs(gun_factions[faction]["ranks"], sortByRank) do
-                    ranks = ranks .. translate("st_rank_" .. rank) .. ", "
+                    rank_parts[#rank_parts + 1] = translate("st_rank_" .. rank)
                 end
-                ranks = string.sub(ranks, 1, -3)
-                parts[#parts + 1] = ranks
+                parts[#parts + 1] = table.concat(rank_parts, ", ")
             else
                 parts[#parts + 1] = ""
             end
@@ -3775,11 +3763,11 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
     -- ── File 1: items CSV ────────────────────────────────────────────────
     local f1 = file_for_write("export_upgrades_items.csv")
 
-    local h1 = "~,Name"
+    local h1_parts = { "~,Name" }
     for i = 1, max_upg do
-        h1 = h1 .. string.format(",Row_%d,Column_%d,Cell_%d,Property_%d,Value_%d,Name_%d,Desc_%d,Section_%d", i, i, i, i, i, i, i, i)
+        h1_parts[#h1_parts + 1] = string.format(",Row_%d,Column_%d,Cell_%d,Property_%d,Value_%d,Name_%d,Desc_%d,Section_%d", i, i, i, i, i, i, i, i)
     end
-    f1:write(h1 .. "\n")
+    f1:write(table.concat(h1_parts) .. "\n")
 
     local sorted_sections = {}
     for sec in pairs(all_items) do sorted_sections[#sorted_sections + 1] = sec end
@@ -3844,11 +3832,11 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
     -- ── File 2: upgrade sections CSV ─────────────────────────────────────
     local f2 = file_for_write("export_upgrade_sections.csv")
 
-    local h2 = "Section,Type"
+    local h2_parts = { "Section,Type" }
     for i = 1, max_props do
-        h2 = h2 .. string.format(",Key_%d,Value_%d", i, i)
+        h2_parts[#h2_parts + 1] = string.format(",Key_%d,Value_%d", i, i)
     end
-    f2:write(h2 .. "\n")
+    f2:write(table.concat(h2_parts) .. "\n")
 
     -- Collect (stat_type, stats_sec) pairs and sort by type then section
     local sorted_stats = {}
@@ -4632,10 +4620,10 @@ function debug_cmd_list.cmd.export_traders(_, txt, x)
     ini_sys:section_for_each(function(sec)
         if
             (not ltx:line_exist("ignore_sections", sec))
-            and (not string.find(sec, "tch_"))
-            and (not string.find(sec, "mp_"))
-            and (not string.find(sec, "_base"))
-            and (not string.find(sec, "pn23"))
+            and (not string.find(sec, "tch_", 1, true))
+            and (not string.find(sec, "mp_", 1, true))
+            and (not string.find(sec, "_base", 1, true))
+            and (not string.find(sec, "pn23", 1, true))
             and (ini_sys:r_string_ex(sec, "inv_name_short") and ini_sys:r_string_ex(sec, "inv_name"))
             and (not is_weapon_modification(sec))
         then
@@ -5040,10 +5028,11 @@ function debug_cmd_list.cmd.export_traders_mapping(_, txt, x)
         ::continue::
     end
 
-    local missing_str = ""
+    local missing_parts = {}
     for prefix in pairs(missing_prefixes) do
-        missing_str = missing_str .. (prefix or "nil") .. " "
+        missing_parts[#missing_parts + 1] = prefix or "nil"
     end
+    local missing_str = table.concat(missing_parts, " ")
     if missing_str ~= "" then
         printf("export traders mapping - WARNING: missing location prefixes for: %s", missing_str)
     end
