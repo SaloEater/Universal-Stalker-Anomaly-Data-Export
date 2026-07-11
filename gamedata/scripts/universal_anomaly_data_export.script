@@ -19,6 +19,7 @@ local cmd_list = {
     { name = "Export upgrades", cmd = "export_upgrades", hide_ui = 0 },
     { name = "Export item icons", cmd = "export_item_icons", hide_ui = 0 },
     { name = "Export item drop locations", cmd = "export_item_drop_locations", hide_ui = 0 },
+    { name = "Export anomaly fields", cmd = "export_anomaly_fields", hide_ui = 0 },
     { name = "Export disassemble table", cmd = "export_disassemble_table", hide_ui = 0 },
     { name = "Export item parts", cmd = "export_item_parts", hide_ui = 0 },
     { name = "Export outfit exchange table", cmd = "export_outfit_exchange", hide_ui = 0 },
@@ -2772,6 +2773,215 @@ function debug_cmd_list.cmd.export_mutant_parts_prices(_, txt, x)
         send_log(x, "[END] mutant parts prices - %s total parts exported", cnt)
         return true
     end)
+end
+
+-- Anomaly-type keyword (an underscore-delimited segment of a mine or field name)
+-- → display label. Applied to both the field_name and every mine section name so
+-- fields with explicit mine layers AND generic radioactive fields (whose type only
+-- shows in field_name, e.g. ..._field_radioactive_weak) both resolve.
+local anomaly_type_segments = {
+    acidic = "Chemical", acid = "Chemical", chemical = "Chemical",
+    thermal = "Thermal", burning = "Thermal", fire = "Thermal",
+    gravitational = "Gravitational",
+    electric = "Electro", electra = "Electro", electr = "Electro", tesla = "Electro",
+    radioactive = "Radioactive", radiation = "Radioactive",
+    psychic = "Psi", psi = "Psi",
+}
+
+-- Add any type labels found in `str` (matched on lowercase alpha segments) to the
+-- ordered `types` list, de-duped via `seen`.
+local function collect_anomaly_types(str, types, seen)
+    if not str then return end
+    for seg in str:lower():gmatch("[a-z]+") do
+        local label = anomaly_type_segments[seg]
+        if label and not seen[label] then
+            seen[label] = true
+            types[#types + 1] = label
+        end
+    end
+end
+
+-- Read a field's bound [anomal_zone] config (referenced from the restrictor's
+-- custom_data [logic] cfg) to derive its anomaly type(s) and artefact pool.
+-- Returns (types_str, artefacts_str): "; "-joined type labels and ";"-joined
+-- artefact sections (class buckets like af_grav_t1 expanded to concrete
+-- artefacts). Empty strings when the config can't be read.
+local function read_anomaly_field_details(se, field_name)
+    local ok_ini, sini = pcall(function() return se:spawn_ini() end)
+    if not ok_ini or not sini or not sini:section_exist("logic") then return "", "", "" end
+    local cfg = sini:r_string_ex("logic", "cfg")
+    if not cfg or cfg == "" then return "", "", "" end
+
+    local z = ini_file(cfg)
+    if not (z and z:section_exist("anomal_zone")) then return "", "", "" end
+
+    -- The config's real field_name (the map-spot id) -- may differ from the
+    -- object-name-derived guess; the site resolves the display name from it.
+    local cfg_field_name = z:r_string_ex("anomal_zone", "field_name") or ""
+
+    -- Types: from field_name segments (covers generic radioactive fields) plus
+    -- every mine section name across the layers.
+    local types, type_seen = {}, {}
+    collect_anomaly_types(field_name, types, type_seen)
+    collect_anomaly_types(cfg_field_name, types, type_seen)
+
+    -- Artefact drop chances. bind_anomaly_zone.spawn_artefact_randomly picks one
+    -- entry from the artefacts line UNIFORMLY (so a bucket listed N times has
+    -- weight N), then one member of that bucket uniformly. (The engine's coeff
+    -- weighting is commented out, so it's ignored here too.) Each artefact's share
+    -- is therefore sum over its buckets of (1/entry_count)/bucket_size.
+    local function bucket_members(token)
+        if not ini_sys:section_exist(token) then return {} end
+        local inv = ini_sys:r_string_ex(token, "inv_name")
+        if inv and inv ~= "" then return { token } end -- direct artefact = its own pool
+        local members, n = {}, ini_sys:line_count(token) or 0
+        for i = 0, n - 1 do
+            local _, mem = ini_sys:r_line_ex(token, i, "", "")
+            if mem and mem ~= "" and ini_sys:section_exist(mem) then members[#members + 1] = mem end
+        end
+        return members
+    end
+
+    local entries = {}
+    for token in (z:r_string_ex("anomal_zone", "artefacts") or ""):gmatch("[%w%-_]+") do
+        entries[#entries + 1] = token
+    end
+    local prob = {}
+    if #entries > 0 then
+        for _, token in ipairs(entries) do
+            local members = bucket_members(token)
+            if #members > 0 then
+                local w = (1.0 / #entries) / #members
+                for _, mem in ipairs(members) do prob[mem] = (prob[mem] or 0) + w end
+            end
+        end
+    end
+    -- "section:percent" list, most likely first.
+    local arts = {}
+    for sec, p in pairs(prob) do arts[#arts + 1] = { sec = sec, pct = p * 100 } end
+    table.sort(arts, function(a, b)
+        if math.abs(a.pct - b.pct) > 0.001 then return a.pct > b.pct end
+        return a.sec < b.sec
+    end)
+    for i = 1, #arts do arts[i] = string.format("%s:%.1f", arts[i].sec, arts[i].pct) end
+
+    -- ...and from every mine section name across the field's layers.
+    local layers = z:r_float_ex("anomal_zone", "layers_count") or 1
+    for li = 1, math.floor(layers) do
+        local lsec = "layer_" .. li
+        if z:section_exist(lsec) then
+            local msec = z:r_string_ex(lsec, "mines_section")
+            if msec and msec ~= "" and z:section_exist(msec) then
+                local mn = z:line_count(msec) or 0
+                for i = 0, mn - 1 do
+                    local _, mine = z:r_line_ex(msec, i, "", "")
+                    collect_anomaly_types(mine, types, type_seen)
+                end
+            end
+        end
+    end
+
+    return table.concat(types, "; "), table.concat(arts, ";"), cfg_field_name
+end
+
+-- Export named artefact anomaly fields ("High Hopes", "Crispy Train", etc.) with
+-- their fixed world positions so the site can plot them on the map.
+--
+-- These are static space-restrictors baked into all.spawn, so they exist as alife
+-- server objects on ANY loaded save across EVERY level (like smart terrains) -- one
+-- run captures them all. They follow the classic CoP naming convention: the
+-- restrictor object is "<base>_anomal_zone", its map-spot label id is
+-- "<base>_anomaly_spot", and the display name is "st_<base>_anomaly_spot_name".
+--
+-- NOT to be confused with the Dynamic Anomalies Overhaul mines, which are spawned
+-- procedurally around smart terrains at new-game time and have no fixed positions.
+function debug_cmd_list.cmd.export_anomaly_fields(_, txt, x)
+    send_log(x, "[START] export anomaly fields")
+
+    local sim = alife()
+    local gg = game_graph()
+    if not (sim and gg) then
+        send_log(x, "[SKIP] export anomaly fields - load a save first (alife/game_graph unavailable)")
+        return
+    end
+
+    local tbl = {}
+    local cnt = 0
+    local named = 0
+    for i = 1, 65534 do
+        local se = sim:object(i)
+        if se then
+            local ok_name, name = pcall(function() return se:name() end)
+            name = (ok_name and name) or ""
+            if name:find("_anomal_zone$") then
+                local base = name:gsub("_anomal_zone$", "")
+                local field_name = base .. "_anomaly_spot"
+
+                -- Display name key -- only real when the modpack ships a translation
+                -- for it (the 82 named fields do; generic radioactive zones don't).
+                local tr_key = "st_" .. field_name .. "_name"
+                local resolved = game.translate_string(tr_key)
+                local has_name = resolved ~= nil and resolved ~= "" and resolved ~= tr_key
+                if has_name then
+                    named = named + 1
+                    -- Register the key so it lands in translation_keys.csv / en_us.csv.
+                    translated_keys[tr_key] = true
+                end
+
+                -- Fixed world position + resolved level name from the game graph.
+                local ok_pos, pos = pcall(function() return se.position end)
+                local x_c, y_c, z_c = 0, 0, 0
+                if ok_pos and pos then x_c, y_c, z_c = pos.x, pos.y, pos.z end
+
+                local ok_lvl, lvl = pcall(function()
+                    return sim:level_name(gg:vertex(se.m_game_vertex_id):level_id())
+                end)
+                if not ok_lvl or not lvl then lvl = "unknown" end
+
+                local a_types, a_arts, cfg_spot = read_anomaly_field_details(se, field_name)
+                -- Some configs list several spot ids in field_name (comma-separated);
+                -- the first is the map-spot id. Keep just that (also keeps the CSV
+                -- comma-free).
+                local spot = field_name
+                if cfg_spot and cfg_spot ~= "" then
+                    spot = (cfg_spot:match("^%s*([^,]+)") or cfg_spot):gsub("%s+$", "")
+                end
+
+                tbl[#tbl + 1] = {
+                    id = name,
+                    name_key = has_name and tr_key or "",
+                    field_name = field_name,
+                    spot = spot,
+                    level = lvl,
+                    x = string.format("%.3f", x_c),
+                    y = string.format("%.3f", y_c),
+                    z = string.format("%.3f", z_c),
+                    anomaly_types = a_types,
+                    artefacts = a_arts,
+                }
+                cnt = cnt + 1
+            end
+        end
+    end
+
+    table.sort(tbl, function(a, b)
+        if a.level == b.level then return a.id < b.id end
+        return a.level < b.level
+    end)
+
+    local p_file = "export_anomaly_fields.csv"
+    local file = file_for_write(p_file)
+    if file == nil then
+        send_log(x, "Failed to create/open file %s", p_file)
+        return
+    end
+    write_csv_header(file, "id", "name_key", "field_name", "spot", "level", "x", "y", "z", "anomaly_types", "artefacts")
+    for _, v in ipairs(tbl) do
+        write_csv(file, v.id, v.name_key, v.field_name, v.spot, v.level, v.x, v.y, v.z, v.anomaly_types, v.artefacts)
+    end
+    file:close()
+
+    send_log(x, "[END] export anomaly fields - %s fields exported (%s named) - see %s", cnt, named, p_file)
 end
 
 function debug_cmd_list.cmd.export_mutant_profiles(_, txt, x)
