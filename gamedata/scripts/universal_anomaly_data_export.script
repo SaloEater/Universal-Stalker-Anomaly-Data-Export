@@ -26,6 +26,7 @@ local cmd_list = {
     { name = "Export mutant parts prices", cmd = "export_mutant_parts_prices", hide_ui = 0 },
     { name = "Export mutant profiles", cmd = "export_mutant_profiles", hide_ui = 0 },
     { name = "Export npc armor profiles", cmd = "export_npc_armor_profiles", hide_ui = 0 },
+    { name = "Export actor armor model", cmd = "export_actor_armor_model", hide_ui = 0 },
     { name = "Export weapon addons", cmd = "export_weapon_addons", hide_ui = 0 },
     { name = "Export weapon addon map", cmd = "export_weapon_addon_map", hide_ui = 0 },
     { name = "Export traders", cmd = "export_traders", hide_ui = 0 },
@@ -195,6 +196,20 @@ end
 
 function floor_with_precision(value)
     return string.format("%.2f", value)
+end
+
+-- Pull the Nth (default 2nd) comma-separated numeric out of a raw LTX bone
+-- line like "1, 0.42" (koeff, armor). Used to read per-bone armor values from
+-- the section referenced by bones_koeff_protection. Returns nil if absent.
+function nth_csv_number(str, n)
+    if not str or str == "" then return nil end
+    n = n or 2
+    local i = 0
+    for p in str:gmatch("[^,%s]+") do
+        i = i + 1
+        if i == n then return tonumber(p) end
+    end
+    return nil
 end
 
 function decimal_to_percent(value)
@@ -588,6 +603,22 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
                 outfit.ballistic = to_percent_floor(get_outfit_stat_value(obj, section, "fire_wound_protection"))
                 outfit.br_class = round(get_outfit_stat_value(obj, section, "apres_modifier"))
 
+                -- Raw LTX numerics for offline armor / penetration calculations
+                -- (GAMMA Actor Damage Balancer, grok_actor_damage_balancer.script).
+                -- Unlike the rounded display percents above, these are the exact
+                -- values the damage formula uses:
+                --   * penetration test: armor_bone_value = (1 - hit_fraction_actor) * cond
+                --   * flat BR%:         GetBoneArmor(spine/head) * cond * adjuster
+                --   * penetrating dmg:  scaled by ap_scale (engine / NPC path)
+                -- bones_koeff_protection points at a bone section (e.g. actor_armor_exo)
+                -- whose bip01_spine / bip01_head lines are "koeff, armor"; we want armor.
+                outfit.hit_fraction_actor = ini_sys:r_float_ex(section, "hit_fraction_actor") or ""
+                outfit.br_class_raw = ini_sys:r_float_ex(section, "br_class") or ""
+                local bones_ref = ini_sys:r_string_ex(section, "bones_koeff_protection") or ""
+                local bone_key = (kind == "o_helmet") and "bip01_head" or "bip01_spine"
+                outfit.bone_armor = (bones_ref ~= "" and nth_csv_number(ini_sys:r_string_ex(bones_ref, bone_key), 2)) or ""
+                outfit.ap_scale = (bones_ref ~= "" and ini_sys:r_float_ex(bones_ref, "ap_scale")) or ""
+
                 -- item_exo_device / outfit_speed_mcm are optional GAMMA mods; absent on plain Anomaly.
                 outfit.powered = (item_exo_device and item_exo_device.is_exo(obj)) and "Y" or "N"
 
@@ -628,24 +659,24 @@ function debug_cmd_list.cmd.export_outfits(_, txt, x)
 
             if repair_type == "outfit_helmet" then
                 local header = translate_headers({
-                    "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_ap_res", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection" })
+                    "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_inv_ap_res", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_data_export_hit_fraction_actor", "st_data_export_br_class", "st_data_export_bone_armor", "st_data_export_ap_scale" })
                 write_csv_header(debug_file, header)
                 local sorted_keys = sort_keys(outfits)
                 for _, section in ipairs(sorted_keys) do
                     local v = outfits[section]
                     write_csv(debug_file,
-                            section, v.name, v.description, v.weight, v.cost, v.repair_label, v.br_class, v.ballistic, v.rupture, v.burn, v.shock, v.chemical_burn, v.radiation, v.telepatic, v.impact, v.explosion)
+                            section, v.name, v.description, v.weight, v.cost, v.repair_label, v.br_class, v.ballistic, v.rupture, v.burn, v.shock, v.chemical_burn, v.radiation, v.telepatic, v.impact, v.explosion, v.hit_fraction_actor, v.br_class_raw, v.bone_armor, v.ap_scale)
                     type_cnt = type_cnt + 1
                 end
             else
                 local header = translate_headers({
-                    "~", "ui_st_community", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_mcm_menu_exo", "ui_inv_ap_res", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_outfit_artefact_count", "st_data_export_outfit_artefact_count_max", "ui_inv_outfit_additional_weight", "ui_inv_outfit_speed" })
+                    "~", "ui_st_community", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "ui_mcm_menu_exo", "ui_inv_ap_res", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "ui_inv_outfit_artefact_count", "st_data_export_outfit_artefact_count_max", "ui_inv_outfit_additional_weight", "ui_inv_outfit_speed", "st_data_export_hit_fraction_actor", "st_data_export_br_class", "st_data_export_bone_armor", "st_data_export_ap_scale" })
                 write_csv_header(debug_file, header)
                 local sorted_keys = sort_keys(outfits)
                 for _, section in ipairs(sorted_keys) do
                     local v = outfits[section]
                     write_csv(debug_file,
-                            section, v.faction, v.name, v.description, v.weight, v.cost, v.repair_label, v.powered, v.br_class, v.ballistic, v.rupture, v.burn, v.shock, v.chemical_burn, v.radiation, v.telepatic, v.impact, v.explosion, v.arty, v.max_arty, v.carry_weight, v.speed)
+                            section, v.faction, v.name, v.description, v.weight, v.cost, v.repair_label, v.powered, v.br_class, v.ballistic, v.rupture, v.burn, v.shock, v.chemical_burn, v.radiation, v.telepatic, v.impact, v.explosion, v.arty, v.max_arty, v.carry_weight, v.speed, v.hit_fraction_actor, v.br_class_raw, v.bone_armor, v.ap_scale)
                     type_cnt = type_cnt + 1
                 end
             end
@@ -4243,6 +4274,83 @@ function debug_cmd_list.cmd.export_npc_armor_profiles(_, txt, x)
     f:close()
 
     send_log(x, "[END] export NPC armor profiles - %s profiles written", cnt)
+end
+
+-- Export the GAMMA "Actor Damage Balancer" player-armor model that isn't stored
+-- in any item LTX and so can't be reached via ini_sys:
+--   * the ballistic-plate / mutant-hide mitigation table (per belt-item section,
+--     { ap_res, premitigation }), which is a hardcoded Lua table; and
+--   * the per-damage-type constants from get_adb_constants().
+-- Together with the artefact immunity/cap columns already in export_artefacts,
+-- these let a downstream calculator reproduce belt-artefact contributions to
+-- both armor buckets (flat BR% and the penetration/premitigation cliff).
+-- grok_actor_damage_balancer is an optional GAMMA mod; absent on plain Anomaly.
+function debug_cmd_list.cmd.export_actor_armor_model(_, txt, x)
+    send_log(x, "[START] export actor armor model")
+
+    if not (grok_actor_damage_balancer and grok_actor_damage_balancer.mitigation_table_body) then
+        send_log(x, "[SKIP] export actor armor model - GAMMA Actor Damage Balancer not installed")
+        return
+    end
+
+    local adb = grok_actor_damage_balancer
+
+    -- Plate / mutant-hide mitigation, merged across body + head slots. ap_res
+    -- raises the penetration threshold (armor_bone_value); premitigation adds to
+    -- the stopped-round flat reduction (0.40 base + bonus).
+    local merged = {}
+    for sec, v in pairs(adb.mitigation_table_body or {}) do
+        merged[sec] = merged[sec] or {}
+        merged[sec].body_ap = v[1]
+        merged[sec].body_pre = v[2]
+    end
+    for sec, v in pairs(adb.mitigation_table_head or {}) do
+        merged[sec] = merged[sec] or {}
+        merged[sec].head_ap = v[1]
+        merged[sec].head_pre = v[2]
+    end
+
+    local mf = file_for_write("export_adb_plate_mitigation.csv")
+    if mf then
+        write_csv_header(mf, translate_headers({
+            "~", "st_data_export_body_ap_res", "st_data_export_body_premitigation",
+            "st_data_export_head_ap_res", "st_data_export_head_premitigation",
+        }))
+        local mcnt = 0
+        for _, sec in ipairs(sort_keys(merged)) do
+            local v = merged[sec]
+            write_csv(mf, sec, v.body_ap or "", v.body_pre or "", v.head_ap or "", v.head_pre or "")
+            mcnt = mcnt + 1
+        end
+        mf:close()
+        send_log(x, "[END] export actor armor model - %s plate mitigation rows", mcnt)
+    else
+        send_log(x, "Failed to create/open export_adb_plate_mitigation.csv")
+    end
+
+    -- Per-damage-type constants: adjuster scales outfit/helmet bone armor,
+    -- arti_adjuster scales belt-artefact immunity, limiter is the base protection
+    -- cap (before per-artefact caps), immunity/cap_stat are the LTX keys read per
+    -- artefact, defense is the outfit protection field. (Base premitigation 0.40
+    -- and the 0.90 hard cap are script literals, not per-type; hardcode downstream.)
+    local hit_types = { "FireWound", "Wound", "Strike", "Explosion", "Burn", "Shock", "ChemicalBurn", "Telepatic" }
+    local cf = file_for_write("export_adb_constants.csv")
+    if cf then
+        write_csv_header(cf, translate_headers({
+            "~", "st_data_export_adjuster", "st_data_export_arti_adjuster",
+            "st_data_export_limiter", "st_data_export_immunity",
+            "st_data_export_cap_stat", "st_data_export_defense",
+        }))
+        for _, ht in ipairs(hit_types) do
+            adb.get_adb_constants(ht)
+            write_csv(cf, ht, adb.adjuster or "", adb.arti_adjuster or "", adb.limiter or "",
+                    adb.immunity or "", adb.cap_stat or "", adb.defense or "")
+        end
+        cf:close()
+        send_log(x, "[END] export actor armor model - %s constant rows", #hit_types)
+    else
+        send_log(x, "Failed to create/open export_adb_constants.csv")
+    end
 end
 
 function debug_cmd_list.cmd.export_weapon_addons(_, txt, x)
