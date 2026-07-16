@@ -3683,6 +3683,119 @@ function zoom_cam_disp_to_recoil_change(change, sec)
 	return final_recoil_post_upg - final_recoil
 end
 
+-- ── Full per-upgrade effect table ────────────────────────────────────────
+-- Ported/extended from the "better_upgrade_tooltips" mod so the export carries
+-- EVERY player-meaningful stat an upgrade changes, not just the one declared in
+-- the upgrade's `property` line. Each raw upgrade-section param maps to a display
+-- property key, a unit code the site formats, and either a `conv` (numeric
+-- conversion, receives the raw delta + the parent item section for recoil) or an
+-- `outfit` flag (routes through get_real_stat_value_display for the ADB-adjusted
+-- protection percentage, matching what File 2 already emits for outfits).
+local UPGRADE_EFFECT_DEFS = {
+    -- weapons
+    fire_dispersion_base = { prop = "ui_inv_accuracy",         unit = "pct",   conv = function(v) return -(200 / 3) * v end },
+    PDM_disp_base        = { prop = "ui_inv_handling",         unit = "pct",   conv = function(v) return -(5 / 21) * v * 100 end },
+    zoom_cam_dispersion  = { prop = "st_prop_recoil",          unit = "pct",   conv = function(v, item) return zoom_cam_disp_to_recoil_change(v, item) end },
+    condition_shot_dec   = { prop = "st_prop_reliability",     unit = "pct",   conv = function(v) return -10000 * v end },
+    rpm                  = { prop = "ui_inv_rate_of_fire",     unit = "rpm",   conv = function(v) return v end },
+    ammo_mag_size        = { prop = "app_upgrade_mag_size",    unit = "num",   conv = function(v) return v end },
+    bullet_speed         = { prop = "app_upgrade_bullet_speed", unit = "speed", conv = function(v) return v end },
+    inv_weight           = { prop = "st_prop_weight",          unit = "kg",    conv = function(v) return v end },
+    -- carry capacity — both variants map to one display prop (deduped by `seen`)
+    additional_inventory_weight  = { prop = "ui_inv_outfit_additional_weight", unit = "kg", conv = function(v) return v end },
+    additional_inventory_weight2 = { prop = "ui_inv_outfit_additional_weight", unit = "kg", conv = function(v) return v end },
+    -- outfit protections (ADB-adjusted %, item-independent)
+    wound_protection         = { prop = "ui_inv_outfit_wound_protection",         unit = "pct", outfit = true },
+    burn_protection          = { prop = "ui_inv_outfit_burn_protection",          unit = "pct", outfit = true },
+    shock_protection         = { prop = "ui_inv_outfit_shock_protection",         unit = "pct", outfit = true },
+    chemical_burn_protection = { prop = "ui_inv_outfit_chemical_burn_protection", unit = "pct", outfit = true },
+    telepatic_protection     = { prop = "ui_inv_outfit_telepatic_protection",     unit = "pct", outfit = true },
+    radiation_protection     = { prop = "ui_inv_outfit_radiation_protection",     unit = "pct", outfit = true },
+    strike_protection        = { prop = "ui_inv_outfit_strike_protection",        unit = "pct", outfit = true },
+    explosion_protection     = { prop = "ui_inv_outfit_explosion_protection",     unit = "pct", outfit = true },
+    -- restore / power / slots
+    bleeding_restore_speed = { prop = "st_prop_restore_bleeding", unit = "mlmin",   conv = function(v) return v * 150000 end },
+    health_restore_speed   = { prop = "st_prop_restore_health",   unit = "healpct", conv = function(v) return v * 10000 end },
+    power_restore_speed    = { prop = "ui_inv_outfit_power_restore", unit = "microg", conv = function(v) return v * 100000 * 2 end },
+    artefact_count         = { prop = "st_prop_artefact",         unit = "num",     conv = function(v) return v end },
+}
+
+-- Round a numeric effect value to 2dp, strip trailing zeros. Strings (already
+-- formatted by get_real_stat_value_display) pass through re-normalized.
+local function fmt_effect_num(v)
+    local n = tonumber(v)
+    if not n then return tostring(v) end
+    -- Round half away from zero. math.floor(x - 0.5) rounds negatives the wrong
+    -- way (floor(-1000.5) = -1001 → -10 becomes -10.01), so branch on sign.
+    local scaled = n * 100
+    scaled = (scaled >= 0) and math.floor(scaled + 0.5) or math.ceil(scaled - 0.5)
+    n = scaled / 100
+    local s = string.format("%.2f", n)
+    if s:find("%.") then s = s:gsub("0+$", ""):gsub("%.$", "") end
+    if s == "-0" then s = "0" end
+    return s
+end
+
+-- Scan an upgrade's stats section for every recognized param and return an
+-- encoded "prop:value:unit|prop:value:unit" blob (no commas — CSV-safe). The
+-- fire_wound protection comes from the referenced bones_koeff_protection_add
+-- section, so it is derived specially. `item_sec` is the parent item (needed for
+-- the recoil conversion); `u` is the upgrade node (for its declared property).
+function encode_upgrade_effects(item_sec, stats_sec, u)
+    if not stats_sec or stats_sec == "" then return "" end
+    local n = safe_line_count(ini_sys, stats_sec)
+    if not n then return "" end
+
+    local out = {}
+    local seen = {}
+
+    local function push(prop, value, unit)
+        if not prop or seen[prop] then return end
+        local formatted = fmt_effect_num(value)
+        if formatted == "0" or formatted == "" then return end
+        seen[prop] = true
+        out[#out + 1] = prop .. ":" .. formatted .. ":" .. unit
+    end
+
+    -- fire_wound_protection: derived from bones_koeff_protection_add if present.
+    do
+        local bones = ini_sys:r_string_ex(stats_sec, "bones_koeff_protection_add", "", "") or ""
+        if bones ~= "" then
+            local ok, val = pcall(get_real_stat_value_display, stats_sec, 0, "outfit", "fire_wound_protection")
+            if ok then push("ui_inv_outfit_fire_wound_protection", val, "pct") end
+        end
+    end
+
+    for i = 0, n - 1 do
+        local _, key, val = ini_sys:r_line(stats_sec, i, "", "")
+        local def = key and key ~= "" and UPGRADE_EFFECT_DEFS[key]
+        if def then
+            local raw = tonumber(val)
+            if raw and raw ~= 0 then
+                local value
+                if def.outfit then
+                    local ok, res = pcall(get_real_stat_value_display, stats_sec, raw, "outfit", key)
+                    if ok then value = res end
+                else
+                    local ok, res = pcall(def.conv, raw, item_sec)
+                    if ok then value = res end
+                end
+                if value ~= nil then push(def.prop, value, def.unit) end
+            end
+        end
+    end
+
+    -- Durability is tied to the declared property (immunities_sect_add alone does
+    -- not mean a durability upgrade), matching the mod's fixed -10% condition loss.
+    if u and u.prop then
+        for _, p in ipairs(u.prop) do
+            if p == "prop_durability" then push("st_prop_durability", -10, "pct") end
+        end
+    end
+
+    return table.concat(out, "|")
+end
+
 function debug_cmd_list.cmd.export_upgrades(_, txt, x)
     send_log(x, "[START] export upgrades")
 
@@ -3819,6 +3932,26 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
     end
     f1:close()
     send_log(x, "export upgrades - %s items written", item_count)
+
+    -- ── File 1b: per-upgrade full effects (all converted stats) ──────────
+    -- One row per (item, upgrade section) with every meaningful stat change the
+    -- upgrade applies, converted to player-facing values. Keyed by both the item
+    -- and its stats section because weapon recoil depends on the parent weapon.
+    local f3 = file_for_write("export_upgrade_effects.csv")
+    f3:write("ItemSection,UpgradeSection,Effects\n")
+    local eff_rows = 0
+    for _, sec in ipairs(sorted_sections) do
+        local item = all_items[sec]
+        for _, u in ipairs(item.upgrades) do
+            local enc = encode_upgrade_effects(sec, u.stats, u)
+            if enc ~= "" then
+                f3:write(table.concat({ sec, u.stats, enc }, ",") .. "\n")
+                eff_rows = eff_rows + 1
+            end
+        end
+    end
+    f3:close()
+    send_log(x, "export upgrades - %s effect rows written", eff_rows)
 
     -- ── Pass 3: determine max property count for File 2 column width ─────
     local max_props = 0
