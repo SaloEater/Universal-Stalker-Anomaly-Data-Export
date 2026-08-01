@@ -34,6 +34,7 @@ local cmd_list = {
     { name = "Export weapon drop sources", cmd = "export_weapon_drop_sources", hide_ui = 0 },
     { name = "Export complete item list", cmd = "export_item_list", hide_ui = 0 },
     { name = "Export items common data", cmd = "export_items_common_data", hide_ui = 0 },
+    { name = "Export starting loadouts", cmd = "export_starting_loadouts", hide_ui = 0 },
     {name = "Export translation keys", cmd = "export_translation_keys", hide_ui = 0},
     {name = "Export translations", cmd = "export_translations", hide_ui = 0},
     {name = "Export all", cmd = "export_all", hide_ui = 0},
@@ -165,6 +166,25 @@ end
 
 function get_artefact_stat_value(obj, section, type)
     return get_stat_value(obj, section, "artefact", type)
+end
+
+-- Raw, un-adjusted belt-item immunity straight from LTX, read the same way GAMMA's
+-- Actor Damage Balancer reads it (grok_actor_damage_balancer.script:439-441): the
+-- immunity lives in the section named by hit_absorbation_sect, defaulting to the
+-- item's own section when that key is absent.
+-- The get_artefact_stat_value() columns are inventory *display* values -- already
+-- through utils_ui magnitude and ADB's adjusters -- and can't be converted back, so
+-- anything reproducing the actor damage formula needs these raw numbers instead.
+function get_raw_immunity(section, stat)
+    local abs = ini_sys:r_string_ex(section, "hit_absorbation_sect")
+    if not abs or abs == "" then abs = section end
+    return ini_sys:r_float_ex(abs, stat) or 0
+end
+
+-- Raw immunity cap. Unlike the immunity, ADB reads the cap off the item section
+-- itself, never the absorbation section (grok_actor_damage_balancer.script:440).
+function get_raw_cap(section, stat)
+    return ini_sys:r_float_ex(section, stat) or 0
 end
 
 function get_booster_stat_value(obj, section, type)
@@ -1381,6 +1401,12 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
             artefact.explosion_cap = to_percent_string(get_artefact_stat_value(nil, section, "explosion_cap") or 0)
             artefact.impact_cap = to_percent_string(get_artefact_stat_value(nil, section, "strike_cap") or 0)
 
+            -- Raw LTX numerics for the ballistic (fire_wound) bucket, for actor-damage
+            -- calculations. The columns above are display strings; these are the values
+            -- ADB itself multiplies by cond * 0.6 * arti_adjuster.
+            artefact.ballistic_immunity_raw = get_raw_immunity(section, "fire_wound_immunity")
+            artefact.ballistic_cap_raw = get_raw_cap(section, "fire_wound_cap")
+
             artefact.used_in_crafting = used_in_crafting[section] and "Y" or "N"
             artefact.craftable = craftable[section] and "Y" or "N"
 
@@ -1394,13 +1420,13 @@ function debug_cmd_list.cmd.export_artefacts(_, txt, x)
     local debug_file = file_for_write(p_file)
 
     local header = translate_headers({
-        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "ui_st_rank", "st_data_export_jump_height", "st_data_export_is_junk", "st_data_export_has_perk", "st_data_export_perk_description", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "gamma_fire_wound_cap", "gamma_wound_cap", "gamma_burn_cap", "gamma_shock_cap", "gamma_chemical_burn_cap", "gamma_telepatic_cap", "gamma_strike_cap", "gamma_explosion_cap", "ui_inv_outfit_additional_weight", "st_data_export_used_in_crafting", "st_data_export_can_be_crafted" })
+        "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "ui_st_rank", "st_data_export_jump_height", "st_data_export_is_junk", "st_data_export_has_perk", "st_data_export_perk_description", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "gamma_fire_wound_cap", "gamma_wound_cap", "gamma_burn_cap", "gamma_shock_cap", "gamma_chemical_burn_cap", "gamma_telepatic_cap", "gamma_strike_cap", "gamma_explosion_cap", "st_data_export_fire_wound_immunity", "st_data_export_fire_wound_cap", "ui_inv_outfit_additional_weight", "st_data_export_used_in_crafting", "st_data_export_can_be_crafted" })
     write_csv_header(debug_file, header)
     local sorted_keys = sort_keys(tbl)
     for _, section in ipairs(sorted_keys) do
         local v = tbl[section]
         write_csv(debug_file,
-                section, v.name, v.description, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.has_perk, v.perk_description, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.ballistic_cap, v.rupture_cap, v.burn_cap, v.shock_cap, v.chemical_burn_cap, v.telepatic_cap, v.impact_cap, v.explosion_cap, v.weight_carried, v.used_in_crafting, v.craftable
+                section, v.name, v.description, v.weight, v.cost, v.tier, v.rank, v.jump_height, v.is_junk, v.has_perk, v.perk_description, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.ballistic_cap, v.rupture_cap, v.burn_cap, v.shock_cap, v.chemical_burn_cap, v.telepatic_cap, v.impact_cap, v.explosion_cap, v.ballistic_immunity_raw, v.ballistic_cap_raw, v.weight_carried, v.used_in_crafting, v.craftable
         )
     end
     debug_file:close()
@@ -1545,6 +1571,24 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
 
             belt_attachment.weight_carried = math.floor(get_artefact_stat_value(nil, section, "additional_inventory_weight") or 0)
 
+            -- Immunity caps. Belt items (mutant hides, ballistic plates) raise the
+            -- actor protection limiter exactly like artefacts do, so they need the
+            -- same cap columns -- mirrors the block in export_artefacts.
+            belt_attachment.burn_cap = to_percent_string(get_artefact_stat_value(nil, section, "burn_cap") or 0)
+            belt_attachment.shock_cap = to_percent_string(get_artefact_stat_value(nil, section, "shock_cap") or 0)
+            belt_attachment.telepatic_cap = to_percent_string(get_artefact_stat_value(nil, section, "telepatic_cap") or 0)
+            belt_attachment.chemical_burn_cap = to_percent_string(get_artefact_stat_value(nil, section, "chemical_burn_cap") or 0)
+
+            belt_attachment.rupture_cap = to_percent_string(get_artefact_stat_value(nil, section, "wound_cap") or 0)
+            belt_attachment.ballistic_cap = to_percent_string(get_artefact_stat_value(nil, section, "fire_wound_cap") or 0)
+            belt_attachment.explosion_cap = to_percent_string(get_artefact_stat_value(nil, section, "explosion_cap") or 0)
+            belt_attachment.impact_cap = to_percent_string(get_artefact_stat_value(nil, section, "strike_cap") or 0)
+
+            -- Raw LTX numerics for the ballistic (fire_wound) bucket -- see the same
+            -- pair in export_artefacts.
+            belt_attachment.ballistic_immunity_raw = get_raw_immunity(section, "fire_wound_immunity")
+            belt_attachment.ballistic_cap_raw = get_raw_cap(section, "fire_wound_cap")
+
             tbl[section] = belt_attachment
             icon_candidates[section] = true
             cnt = cnt + 1
@@ -1554,13 +1598,13 @@ function debug_cmd_list.cmd.export_belt_attachments(_, txt, x)
     local p_file = "export_belt_attachments.csv"
     local debug_file = file_for_write(p_file)
     local header = translate_headers({
-        "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_data_export_is_backpack", "st_data_export_jump_height", "st_data_export_bonus_mutant_part_chance", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "ui_inv_outfit_additional_weight" })
+        "~", "pda_encyclopedia_name", "st_prop_weight", "st_upgr_cost", "pda_encyclopedia_tier", "st_data_export_is_backpack", "st_data_export_jump_height", "st_data_export_bonus_mutant_part_chance", "ui_inv_outfit_fire_wound_protection", "ui_inv_outfit_wound_protection", "ui_inv_outfit_burn_protection", "ui_inv_outfit_shock_protection", "ui_inv_outfit_chemical_burn_protection", "ui_inv_outfit_radiation_protection", "ui_inv_outfit_telepatic_protection", "ui_inv_outfit_strike_protection", "ui_inv_outfit_explosion_protection", "st_prop_restore_health", "ui_inv_satiety", "st_prop_restore_bleeding", "st_data_export_restore_radiation", "ui_inv_outfit_power_restore", "gamma_fire_wound_cap", "gamma_wound_cap", "gamma_burn_cap", "gamma_shock_cap", "gamma_chemical_burn_cap", "gamma_telepatic_cap", "gamma_strike_cap", "gamma_explosion_cap", "st_data_export_fire_wound_immunity", "st_data_export_fire_wound_cap", "ui_inv_outfit_additional_weight" })
     write_csv_header(debug_file, header)
     local sorted_keys = sort_keys(tbl)
     for _, section in ipairs(sorted_keys) do
         local v = tbl[section]
         write_csv(debug_file,
-                section, v.name, v.weight, v.cost, v.tier, v.is_backpack, v.jump_height, v.bonus_mutant_part_chance, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.weight_carried
+                section, v.name, v.weight, v.cost, v.tier, v.is_backpack, v.jump_height, v.bonus_mutant_part_chance, v.ballistic_immunity, v.rupture_immunity, v.burn_immunity, v.shock_immunity, v.chemical_burn_immunity, v.radiation_immunity, v.psychic_immunity, v.impact_immunity, v.explosion_immunity, v.health_restore, v.satiety_restore, v.bleed_restore, v.rad_restore, v.stamina_restore, v.ballistic_cap, v.rupture_cap, v.burn_cap, v.shock_cap, v.chemical_burn_cap, v.telepatic_cap, v.impact_cap, v.explosion_cap, v.ballistic_immunity_raw, v.ballistic_cap_raw, v.weight_carried
         )
     end
     debug_file:close()
@@ -1845,6 +1889,12 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             weapon.handling = to_percent_floor(get_weapon_stat_value(obj, section, "handling"))
             weapon.fire_rate = get_weapon_stat_value(obj, section, "fire_rate")
             weapon.ammo_mag_size = get_weapon_stat_value(obj, section, "ammo_mag_size")
+            -- Native mag size read straight from the weapon config, NOT the live object.
+            -- The value above comes from the spawned object's stat panel, so under GAMMA
+            -- Mags Reloaded it reports the loaded default magazine's capacity (e.g. the P90
+            -- gamma's 75-round ext mag) rather than the weapon's own 50. This raw read
+            -- preserves the vanilla mag size for the "Magazines mod off" view downstream.
+            weapon.base_mag_size = math.floor(ini_sys:r_float_ex(section, "ammo_mag_size") or 0)
             weapon.max_range = get_weapon_stat_value(obj, section, "max_range")
             weapon.speed = math.floor(get_weapon_stat_value(obj, section, "speed"))
             weapon.reliability = to_percent_floor(get_weapon_stat_value(obj, section, "reliability"))
@@ -1908,13 +1958,13 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             end
 
             local header = translate_headers({
-                "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_rate_of_fire", "ui_ammo_count", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt", "st_data_export_hit_power", "BR1", "BR2", "BR3", "BR4", "BR5", "BR6", "BR7" })
+                "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_rate_of_fire", "ui_ammo_count", "base_mag_size", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt", "st_data_export_hit_power", "BR1", "BR2", "BR3", "BR4", "BR5", "BR6", "BR7" })
             write_csv_header(debug_file, header)
             local sorted_keys = sort_keys(weapons)
             for _, section in ipairs(sorted_keys) do
                 local w = weapons[section]
                 write_csv(debug_file,
-                        section, w.name, w.description, w.weight, w.cost, w.repair_label, w.single_handed, w.accuracy, w.handling, w.fire_rate, w.ammo_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.caliber, w.alt_caliber, w.hit_power, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
+                        section, w.name, w.description, w.weight, w.cost, w.repair_label, w.single_handed, w.accuracy, w.handling, w.fire_rate, w.ammo_mag_size, w.base_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.caliber, w.alt_caliber, w.hit_power, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
                 type_cnt = type_cnt + 1
             end
             debug_file:close()
@@ -4100,6 +4150,20 @@ end
 function debug_cmd_list.cmd.export_item_icons(_, txt, x)
     send_log(x, "[START] export item icons")
 
+    -- Self-seed candidates: every real item (anything with a "kind") is a
+    -- candidate, so icon coverage does NOT depend on which other exports ran
+    -- first this session. Previously this drained only whatever icon_candidates
+    -- other exports had populated, so running it standalone (or before the broad
+    -- exports) produced partial coverage and silently omitted un-categorised
+    -- items (detectors, tools, kits, ...). Weapon modifications, multiplayer and
+    -- iconless sections are still filtered out in the loop below.
+    ini_sys:section_for_each(function(section)
+        if not is_multiplayer_item(section) then
+            local kind = ini_sys:r_string_ex(section, "kind") or ""
+            if kind ~= "" then icon_candidates[section] = true end
+        end
+    end)
+
     local blacklist = {
         ["weapon_ammo_parts"] = true, -- not an item
     }
@@ -5289,4 +5353,218 @@ function debug_cmd_list.cmd.export_traders_mapping(_, txt, x)
     end
 
     process_batch()
+end
+
+-- ============================================================================
+-- Starting loadouts export
+--
+-- A faction's new-game loadout comes from three sources that the engine merges
+-- at runtime:
+--   1. new_game_loadouts.ltx, including [shared]/[custom] section inheritance
+--   2. mod_new_game_loadouts_*.ltx appends, which the engine merges automatically
+--   3. injections from *_mcm.script files via new_game_loadout_injector_mcm,
+--      which live only in Lua and never appear in any .ltx file
+-- Only the running engine sees all three, so this export follows
+-- UINewGame:LoadLoadout in ui_mm_faction_select.script: read <faction>_loadout
+-- through the same ini_file (so :shared inheritance and mod_ appends are
+-- already applied), then overlay the injector's loadout_items filtered by
+-- faction.
+--
+-- Output is a JSON object with the keys points, factions
+-- ([{id, money, items:[{id, selectable, quantity, cost, difficultyLock}]}]),
+-- shared, ammoPerWeapon and ammoCount.
+-- ============================================================================
+
+local LOADOUT_FACTIONS = {
+    "stalker", "bandit", "ecolog", "dolg", "freedom", "killer",
+    "army", "monolith", "csky", "renegade", "greh", "isg", "zombied",
+}
+
+local function loadout_json_esc(s)
+    return tostring(s or ""):gsub("\\", "\\\\"):gsub('"', '\\"'):gsub("\n", "\\n"):gsub("\r", "")
+end
+
+local function loadout_dict_is_empty(t)
+    if not t then return true end
+    for _ in pairs(t) do return false end
+    return true
+end
+
+-- The 4th ltx field ("...,N") means the item is available while the chosen
+-- economy index is <= N. The injector instead carries a set of allowed
+-- economies. Sets that run contiguously from easy map onto that lock; any
+-- other set is treated as always available (nil).
+local function loadout_economy_to_lock(econ)
+    if loadout_dict_is_empty(econ) then return nil end
+    local e1, e2, e3 = econ["st_econ_1"], econ["st_econ_2"], econ["st_econ_3"]
+    if e1 and e2 and e3 then return nil end
+    if e1 and e2 then return 2 end
+    if e1 then return 1 end
+    return nil
+end
+
+-- Read one loadout section into a list of item tables, applying the same
+-- section-existence guard the engine uses (skips items whose section is not
+-- present in this modpack). :shared/:custom inheritance and mod_ appends are
+-- already merged into what line_count/r_line return.
+local function read_loadout_section(ini_itm, section)
+    local items, seen = {}, {}
+    if not ini_itm:section_exist(section) then return items end
+    local n = ini_itm:line_count(section) or 0
+    for i = 0, n - 1 do
+        local _, sec, value = ini_itm:r_line(section, i, "", "")
+        if sec and sec ~= "" and ini_sys:section_exist(sec) then
+            local t = str_explode(value or "", ",")
+            local item = {
+                id = sec,
+                selectable = (t[1] == "true"),
+                quantity = tonumber(t[2]) or 1,
+                cost = tonumber(t[3]) or 0,
+                difficultyLock = (t[4] and tonumber(t[4])) or nil,
+            }
+            if seen[sec] then
+                items[seen[sec]] = item          -- later line overrides (engine semantics)
+            else
+                items[#items + 1] = item
+                seen[sec] = #items
+            end
+        end
+    end
+    return items
+end
+
+local function loadout_item_to_json(it)
+    return string.format(
+        '{"id":"%s","selectable":%s,"quantity":%d,"cost":%d,"difficultyLock":%s}',
+        loadout_json_esc(it.id),
+        it.selectable and "true" or "false",
+        it.quantity or 1,
+        it.cost or 0,
+        it.difficultyLock and tostring(it.difficultyLock) or "null"
+    )
+end
+
+local function loadout_items_to_json(list)
+    local parts = {}
+    for _, it in ipairs(list) do parts[#parts + 1] = "    " .. loadout_item_to_json(it) end
+    if #parts == 0 then return "[]" end
+    return "[\n" .. table.concat(parts, ",\n") .. "\n  ]"
+end
+
+function debug_cmd_list.cmd.export_starting_loadouts(_, txt, x)
+    send_log(x, "[START] export starting loadouts")
+
+    local ini_itm = ini_file("items\\settings\\new_game_loadouts.ltx")
+    if not ini_itm then
+        send_log(x, "[SKIP] export starting loadouts - new_game_loadouts.ltx not found")
+        return
+    end
+
+    -- Points budget per economy difficulty (easy/medium/hard)
+    local points = {
+        tonumber(ini_itm:r_float_ex("points", "total_points_eco_1")) or 0,
+        tonumber(ini_itm:r_float_ex("points", "total_points_eco_2")) or 0,
+        tonumber(ini_itm:r_float_ex("points", "total_points_eco_3")) or 0,
+    }
+
+    -- Items inherited by every faction ([shared], which itself inherits [custom])
+    local shared = read_loadout_section(ini_itm, "shared")
+
+    -- Runtime-injected items grouped by faction. MCM loads every *_mcm.script at
+    -- startup, so new_game_loadout_injector_mcm.loadout_items is fully populated.
+    local injected_by_faction = {}
+    local injected_count = 0
+    local injector = new_game_loadout_injector_mcm
+    if injector and injector.loadout_items then
+        for _, entries in pairs(injector.loadout_items) do
+            for _, it in ipairs(entries) do
+                if it.section and ini_sys:section_exist(tostring(it.section)) then
+                    local record = {
+                        id = it.section,
+                        selectable = not it.add_to_inventory,
+                        quantity = tonumber(it.amount) or 1,
+                        cost = it.add_to_inventory and 0 or (tonumber(it.points) or 0),
+                        difficultyLock = loadout_economy_to_lock(it.economy),
+                    }
+                    local function add_for(f)
+                        injected_by_faction[f] = injected_by_faction[f] or {}
+                        table.insert(injected_by_faction[f], record)
+                    end
+                    if loadout_dict_is_empty(it.faction) then
+                        for _, f in ipairs(LOADOUT_FACTIONS) do add_for(f) end
+                    else
+                        for f in pairs(it.faction) do add_for(f) end
+                    end
+                    injected_count = injected_count + 1
+                end
+            end
+        end
+    else
+        send_log(x, "  ! loadout injector not present - script-injected items (Thompson, detector) will be omitted")
+    end
+
+    -- Per-faction loadouts. faction.items is the merged <faction>_loadout read
+    -- (base plus :shared inheritance plus mod_ appends) with the injected items
+    -- overlaid on top, so the shared set is already included via inheritance.
+    local faction_json = {}
+    for _, f in ipairs(LOADOUT_FACTIONS) do
+        local section = f .. "_loadout"
+        if ini_itm:section_exist(section) then
+            local items = read_loadout_section(ini_itm, section)
+            local seen = {}
+            for idx, it in ipairs(items) do seen[it.id] = idx end
+            for _, it in ipairs(injected_by_faction[f] or {}) do
+                if seen[it.id] then
+                    items[seen[it.id]] = it
+                else
+                    items[#items + 1] = it
+                    seen[it.id] = #items
+                end
+            end
+            local money = tonumber(ini_itm:r_float_ex(f .. "_money", "money")) or 0
+            faction_json[#faction_json + 1] = string.format(
+                '  {"id":"%s","money":%d,"items":%s}',
+                loadout_json_esc(f), money, loadout_items_to_json(items)
+            )
+        end
+    end
+
+    -- ammo_type_per_wpn (weapon -> ammo class) and ammo_count (weapon -> count)
+    local function read_kv(section, numeric)
+        local parts = {}
+        if ini_itm:section_exist(section) then
+            local n = ini_itm:line_count(section) or 0
+            for i = 0, n - 1 do
+                local _, k, v = ini_itm:r_line(section, i, "", "")
+                if k and k ~= "" then
+                    if numeric then
+                        parts[#parts + 1] = string.format('"%s":%d', loadout_json_esc(k), tonumber(v) or 0)
+                    else
+                        parts[#parts + 1] = string.format('"%s":"%s"', loadout_json_esc(k), loadout_json_esc(v))
+                    end
+                end
+            end
+        end
+        return "{" .. table.concat(parts, ",") .. "}"
+    end
+
+    local json = "{\n"
+        .. '"_info": "Generated by universal_anomaly_data_export.script (Export starting loadouts)",\n'
+        .. string.format('"points": [%d,%d,%d],\n', points[1], points[2], points[3])
+        .. '"factions": [\n' .. table.concat(faction_json, ",\n") .. "\n],\n"
+        .. '"shared": ' .. loadout_items_to_json(shared) .. ",\n"
+        .. '"ammoPerWeapon": ' .. read_kv("ammo_type_per_wpn", false) .. ",\n"
+        .. '"ammoCount": ' .. read_kv("ammo_count", true) .. "\n"
+        .. "}\n"
+
+    local out = file_for_write("export_starting_loadouts.json")
+    if not out then
+        send_log(x, "! Failed to open export_starting_loadouts.json for writing")
+        return
+    end
+    out:write(json)
+    out:close()
+
+    send_log(x, "[END] export starting loadouts - %s factions, %s shared, %s injected items - see export_starting_loadouts.json",
+        tostring(#faction_json), tostring(#shared), tostring(injected_count))
 end
