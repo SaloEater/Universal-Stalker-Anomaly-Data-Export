@@ -172,9 +172,10 @@ end
 -- Actor Damage Balancer reads it (grok_actor_damage_balancer.script:439-441): the
 -- immunity lives in the section named by hit_absorbation_sect, defaulting to the
 -- item's own section when that key is absent.
--- The get_artefact_stat_value() columns are inventory *display* values -- already
--- through utils_ui magnitude and ADB's adjusters -- and can't be converted back, so
--- anything reproducing the actor damage formula needs these raw numbers instead.
+-- The get_artefact_stat_value() columns are inventory *display* values: the raw
+-- immunity already multiplied by 0.6 * arti_adjuster (0.48 for FireWound) at full
+-- condition. They are convertible back, but only by hardcoding that factor and
+-- round-tripping a formatted percent string, so export the raw numbers directly.
 function get_raw_immunity(section, stat)
     local abs = ini_sys:r_string_ex(section, "hit_absorbation_sect")
     if not abs or abs == "" then abs = section end
@@ -1098,9 +1099,39 @@ function build_bhs_summary(t_name, sec)
 end
 
 --See ui_workshop.script::UIWorkshopCraft:LoadRecipes
+-- What a workshop offers is craft.ltx *plus* the recipes mods add, override and
+-- remove at runtime via workshop_autoinject — GAMMA's Streamlined Upgrades, for one,
+-- deletes all 88 granular upgrade-kit recipes and injects its own. Reading craft.ltx
+-- alone therefore exports recipes the player will never see and misses the real ones.
+-- zzz_uade_craft_hook mirrors those mutations for us; replay them here.
 function export_recipes(craft_index)
     local used_in_crafting = {}
     local craftable = {}
+
+    local hook = zzz_uade_craft_hook
+    local wai_added = hook and hook.wai_added or {}
+    local wai_overrides = hook and hook.wai_overrides or {}
+    local wai_deletions = hook and hook.wai_deletions or {}
+    local wai_index_map = hook and hook.wai_index_map or {}
+
+    local function add_recipe(id, recipe_string)
+        if not ini_sys:section_exist(id) then return end
+        local t = str_explode(recipe_string, ",")
+        if (#t ~= 6) and (#t ~= 8) and (#t ~= 10) then return end
+
+        local recipe = { tool = tonumber(t[1]) or 1, rsp = tostring(t[2]) }
+        for n = 1, 4 do
+            -- Components are (section, amount) pairs from t[3] onward.
+            local item, amt = t[1 + n * 2], tonumber(t[2 + n * 2])
+            if item and amt and ini_sys:section_exist(tostring(item)) then
+                recipe[n] = { tostring(item), amt }
+                used_in_crafting[tostring(item)] = true
+            end
+        end
+
+        if not craftable[id] then craftable[id] = {} end
+        craftable[id][#craftable[id] + 1] = recipe
+    end
 
     local ini = itms_manager.ini_craft
     local ind_str = tostring(craft_index)
@@ -1108,48 +1139,26 @@ function export_recipes(craft_index)
     for i = 0, n - 1 do
         local result, id, value = ini:r_line(ind_str, i, "", "")
         id = string.sub(id, 3)
-        if ini_sys:section_exist(id) then
-            if not craftable[id] then
-                craftable[id] = {}
-            end
-            local t = str_explode(value, ",")
-            if (#t == 6) or (#t == 8) or (#t == 10) then
-                local x = #craftable[id] + 1
-                craftable[id][x] = {}
-                craftable[id][x].tool = tonumber(t[1]) or 1
-                craftable[id][x].rsp = tostring(t[2])
-                if t[3] and t[4] then
-                    -- support item 1
-                    if ini_sys:section_exist(tostring(t[3])) then
-                        local amt = tonumber(t[4])
-                        craftable[id][x][1] = { tostring(t[3]), amt }
-                        used_in_crafting[tostring(t[3])] = true
-                    end
-                end
-                if t[5] and t[6] then
-                    -- support item 2
-                    if ini_sys:section_exist(tostring(t[5])) then
-                        local amt = tonumber(t[6])
-                        craftable[id][x][2] = { tostring(t[5]), amt }
-                        used_in_crafting[tostring(t[5])] = true
-                    end
-                end
-                if t[7] and t[8] then
-                    -- support item 3
-                    if ini_sys:section_exist(tostring(t[7])) then
-                        local amt = tonumber(t[8])
-                        craftable[id][x][3] = { tostring(t[7]), amt }
-                        used_in_crafting[tostring(t[7])] = true
-                    end
-                end
-                if t[9] and t[10] then
-                    -- support item 4
-                    if ini_sys:section_exist(tostring(t[9])) then
-                        local amt = tonumber(t[10])
-                        craftable[id][x][4] = { tostring(t[9]), amt }
-                        used_in_crafting[tostring(t[9])] = true
-                    end
-                end
+        -- An override or deletion suppresses the craft.ltx recipe outright; any
+        -- replacement is injected below, on whichever page the mod chose for it.
+        if not (wai_overrides[id] or wai_deletions[id]) then
+            add_recipe(id, value)
+        end
+    end
+
+    -- Injected recipes are page-indexed, so only emit those belonging to this page.
+    -- Removals are stored as the sentinel "none" (and no-op overrides as "override");
+    -- neither parses as a recipe string, so add_recipe drops them on its own.
+    for id, recipe_string in pairs(wai_overrides) do
+        if wai_index_map[id] == craft_index then
+            add_recipe(id, recipe_string)
+        end
+    end
+
+    for id, recipes in pairs(wai_added) do
+        if wai_index_map[id] == craft_index then
+            for _, recipe_string in ipairs(recipes) do
+                add_recipe(id, recipe_string)
             end
         end
     end
@@ -3900,6 +3909,12 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
                         prop   = w.prop,
                         desc   = w.desc,
                         uname  = w.name or "",
+                        -- Upgrade kit consumed by this node. Both fields are supplied by the
+                        -- "Streamlined Upgrades" override of utils_item.extract_upgrade, which
+                        -- derives them from the node's property and column. Nil on plain Anomaly
+                        -- (no kits) and for any property missing from that mod's lookup table.
+                        tool   = w.tool,
+                        tier   = w.tier,
                     }
                     if type then
                         all_stats_sections[type] = all_stats_sections[type] or {}
@@ -4002,6 +4017,38 @@ function debug_cmd_list.cmd.export_upgrades(_, txt, x)
     end
     f3:close()
     send_log(x, "export upgrades - %s effect rows written", eff_rows)
+
+    -- ── File 1c: per-upgrade kit requirement ─────────────────────────────
+    -- GAMMA's upgrade overhaul makes every tree node consume an upgrade kit, picked
+    -- from the node's property (physical/magical/utility for outfits,
+    -- internal/external/optical for weapons) and a tier that scales with the parent
+    -- item's repair_type — an exo suit needs tier 3 kits in every column, a pistol
+    -- tier 1 in most. utils_item.extract_upgrade already resolves all of that to a
+    -- section id, so the tree walked in pass 1 carries it; we only write it out.
+    -- All three tiers of a kit share one inv_name, so Tier is exported for display.
+    --
+    -- Keyed by tree coordinates, not by the stats section: a handful of items (the
+    -- SPAS-12, APS and ACE families) reuse one stats section across two cells that
+    -- need different kits, so the stats section alone does not identify a node.
+    local f4 = file_for_write("export_upgrade_kits.csv")
+    write_csv_header(f4, "ItemSection", "Row", "Column", "Cell", "UpgradeSection", "Kit", "KitName", "Tier")
+    local kit_rows, kit_missing = 0, 0
+    for _, sec in ipairs(sorted_sections) do
+        local item = all_items[sec]
+        for _, u in ipairs(item.upgrades) do
+            if u.tool and u.tool ~= "" and ini_sys:section_exist(u.tool) then
+                local kit_name = translate_with_context(
+                    ini_sys:r_string_ex(u.tool, "inv_name"), "upgrade kit name for " .. u.tool)
+                write_csv(f4, sec, u.row, u.column, u.cell, u.stats, u.tool, kit_name, u.tier or "")
+                icon_candidates[u.tool] = true
+                kit_rows = kit_rows + 1
+            else
+                kit_missing = kit_missing + 1
+            end
+        end
+    end
+    f4:close()
+    send_log(x, "export upgrades - %s kit rows written (%s nodes without a kit)", kit_rows, kit_missing)
 
     -- ── Pass 3: determine max property count for File 2 column width ─────
     local max_props = 0
