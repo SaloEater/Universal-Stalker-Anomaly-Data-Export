@@ -1709,6 +1709,34 @@ function get_weapon_br_stats(ammo_class)
     return brs[1], brs[2], brs[3], brs[4], brs[5], brs[6], brs[7]
 end
 
+-- Fire modes are the weapon's `fire_modes` list: 1 = single, -1 = full auto,
+-- any other N = N-round burst. Emitted as a ";"-joined token list using the
+-- same glyphs the in-game HUD shows (1 / 2 / 3 / A) so the value needs no
+-- translation downstream. Weapons with no `fire_modes` line (bolt actions,
+-- most shotguns, launchers) have no mode selector and fire single only, which
+-- the engine treats as "1" — emitted as such rather than left blank.
+function get_weapon_fire_modes(section)
+    local raw = ini_sys:r_string_ex(section, "fire_modes")
+    if not raw or raw == "" then return "1" end
+
+    local modes, seen = {}, {}
+    for token in raw:gmatch("[^,%s]+") do
+        local n = tonumber(token)
+        local label
+        if n == -1 then
+            label = "A"
+        elseif n and n >= 1 then
+            label = tostring(math.floor(n))
+        end
+        if label and not seen[label] then
+            seen[label] = true
+            modes[#modes + 1] = label
+        end
+    end
+
+    return table.concat(modes, ";")
+end
+
 function get_weapon_repair_label(repair_type)
     if repair_type == "pistol" then
         return "A"
@@ -1897,6 +1925,7 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             weapon.accuracy = to_percent_floor(get_weapon_stat_value(obj, section, "accuracy"))
             weapon.handling = to_percent_floor(get_weapon_stat_value(obj, section, "handling"))
             weapon.fire_rate = get_weapon_stat_value(obj, section, "fire_rate")
+            weapon.fire_modes = get_weapon_fire_modes(section)
             weapon.ammo_mag_size = get_weapon_stat_value(obj, section, "ammo_mag_size")
             -- Native mag size read straight from the weapon config, NOT the live object.
             -- The value above comes from the spawned object's stat panel, so under GAMMA
@@ -1967,13 +1996,13 @@ function debug_cmd_list.cmd.export_weapons(_, txt, x)
             end
 
             local header = translate_headers({
-                "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_rate_of_fire", "ui_ammo_count", "base_mag_size", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt", "st_data_export_hit_power", "BR1", "BR2", "BR3", "BR4", "BR5", "BR6", "BR7" })
+                "~", "pda_encyclopedia_name", "st_data_export_description", "st_prop_weight", "st_upgr_cost", "ui_mm_repair", "st_data_export_single_handed", "ui_inv_accuracy", "ui_inv_handling", "ui_inv_rate_of_fire", "st_data_export_fire_modes", "ui_ammo_count", "base_mag_size", "ui_inv_wrange", "ui_inv_bspeed", "ui_inv_reli", "ui_inv_recoil", "ui_ammo_types", "st_data_export_ammo_types_alt", "st_data_export_hit_power", "BR1", "BR2", "BR3", "BR4", "BR5", "BR6", "BR7" })
             write_csv_header(debug_file, header)
             local sorted_keys = sort_keys(weapons)
             for _, section in ipairs(sorted_keys) do
                 local w = weapons[section]
                 write_csv(debug_file,
-                        section, w.name, w.description, w.weight, w.cost, w.repair_label, w.single_handed, w.accuracy, w.handling, w.fire_rate, w.ammo_mag_size, w.base_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.caliber, w.alt_caliber, w.hit_power, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
+                        section, w.name, w.description, w.weight, w.cost, w.repair_label, w.single_handed, w.accuracy, w.handling, w.fire_rate, w.fire_modes, w.ammo_mag_size, w.base_mag_size, w.max_range, w.speed, w.reliability, w.recoil, w.caliber, w.alt_caliber, w.hit_power, w.br1, w.br2, w.br3, w.br4, w.br5, w.br6, w.br7)
                 type_cnt = type_cnt + 1
             end
             debug_file:close()
