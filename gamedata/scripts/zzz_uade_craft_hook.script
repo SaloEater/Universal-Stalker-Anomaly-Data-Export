@@ -1,0 +1,61 @@
+-- Mirror of workshop_autoinject's recipe mutations, for the craft export.
+--
+-- craft.ltx is only the starting point for what a workshop actually offers: mods
+-- add, override and remove recipes at runtime through workshop_autoinject. That
+-- state lives in a file-local table there with no accessor, so — like the
+-- "Crafting Info in Tooltips" mods do — we wrap the four mutators and keep our own
+-- copy. universal_anomaly_data_export.export_recipes() replays it over craft.ltx.
+--
+-- Load order matters twice over, and the zzz_ prefix satisfies both: scripts load
+-- alphabetically, so this chunk runs after workshop_autoinject.script exists (the
+-- wrappers below would silently no-op otherwise), and every known injector calls in
+-- from on_game_start, which is strictly after all chunks have loaded.
+
+wai_added = {}       -- section -> { recipe_string, ... }
+wai_overrides = {}   -- section -> recipe_string, or "none" for a removal
+wai_deletions = {}   -- section -> true
+wai_index_map = {}   -- section -> workshop page index
+
+if workshop_autoinject then
+    -- add_new_recipe returns nil on success and false on rejection.
+    local base_add_recipe = workshop_autoinject.add_new_recipe
+    function workshop_autoinject.add_new_recipe(index, sec, recipe_string)
+        local res = base_add_recipe(index, sec, recipe_string)
+        if res ~= false then
+            if not wai_added[sec] then
+                wai_added[sec] = {}
+                wai_index_map[sec] = index
+            end
+            wai_added[sec][#wai_added[sec] + 1] = recipe_string
+        end
+        return res
+    end
+
+    local base_add_override = workshop_autoinject.add_override_recipe
+    function workshop_autoinject.add_override_recipe(sec, recipe_string, index)
+        local res = base_add_override(sec, recipe_string, index)
+        if res then
+            wai_overrides[sec] = recipe_string
+            wai_index_map[sec] = index or 1
+        end
+        return res
+    end
+
+    local base_remove_recipes = workshop_autoinject.remove_existing_recipes
+    function workshop_autoinject.remove_existing_recipes(sec)
+        local res = base_remove_recipes(sec)
+        if res then
+            wai_overrides[sec] = "none"
+        end
+        return res
+    end
+
+    local base_clear_recipes = workshop_autoinject.clear_existing_recipes
+    function workshop_autoinject.clear_existing_recipes(sec)
+        local res = base_clear_recipes(sec)
+        if res then
+            wai_deletions[sec] = true
+        end
+        return res
+    end
+end
